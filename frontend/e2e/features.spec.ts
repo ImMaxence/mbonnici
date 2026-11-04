@@ -128,3 +128,14 @@ test('leaving a form with unsaved changes asks first', async ({ page }) => {
   await page.locator('.admin-aside a', { hasText: 'Projets' }).click();
   await expect(page).toHaveURL(/\/admin\/projects/);
 });
+
+test('project pages share a generated 1200 × 630 JPEG', async ({ page, request: api }) => {
+  await page.goto('/fr/projets/localatscv');
+  const og = await page.locator('meta[property="og:image"]').getAttribute('content');
+  expect(og).toContain('/api/og/projects/localatscv.jpg?lang=fr');
+  await expect(page.locator('meta[property="og:image:width"]')).toHaveAttribute('content', '1200');
+  await expect(page.locator('meta[property="og:image:type"]')).toHaveAttribute('content', 'image/jpeg');
+  const res = await api.get(new URL(og!).pathname + new URL(og!).search);
+  expect(res.status()).toBe(200);
+  expect(res.headers()['content-type']).toContain('image/jpeg');
+});

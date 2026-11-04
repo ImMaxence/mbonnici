@@ -12,7 +12,7 @@ import { TranslatePipe } from '../../core/i18n/translate.pipe';
     <span class="pill" [attr.data-up]="site().up" [attr.title]="checked()">
       <i aria-hidden="true"></i>
       {{ (site().up ? 'project.online' : 'project.offline') | t }}
-      @if (site().up && site().latencyMs !== null) {
+      @if (site().up && site().latencyMs != null) {
         <span class="ms">· {{ site().latencyMs }} ms</span>
       }
     </span>

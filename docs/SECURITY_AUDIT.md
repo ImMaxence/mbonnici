@@ -163,3 +163,14 @@ readable by the authenticated owner.
   and the preview pages are `noindex`.
 - **Unused media clean-up** deletes only pictures referenced by no project, gallery, note or setting
   (computed server-side at the time of the request), after a confirmation dialog.
+
+## v1.5.0 additions
+
+- **`/api/og/*`**: public pictures of published pages only (drafts are 404), drawn from data already
+  public; cached and rate-limited like the API. `dwebp` runs without a shell on private temp files
+  with a 20 s timeout, like `cwebp`.
+- **`/api/analytics/errors`**: anonymous beacon (CSRF-exempt, analytics rate limit, DNT / GPC), sizes
+  bounded (message 2 000, stack 12 000 characters), at most 500 distinct entries kept (a flood only
+  increments counters). Admin paths are reduced to `/admin…`. Messages are shown as text in the back
+  office (no HTML).
+- **`site_check`** stores only a status code and a latency per check; purged after 30 days.

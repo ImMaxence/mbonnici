@@ -4,7 +4,7 @@ import { TooltipDirective } from '../../shared/ui/tooltip.directive';
 import { AuthService } from '../../core/auth/auth.service';
 import { Component, DestroyRef, afterNextRender, computed, inject, signal } from '@angular/core';
 import { ApiService } from '../../core/api/api.service';
-import type { AdminInfo, AnalyticsOverview, KeyCount, SystemInfo, VitalMetric, VitalsOverview } from '../../core/api/models';
+import type { AdminInfo, AnalyticsOverview, KeyCount, SystemInfo, VitalMetric, VitalsOverview, SiteHistory } from '../../core/api/models';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { LocalizedPipe, TranslatePipe } from '../../core/i18n/translate.pipe';
 import { IconComponent } from '../../shared/ui/icon.component';
@@ -69,6 +69,11 @@ const PAD = { top: 16, right: 16, bottom: 28, left: 36 };
           <span class="k-label">{{ 'admin.dashboard.outbound' | t }}</span>
           <span class="k-value num">{{ fmt(o.outboundClicks) }}</span>
           <span class="k-foot faint">{{ 'admin.dashboard.outboundHint' | t }}</span>
+        </article>
+        <article class="kpi">
+          <span class="k-label">{{ 'admin.dashboard.cvDownloads' | t }}</span>
+          <span class="k-value num">{{ fmt(o.cvDownloads ?? 0) }}</span>
+          <span class="k-foot faint">{{ 'admin.dashboard.cvHint' | t }}</span>
         </article>
         <a class="kpi link" routerLink="/admin/messages">
           <span class="k-label">{{ 'admin.dashboard.contacts' | t }}</span>
@@ -206,7 +211,7 @@ const PAD = { top: 16, right: 16, bottom: 28, left: 36 };
               @for (m of v.metrics; track m.metric) {
                 <div class="vital" [attr.data-rating]="rating(m.metric, m.p75)" [appTip]="'admin.vitals.help.' + m.metric | t">
                   <span class="v-name mono">{{ m.metric }}</span>
-                  <strong class="v-value">{{ m.p75 === null ? '—' : format(m.metric, m.p75) }}</strong>
+                  <strong class="v-value">{{ m.p75 == null ? '—' : format(m.metric, m.p75) }}</strong>
                   <span class="v-label small">{{ 'admin.vitals.label.' + m.metric | t }}</span>
                   <span class="v-bar" aria-hidden="true">
                     <i class="good" [style.flex-grow]="m.good"></i><i class="ni" [style.flex-grow]="m.needsImprovement"></i><i class="poor" [style.flex-grow]="m.poor"></i>
@@ -221,7 +226,7 @@ const PAD = { top: 16, right: 16, bottom: 28, left: 36 };
                   <div class="device">
                     <span class="small"><app-icon [name]="d.key === 'mobile' ? 'phone' : 'monitor'" [size]="14" /> {{ 'admin.vitals.device.' + d.key | t }}</span>
                     @for (m of d.stats; track m.metric) {
-                      <span class="mono small chip-v" [attr.data-rating]="rating(m.metric, m.p75)">{{ m.metric }} {{ m.p75 === null ? '—' : format(m.metric, m.p75) }}</span>
+                      <span class="mono small chip-v" [attr.data-rating]="rating(m.metric, m.p75)">{{ m.metric }} {{ m.p75 == null ? '—' : format(m.metric, m.p75) }}</span>
                     }
                   </div>
                 }
@@ -235,9 +240,9 @@ const PAD = { top: 16, right: 16, bottom: 28, left: 36 };
                     @for (p of v.pages.slice(0, 6); track p.path) {
                       <tr>
                         <td class="mono small">{{ p.path }}</td>
-                        <td class="num" [attr.data-rating]="rating('LCP', p.lcp)">{{ p.lcp === null ? '—' : format('LCP', p.lcp) }}</td>
-                        <td class="num" [attr.data-rating]="rating('INP', p.inp)">{{ p.inp === null ? '—' : format('INP', p.inp) }}</td>
-                        <td class="num" [attr.data-rating]="rating('CLS', p.cls)">{{ p.cls === null ? '—' : format('CLS', p.cls) }}</td>
+                        <td class="num" [attr.data-rating]="rating('LCP', p.lcp)">{{ p.lcp == null ? '—' : format('LCP', p.lcp) }}</td>
+                        <td class="num" [attr.data-rating]="rating('INP', p.inp)">{{ p.inp == null ? '—' : format('INP', p.inp) }}</td>
+                        <td class="num" [attr.data-rating]="rating('CLS', p.cls)">{{ p.cls == null ? '—' : format('CLS', p.cls) }}</td>
                         <td class="num faint">{{ p.samples }}</td>
                       </tr>
                     }
@@ -248,6 +253,58 @@ const PAD = { top: 16, right: 16, bottom: 28, left: 36 };
           }
         }
       </section>
+
+      <!-- ── live sites ── -->
+      @if (sites()?.length) {
+        <section class="panel sites">
+          <div class="panel-head">
+            <h2>{{ 'admin.sites.title' | t }}</h2>
+            <span class="small faint">{{ 'admin.sites.subtitle' | t }}</span>
+          </div>
+          <table class="table sites-table">
+            <thead>
+              <tr>
+                <th>{{ 'admin.sites.site' | t }}</th>
+                <th>{{ 'admin.sites.now' | t }}</th>
+                <th class="hours-col">{{ 'admin.sites.last24' | t }}</th>
+                <th class="num">24 h</th>
+                <th class="num">7 j</th>
+                <th class="num">{{ 'admin.sites.latency' | t }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (site of sites(); track site.slug) {
+                <tr>
+                  <td>
+                    <strong>{{ site.title }}</strong>
+                    <a class="mono small faint url" [href]="site.url" target="_blank" rel="noopener">{{ host(site.url) }}</a>
+                  </td>
+                  <td>
+                    @if (site.current; as c) {
+                      <span class="status-pill" [attr.data-status]="c.up ? 'PUBLISHED' : 'FAILED'">{{ (c.up ? 'project.online' : 'project.offline') | t }}</span>
+                    } @else {
+                      <span class="faint">—</span>
+                    }
+                  </td>
+                  <td class="hours-col">
+                    <span class="hours" role="img" [attr.aria-label]="'admin.sites.barsLabel' | t">
+                      @for (h of hourBars(site); track h.key) {
+                        <i [attr.data-state]="h.state" [style.--h.%]="h.height" [attr.title]="h.label"></i>
+                      }
+                    </span>
+                  </td>
+                  <td class="num">{{ percent(site.uptime24h) }}</td>
+                  <td class="num">{{ percent(site.uptime7d) }}</td>
+                  <td class="num">{{ site.latency24h == null ? '—' : site.latency24h + ' ms' }}</td>
+                </tr>
+                @if (site.lastDown) {
+                  <tr class="incident"><td colspan="6" class="small faint">{{ 'admin.sites.lastDown' | t: { when: i18n.formatDate(site.lastDown, { dateStyle: 'medium', timeStyle: 'short' }) } }}</td></tr>
+                }
+              }
+            </tbody>
+          </table>
+        </section>
+      }
 
       <!-- ── system ── -->
       <section class="grid two">
@@ -289,6 +346,12 @@ const PAD = { top: 16, right: 16, bottom: 28, left: 36 };
               <li><span>{{ 'admin.dashboard.springBoot' | t }} · {{ 'admin.dashboard.java' | t }}</span><span class="mono">{{ inf.backend.springBootVersion }} · {{ inf.backend.javaVersion }}</span></li>
               <li><span>{{ 'admin.dashboard.uptime' | t }}</span><span class="mono">{{ uptime(inf.backend.uptimeSeconds) }}</span></li>
             }
+            <li>
+              <span>{{ 'admin.errors.title' | t }}</span>
+              <a routerLink="/admin/errors">
+                <span class="status-pill" [attr.data-status]="openErrors() ? 'FAILED' : 'PUBLISHED'">{{ openErrors() ? ('admin.errors.openCount' | t: { n: openErrors() }) : ('admin.errors.allClear' | t) }}</span>
+              </a>
+            </li>
           </ul>
         </div>
       </section>
@@ -374,7 +437,7 @@ const PAD = { top: 16, right: 16, bottom: 28, left: 36 };
     }
     .kpis {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
       gap: 1rem;
       margin-bottom: 1.25rem;
     }
@@ -569,8 +632,50 @@ const PAD = { top: 16, right: 16, bottom: 28, left: 36 };
       align-items: center;
       gap: 0.35rem;
     }
-    .vitals {
+    .vitals,
+    .sites {
       margin-bottom: var(--space-5);
+    }
+    .sites-table td {
+      vertical-align: middle;
+    }
+    .sites-table .url {
+      display: block;
+    }
+    .sites-table .url:hover {
+      color: var(--accent);
+    }
+    .incident td {
+      padding-top: 0;
+      border-top: 0;
+    }
+    .hours {
+      display: flex;
+      align-items: flex-end;
+      gap: 2px;
+      height: 28px;
+      min-width: 168px;
+    }
+    .hours i {
+      flex: 1;
+      height: var(--h, 12%);
+      min-height: 3px;
+      border-radius: 2px;
+      background: var(--line);
+    }
+    .hours i[data-state='up'] {
+      background: #22a05a;
+    }
+    .hours i[data-state='partial'] {
+      background: #e0a12a;
+    }
+    .hours i[data-state='down'] {
+      background: #e5484d;
+    }
+    @media (max-width: 760px) {
+      .hours-col {
+        display: none;
+      }
     }
     .vital-grid {
       display: grid;
@@ -1019,12 +1124,50 @@ export class DashboardPage {
 
   private async load(): Promise<void> {
     try {
-      const [overview, vitals] = await Promise.all([this.api.analytics(this.days()), this.api.vitals(this.days()).catch(() => null)]);
+      const [overview, vitals, sites, errors] = await Promise.all([
+        this.api.analytics(this.days()),
+        this.api.vitals(this.days()).catch(() => null),
+        this.api.siteHistory().catch(() => null),
+        this.api.errorSummary().catch(() => null),
+      ]);
       this.overview.set(overview);
       this.vitals.set(vitals);
+      this.sites.set(sites);
+      this.openErrors.set(errors?.open ?? 0);
     } catch (e) {
       this.error.set(String(e));
     }
+  }
+
+  // ── live sites ─────────────────────────────────────────────────────────
+  readonly sites = signal<SiteHistory[] | null>(null);
+  readonly openErrors = signal(0);
+
+  host(url: string): string {
+    return url.replace(/^https?:\/\/(www\.)?/, '').replace(/\/.*$/, '');
+  }
+
+  percent(v: number | null | undefined): string {
+    return v == null ? '—' : new Intl.NumberFormat(this.i18n.locale(), { style: 'percent', maximumFractionDigits: 1 }).format(v);
+  }
+
+  /** the last 24 hours, one bar per hour: height = response time, colour = share of good checks */
+  hourBars(site: SiteHistory): { key: string; state: string; height: number; label: string }[] {
+    const byHour = new Map(site.hours.map((h) => [new Date(h.hour).getTime(), h]));
+    const max = Math.max(300, ...site.hours.map((h) => h.latencyMs ?? 0));
+    const now = new Date();
+    now.setMinutes(0, 0, 0);
+    const fmt = new Intl.DateTimeFormat(this.i18n.locale(), { hour: '2-digit', minute: '2-digit' });
+    const out = [];
+    for (let i = 23; i >= 0; i--) {
+      const t = now.getTime() - i * 3_600_000;
+      const h = byHour.get(t);
+      const state = !h ? 'none' : h.up >= 0.999 ? 'up' : h.up > 0 ? 'partial' : 'down';
+      const height = !h ? 12 : h.latencyMs == null ? 100 : Math.max(14, Math.round((h.latencyMs / max) * 100));
+      const label = fmt.format(new Date(t)) + (h ? ' · ' + (h.latencyMs ?? '—') + ' ms · ' + Math.round(h.up * 100) + ' %' : '');
+      out.push({ key: String(t), state, height, label });
+    }
+    return out;
   }
 
   // ── Core Web Vitals ────────────────────────────────────────────────────
@@ -1043,8 +1186,8 @@ export class DashboardPage {
     TTFB: [800, 1800],
   };
 
-  rating(metric: VitalMetric | string, value: number | null): 'good' | 'ni' | 'poor' | null {
-    if (value === null) return null;
+  rating(metric: VitalMetric | string, value: number | null | undefined): 'good' | 'ni' | 'poor' | null {
+    if (value == null) return null;
     const [good, poor] = DashboardPage.LIMITS[metric as VitalMetric];
     return value <= good ? 'good' : value <= poor ? 'ni' : 'poor';
   }

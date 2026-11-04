@@ -35,6 +35,8 @@ import type {
   Insight,
   ProjectDetail,
   VitalsOverview,
+  ErrorEntry,
+  SiteHistory,
 } from './models';
 
 /** Absolute origin of the API during SSR (e.g. http://backend:8080); empty in the browser (same origin). */
@@ -77,6 +79,31 @@ export class ApiService {
   // ── admin: info & analytics ────────────────────────────────────────────────
   adminInfo(): Promise<AdminInfo> {
     return firstValueFrom(this.http.get<AdminInfo>('/api/admin/info'));
+  }
+
+  // ── admin: monitoring ──────────────────────────────────────────────────────
+  errors(resolved = false): Promise<ErrorEntry[]> {
+    return firstValueFrom(this.http.get<ErrorEntry[]>('/api/admin/errors', { params: { resolved } }));
+  }
+
+  errorSummary(): Promise<{ open: number; last24h: number }> {
+    return firstValueFrom(this.http.get<{ open: number; last24h: number }>('/api/admin/errors/summary'));
+  }
+
+  resolveError(id: number, value: boolean): Promise<void> {
+    return firstValueFrom(this.http.put<void>(`/api/admin/errors/${id}/resolved`, null, { params: { value } }));
+  }
+
+  deleteError(id: number): Promise<void> {
+    return firstValueFrom(this.http.delete<void>(`/api/admin/errors/${id}`));
+  }
+
+  deleteResolvedErrors(): Promise<{ deleted: number }> {
+    return firstValueFrom(this.http.delete<{ deleted: number }>('/api/admin/errors/resolved'));
+  }
+
+  siteHistory(): Promise<SiteHistory[]> {
+    return firstValueFrom(this.http.get<SiteHistory[]>('/api/admin/insights/sites'));
   }
 
   vitals(days: number): Promise<VitalsOverview> {

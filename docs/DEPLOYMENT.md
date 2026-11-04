@@ -77,11 +77,39 @@ dashboard shows which commit is running on each tier.
 - DNS: `A`/`AAAA` record for `mbonnici.fr` pointing to the server, **proxied** (orange cloud).
 - SSL/TLS: **Full (strict)**. Issue a Cloudflare *Origin Certificate* and paste it in Coolify's
   certificate settings for the domain (or let Traefik use Let's Encrypt through the DNS challenge).
-- Recommended: enable *Always Use HTTPS*, *HTTP/3*, *Brotli*, *Early Hints*, and a cache rule
-  "Cache everything" on `/api/media/*` (responses are immutable). Do **not** cache HTML:
-  pages carry a per-request CSP nonce.
+- Recommended: enable *Always Use HTTPS*, *HTTP/3*, *Brotli* and *Early Hints*.
+- **Cache rules** (Caching → Cache Rules), in this order:
+
+  | Match (URI path) | Setting | Why |
+  |---|---|---|
+  | starts with `/api/media/` | Eligible for cache, edge TTL: respect origin | immutable pictures (1 year, ETag) |
+  | starts with `/api/og/` | Eligible for cache, edge TTL: respect origin | share pictures (1 day, ETag) |
+  | equals `/fr/rss.xml`, `/en/rss.xml`, `/sitemap.xml`, `/llms.txt`, `/llms-full.txt` | Eligible for cache, respect origin | 1 hour |
+  | starts with `/api/` (anything else) | **Bypass cache** | sessions, CSRF, admin, beacons |
+  | everything else (HTML) | **Bypass cache** | each page carries a per-request CSP nonce |
+
+  `/api/cv` may also be cached (10 minutes, ETag) but it is cheap once rendered.
 - The backend reads the real visitor IP from `CF-Connecting-IP` (`TRUST_PROXY=true`), so rate
   limits and analytics work behind the proxy.
+
+## Pre-production checklist
+
+1. **Dependencies**: `npm audit` in `frontend` (0 vulnerabilities at 1.5.0) and the Maven versions
+   (Spring Boot 4.1.2 and AWS SDK 2.57.8 were the latest at 1.5.0; libraries managed by the Spring Boot
+   BOM follow Spring Boot, do not bump them by hand).
+2. **Secrets** in Coolify: `POSTGRES_PASSWORD`, `S3_SECRET_KEY`, `ANALYTICS_SALT_SECRET` (long random
+   values), `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`, `ADMIN_EMAIL`, `APP_URL=https://mbonnici.fr`;
+   optional `GITHUB_TOKEN`. `DEV_LOGIN` must **not** be set (it is refused anyway unless `APP_URL`
+   is localhost).
+3. **Google console**: authorised redirect URI `https://mbonnici.fr/api/auth/oauth2/code/google`
+   (and the Drive scope if backups go to Drive).
+4. **Cloudflare**: DNS proxied, Full (strict), the cache rules above.
+5. **First start**: sign in at `/admin`, import `seed/mbonnici-starter.zip` (Sauvegardes → Restaurer
+   depuis un fichier), check the dashboard (Versions & santé all "ok", Sites en ligne filled after a
+   few minutes), make a first backup.
+6. **Checks**: `https://mbonnici.fr/robots.txt`, `/sitemap.xml`, a project page shared in the
+   LinkedIn Post Inspector (share picture), `/api/cv?lang=fr`, the contact form (a message appears in
+   the back office).
 
 ## 4. Sub-projects on the same domain
 

@@ -321,6 +321,31 @@ export interface ArticleUpsert {
   publishedAt: string | null;
 }
 
+// ── monitoring (back office) ─────────────────────────────────────────────────
+export interface ErrorEntry {
+  id: number;
+  source: 'CLIENT' | 'SERVER';
+  message: string;
+  detail: string | null;
+  path: string | null;
+  occurrences: number;
+  firstSeen: string;
+  lastSeen: string;
+  resolved: boolean;
+}
+
+export interface SiteHistory {
+  slug: string;
+  title: string;
+  url: string;
+  current: SiteStatus | null;
+  uptime24h: number | null;
+  uptime7d: number | null;
+  latency24h: number | null;
+  lastDown: string | null;
+  hours: { hour: string; up: number; latencyMs: number | null; checks: number }[];
+}
+
 // ── Core Web Vitals (real users) ─────────────────────────────────────────────
 export type VitalMetric = 'LCP' | 'INP' | 'CLS' | 'FCP' | 'TTFB';
 
@@ -376,6 +401,7 @@ export interface AnalyticsOverview {
   projectViews: number;
   outboundClicks: number;
   contactSubmits: number;
+  cvDownloads?: number;
   daily: DailyPoint[];
   topProjects: ProjectStat[];
   topPaths: KeyCount[];
@@ -511,7 +537,7 @@ export interface SystemInfo {
   sampledAt: string;
 }
 
-export type AnalyticsEventType = 'PAGE_VIEW' | 'PROJECT_VIEW' | 'OUTBOUND_CLICK' | 'CONTACT_SUBMIT';
+export type AnalyticsEventType = 'PAGE_VIEW' | 'PROJECT_VIEW' | 'OUTBOUND_CLICK' | 'CONTACT_SUBMIT' | 'CV_DOWNLOAD';
 
 export interface AnalyticsEvent {
   type: AnalyticsEventType;

@@ -134,6 +134,20 @@ also has a focal point (`focal_x`, `focal_y`, top centre by default) used as `ob
 - **Texts per language** are stored as typed (`Localized.clean`); public DTOs apply `filled()` (the
   other language stands in), the back office reads them raw to show what is left to translate.
 
+## Share pictures, monitoring (1.5.0)
+
+- **Share pictures**: `OgImageService` draws 1200 × 630 JPEGs with Java2D and the TTF fonts of
+  `resources/cv/fonts` (eyebrow, Inter Tight title fitted on three lines, tagline, signature; the cover
+  in a browser window, or a note cover, or the project initial on its accent colour). Covers are
+  decoded from WebP with `dwebp` (`WebpEncoder.decode`), the 1280 px copy when there is one. Cached in
+  memory per page and language until the content fingerprint changes.
+- **Site checks**: every check of `InsightsService` is also stored in `site_check` (30 days);
+  `/api/admin/insights/sites` aggregates them per hour for the dashboard.
+- **Error log**: `ErrorLogService` keeps `error_log` rows grouped by fingerprint (source, message
+  with numbers and ids masked, first stack frames without line numbers). Server errors come from
+  `GlobalExceptionHandler` (5xx), browser errors from `ReportingErrorHandler` (Angular's
+  `ErrorHandler`, fed by `provideBrowserGlobalErrorListeners`) through `/api/analytics/errors`.
+
 ## Contact messages
 
 Every message is stored (`contact_message`) and only read in the back office (Messages, unread

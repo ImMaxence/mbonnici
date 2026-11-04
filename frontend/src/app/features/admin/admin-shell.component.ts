@@ -107,6 +107,8 @@ export class AdminShellComponent {
   private readonly router = inject(Router);
   readonly version = APP_VERSION;
   readonly unread = signal(0);
+  /** open entries of the error log */
+  readonly openErrors = signal(0);
   readonly navOpen = signal(false);
   readonly settings = signal<Settings | null>(null);
 
@@ -137,6 +139,7 @@ export class AdminShellComponent {
       links: [
         { path: '/admin/settings', icon: 'settings', key: 'settings' },
         { path: '/admin/backups', icon: 'upload', key: 'backups' },
+        { path: '/admin/errors', icon: 'gauge', key: 'errors', badge: () => this.openErrors() },
         { path: '/admin/changelog', icon: 'sparkles', key: 'changelog' },
       ],
     },
@@ -160,6 +163,7 @@ export class AdminShellComponent {
       this.api.adminSettings().then((s) => this.settings.set(s)).catch(() => undefined);
       const refresh = (): void => {
         this.api.unreadCount().then((r) => this.unread.set(r.unread)).catch(() => undefined);
+        this.api.errorSummary().then((r) => this.openErrors.set(r.open)).catch(() => undefined);
       };
       refresh();
       const timer = setInterval(refresh, 60_000);

@@ -3,6 +3,7 @@ import type { Settings } from '../../core/api/models';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { LocalizedPipe, TranslatePipe } from '../../core/i18n/translate.pipe';
 import { MotionService } from '../../core/motion/motion.service';
+import { AnalyticsService } from '../../core/analytics/analytics.service';
 import { LinkDirective } from '../curtain/link.directive';
 import { MagneticDirective } from '../cursor/magnetic.directive';
 import { IconComponent } from './icon.component';
@@ -40,7 +41,7 @@ import { IconComponent } from './icon.component';
             @if (settings()?.linkedinUrl; as li) {
               <a [href]="li" target="_blank" rel="noopener noreferrer me">LinkedIn <app-icon name="arrow-up-right" [size]="14" /></a>
             }
-            <a [href]="'/api/cv?lang=' + i18n.lang()" target="_blank" rel="noopener">{{ 'footer.cv' | t }} <app-icon name="arrow-up-right" [size]="14" /></a>
+            <a [href]="'/api/cv?lang=' + i18n.lang()" target="_blank" rel="noopener" (click)="cv()">{{ 'footer.cv' | t }} <app-icon name="arrow-up-right" [size]="14" /></a>
             <a href="https://github.com/ImMaxence/mbonnici" target="_blank" rel="noopener noreferrer">{{ 'footer.source' | t }} <app-icon name="arrow-up-right" [size]="14" /></a>
           </div>
         </div>
@@ -173,6 +174,12 @@ export class FooterComponent {
   readonly i18n = inject(I18nService);
   private readonly motion = inject(MotionService);
   readonly year = new Date().getFullYear();
+
+  private readonly analytics = inject(AnalyticsService);
+
+  cv(): void {
+    this.analytics.cvDownload(location.pathname);
+  }
 
   top(): void {
     window.scrollTo({ top: 0, behavior: this.motion.reduced() ? 'auto' : 'smooth' });

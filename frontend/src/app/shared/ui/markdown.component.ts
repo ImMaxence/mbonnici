@@ -1,6 +1,7 @@
 import { NgTemplateOutlet } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 import { stripDot } from './text';
+import { Token, highlight, slugify } from './highlight';
 
 type Inline =
   | { t: 'text'; v: string }
@@ -11,10 +12,10 @@ type Inline =
 
 type Block =
   | { t: 'p'; v: Inline[] }
-  | { t: 'h'; level: 2 | 3; v: Inline[] }
+  | { t: 'h'; level: 2 | 3; v: Inline[]; id: string; text: string }
   | { t: 'ul'; items: Inline[][] }
   | { t: 'ol'; items: Inline[][] }
-  | { t: 'pre'; lang: string; code: string }
+  | { t: 'pre'; lang: string; code: string; tokens: Token[] }
   | { t: 'quote'; v: Inline[] };
 
 /**
@@ -60,9 +61,9 @@ type Block =
         }
         @case ('h') {
           @if (b.level === 2) {
-            <h2><ng-container *ngTemplateOutlet="inline; context: { $implicit: b.v }" /></h2>
+            <h2 [id]="b.id"><ng-container *ngTemplateOutlet="inline; context: { $implicit: b.v }" /></h2>
           } @else {
-            <h3><ng-container *ngTemplateOutlet="inline; context: { $implicit: b.v }" /></h3>
+            <h3 [id]="b.id"><ng-container *ngTemplateOutlet="inline; context: { $implicit: b.v }" /></h3>
           }
         }
         @case ('ul') {
@@ -83,7 +84,8 @@ type Block =
           <blockquote><ng-container *ngTemplateOutlet="inline; context: { $implicit: b.v }" /></blockquote>
         }
         @case ('pre') {
-          <pre class="code" [attr.data-lang]="b.lang || null"><code>{{ b.code }}</code></pre>
+          <!-- one line: whitespace inside <pre> is kept -->
+          <pre class="code" [attr.data-lang]="b.lang || null"><code>@for (tk of b.tokens; track $index) {<span [class]="tk.c ? 'tk-' + tk.c : null">{{ tk.v }}</span>}</code></pre>
         }
       }
     }
@@ -119,6 +121,7 @@ export function parseMarkdown(src: string): Block[] {
   let para: string[] = [];
   let list: { t: 'ul' | 'ol'; items: string[] } | null = null;
   let quote: string[] = [];
+  const ids = new Set<string>();
   let fence: { lang: string; lines: string[] } | null = null;
   const flushQuote = (): void => {
     if (quote.length) blocks.push({ t: 'quote', v: parseInline(quote.join(' ')) });
@@ -138,7 +141,7 @@ export function parseMarkdown(src: string): Block[] {
     const fenceMark = /^\s{0,3}```\s*([\w+#-]*)\s*$/.exec(line);
     if (fence) {
       if (fenceMark && !fenceMark[1]) {
-        blocks.push({ t: 'pre', lang: fence.lang, code: fence.lines.join('\n') });
+        blocks.push({ t: 'pre', lang: fence.lang, code: fence.lines.join('\n'), tokens: highlight(fence.lines.join('\n'), fence.lang) });
         fence = null;
       } else {
         fence.lines.push(raw);
@@ -170,7 +173,11 @@ export function parseMarkdown(src: string): Block[] {
     if (heading) {
       flushPara();
       flushList();
-      blocks.push({ t: 'h', level: heading[1].length <= 2 ? 2 : 3, v: parseInline(heading[2]) });
+      const text = heading[2].replace(/[*_`]/g, '');
+      let id = slugify(text);
+      for (let n = 2; ids.has(id); n++) id = slugify(text) + '-' + n;
+      ids.add(id);
+      blocks.push({ t: 'h', level: heading[1].length <= 2 ? 2 : 3, v: parseInline(heading[2]), id, text });
       continue;
     }
     const item = /^\s*(?:([-*•])|\d+[.)])\s+(.*)$/.exec(line);
@@ -190,7 +197,7 @@ export function parseMarkdown(src: string): Block[] {
     flushList();
     para.push(line.trim());
   }
-  if (fence) blocks.push({ t: 'pre', lang: fence.lang, code: fence.lines.join('\n') });
+  if (fence) blocks.push({ t: 'pre', lang: fence.lang, code: fence.lines.join('\n'), tokens: highlight(fence.lines.join('\n'), fence.lang) });
   flushPara();
   flushList();
   flushQuote();

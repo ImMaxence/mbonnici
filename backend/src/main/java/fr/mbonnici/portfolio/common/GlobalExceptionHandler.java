@@ -23,8 +23,17 @@ public class GlobalExceptionHandler {
 
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
+    private final fr.mbonnici.portfolio.errors.ErrorLogService errors;
+
+    public GlobalExceptionHandler(fr.mbonnici.portfolio.errors.ErrorLogService errors) {
+        this.errors = errors;
+    }
+
     @ExceptionHandler(ApiException.class)
     public ResponseEntity<ApiError> handleApi(ApiException ex, HttpServletRequest req) {
+        if (ex.status().is5xxServerError()) {
+            errors.recordServer(ex, req.getRequestURI());
+        }
         return build(ex.status(), ex.getMessage(), null, req);
     }
 
@@ -62,6 +71,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiError> handleOther(Exception ex, HttpServletRequest req) {
         log.error("Unhandled error on {} {}", req.getMethod(), req.getRequestURI(), ex);
+        // kept for the back office's error log (Journal)
+        errors.recordServer(ex, req.getMethod() + " " + req.getRequestURI());
         return build(HttpStatus.INTERNAL_SERVER_ERROR, "Unexpected error", null, req);
     }
 

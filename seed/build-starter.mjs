@@ -85,14 +85,14 @@ for (const p of projects) {
   const media = [];
   let cover = null;
   if (shots.desktop) {
-    cover = await upload(shots.desktop.src, `${p.slug}-desktop.png`, `Page d’accueil de ${title}`, `Home page of ${title}`);
+    cover = await upload(shots.desktop.src, `${p.slug}-desktop.png`, shots.desktop.alt?.fr ?? `Page d’accueil de ${title}`, shots.desktop.alt?.en ?? `Home page of ${title}`);
   }
   if (shots.mobile) {
-    const id = await upload(shots.mobile.src, `${p.slug}-mobile.png`, `${title} sur téléphone`, `${title} on a phone`, !!shots.mobile.bare);
+    const id = await upload(shots.mobile.src, `${p.slug}-mobile.png`, shots.mobile.alt?.fr ?? `${title} sur téléphone`, shots.mobile.alt?.en ?? `${title} on a phone`, !!shots.mobile.bare);
     media.push({ mediaId: id, kind: 'MOBILE', sortOrder: media.length });
   }
   for (const [i, g] of shots.gallery.entries()) {
-    const id = await upload(g.src, `${p.slug}-gallery-${i + 1}.png`, `${title}, capture ${i + 1}`, `${title}, screenshot ${i + 1}`);
+    const id = await upload(g.src, `${p.slug}-gallery-${i + 1}.png`, g.alt?.fr ?? `${title}, capture ${i + 1}`, g.alt?.en ?? `${title}, screenshot ${i + 1}`);
     media.push({ mediaId: id, kind: 'GALLERY', sortOrder: media.length });
   }
   const full = await (await api.get(`/api/admin/projects/${p.id}`)).json();

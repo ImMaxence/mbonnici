@@ -300,6 +300,7 @@ export const en: Dictionary = {
             'To know which pages and projects are viewed, the site records anonymous events (page view, project view, outbound link). Each visit is tied to an ephemeral identifier computed from your IP address and browser, hashed with a salt that changes every day: you cannot be recognised from one day to the next and the IP address is never stored.',
             'Your browser’s “Do Not Track” and “Global Privacy Control” signals are honoured: no event is recorded when they are on. Raw events are deleted after 13 months.',
             'To check that the site stays fast, your browser also sends, when you leave the first page you visited, a few performance measurements (display time, responsiveness, layout stability) with the page path and the screen width. They are tied to no identifier, not even a temporary one, follow the same signals and are deleted after 13 months.',
+            'If a technical error happens in your browser, its message and the page concerned are sent to the site to be fixed, with no information about you; these reports follow the same signals and are erased at the latest 90 days after the last occurrence.',
           ],
         },
         {
@@ -387,7 +388,7 @@ export const en: Dictionary = {
         {
           h: 'Compliance status',
           p: [
-            '{siteUrl} is partially compliant with the French accessibility framework RGAA version 4.1.2 and with WCAG 2.2 level AA, because of the non-compliances and exemptions listed below.',
+            '{siteUrl} is partially compliant with the French accessibility framework RGAA version 4.1.2 and with WCAG 2.2 level AA. No non-compliance is known to date, but the evaluation did not cover the 106 RGAA criteria in a full audit, so the site cannot be declared fully compliant.',
           ],
         },
         {
@@ -400,7 +401,7 @@ export const en: Dictionary = {
         {
           h: 'Non-accessible content',
           p: [
-            'Known non-compliances: some project screenshots still have a generic alternative text (“home page of…”) that does not describe their content in detail. Each picture can be given a description from the back office, where pictures without alternative text are flagged; this statement will be updated once every description is written.',
+            'Known non-compliances: none to date. Every project screenshot has an alternative text that describes its content (page, headings, visible actions); pictures added without a description are flagged in the back office.',
             'The site loaded in “Live” mode is a third-party site whose accessibility does not depend on this site. The PDF resume is generated from the content of the About page, which remains its accessible reference version.',
             'Exemption for disproportionate burden: none. Content outside the scope: third-party sites loaded in a frame at the visitor’s request.',
           ],
@@ -435,6 +436,7 @@ export const en: Dictionary = {
   },
 
   notes: {
+    toc: 'Contents',
     titleA: 'Field',
     titleB: 'notes',
     subtitle: 'What I learn while building and hosting my projects: decisions, tools, useful mistakes',
@@ -476,6 +478,37 @@ export const en: Dictionary = {
   },
 
   admin: {
+    errors: {
+      title: 'Error log',
+      intro: 'JavaScript errors of visitors and unexpected API errors, grouped. Nothing about the visitors, only the page',
+      open: 'To handle',
+      resolved: 'Resolved',
+      none: 'No error to handle',
+      noneResolved: 'No resolved error',
+      source: { CLIENT: 'Browser', SERVER: 'Server' },
+      occurrences: '{n} times',
+      first: 'first',
+      last: 'last',
+      detail: 'Technical detail',
+      markResolved: 'Mark as resolved',
+      reopen: 'Reopen',
+      delete: 'Delete',
+      confirmDelete: 'Delete this error from the log?',
+      clear: 'Clear the resolved ones',
+      confirmClear: 'Delete every resolved error?',
+      openCount: '{n} to handle',
+      allClear: 'all clear',
+    },
+    sites: {
+      title: 'Live sites',
+      subtitle: 'Checked every 5 minutes, 30 days of history',
+      site: 'Site',
+      now: 'Now',
+      last24: 'Last 24 h',
+      latency: 'Response',
+      barsLabel: 'One bar per hour: height = response time, colour = availability',
+      lastDown: 'Last outage: {when}',
+    },
     unsaved: {
       title: 'Leave without saving?',
       message: 'The changes made on this page will be lost',
@@ -549,6 +582,7 @@ export const en: Dictionary = {
       footer: 'Restricted access · refused attempts are logged',
     },
     nav: {
+      errors: 'Error log',
       notes: 'Notes',
       dashboard: 'Dashboard',
       projects: 'Projects',
@@ -562,6 +596,8 @@ export const en: Dictionary = {
       logout: 'Sign out',
     },
     dashboard: {
+      cvDownloads: 'Resume downloads',
+      cvHint: 'PDFs opened from About and the footer',
       title: 'Dashboard',
       hello: 'Hello {name}',
       subtitle: 'here is how the site is doing',

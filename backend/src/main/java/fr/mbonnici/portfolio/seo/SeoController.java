@@ -134,6 +134,8 @@ public class SeoController {
                 User-agent: *
                 Allow: /
                 Allow: /api/media/
+                Allow: /api/og/
+                Allow: /api/cv
                 Disallow: /admin
                 Disallow: /api/
 
@@ -155,6 +157,8 @@ public class SeoController {
                 User-agent: CCBot
                 Allow: /
                 Allow: /api/media/
+                Allow: /api/og/
+                Allow: /api/cv
                 Disallow: /admin
                 Disallow: /api/
 

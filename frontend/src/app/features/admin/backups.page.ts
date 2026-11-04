@@ -48,7 +48,7 @@ import { TooltipDirective } from '../../shared/ui/tooltip.directive';
         @if (overview()?.drive; as d) {
           @if (d.connected) {
             <p><app-icon name="check" [size]="14" /> {{ 'admin.backups.drive.connected' | t: { email: d.email ?? '' } }}</p>
-            @if (d.quotaLimit && d.quotaUsage !== null) {
+            @if (d.quotaLimit && d.quotaUsage != null) {
               <div class="bar-row" style="margin-top: .6rem">
                 <div class="bar"><i [style.--w.%]="pct(d.quotaUsage, d.quotaLimit)"></i><span>{{ 'admin.backups.drive.quota' | t: { used: size(d.quotaUsage), total: size(d.quotaLimit) } }}</span></div>
                 <span class="num mono">{{ pct(d.quotaUsage, d.quotaLimit) }} %</span>

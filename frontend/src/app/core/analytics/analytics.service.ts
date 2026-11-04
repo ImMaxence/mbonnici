@@ -62,6 +62,12 @@ export class AnalyticsService {
     this.flush();
   }
 
+  /** the PDF resume was opened or downloaded */
+  cvDownload(path: string): void {
+    this.track('CV_DOWNLOAD', path);
+    this.flush();
+  }
+
   contactSubmitted(path: string): void {
     this.track('CONTACT_SUBMIT', path);
     this.flush();

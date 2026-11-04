@@ -19,6 +19,7 @@ import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import tools.jackson.databind.JsonNode;
@@ -49,10 +50,18 @@ public class InsightsService {
 
     public record Insight(SiteStatus site, RepoStats repo) {}
 
+    /** one hour of checks: share of successful checks (0..1) and mean response time */
+    public record Hour(Instant hour, double up, Integer latencyMs, int checks) {}
+
+    /** a project's site over the last day and week (back-office dashboard) */
+    public record SiteHistory(String slug, String title, String url, SiteStatus current, Double uptime24h, Double uptime7d,
+            Integer latency24h, Instant lastDown, List<Hour> hours) {}
+
     private record Cached(RepoStats stats, String etag, String languagesEtag) {}
 
     private final ProjectService projects;
     private final ObjectMapper mapper;
+    private final JdbcTemplate jdbc;
     private final boolean enabled;
     private final String githubToken;
     private final HttpClient http = HttpClient.newBuilder()
@@ -62,11 +71,12 @@ public class InsightsService {
     private final Map<String, SiteStatus> sites = new ConcurrentHashMap<>();
     private final Map<String, Cached> repos = new ConcurrentHashMap<>();
 
-    public InsightsService(ProjectService projects, ObjectMapper mapper,
+    public InsightsService(ProjectService projects, ObjectMapper mapper, JdbcTemplate jdbc,
             @Value("${app.insights.enabled:true}") boolean enabled,
             @Value("${app.insights.github-token:}") String githubToken) {
         this.projects = projects;
         this.mapper = mapper;
+        this.jdbc = jdbc;
         this.enabled = enabled;
         this.githubToken = githubToken == null ? "" : githubToken.trim();
     }
@@ -94,9 +104,58 @@ public class InsightsService {
         }
         for (Card c : projects.listPublished()) {
             if (c.liveUrl() != null) {
-                sites.put(c.liveUrl(), check(c.liveUrl()));
+                SiteStatus s = check(c.liveUrl());
+                sites.put(c.liveUrl(), s);
+                record(c, s);
             }
         }
+    }
+
+    private void record(Card c, SiteStatus s) {
+        try {
+            jdbc.update("insert into site_check (project_id, checked_at, up, status, latency_ms) values (?, ?, ?, ?, ?)",
+                    c.id(), java.sql.Timestamp.from(s.checkedAt()), s.up(), s.status(),
+                    s.latencyMs() == null ? null : s.latencyMs().intValue());
+        } catch (RuntimeException e) {
+            log.debug("Site check not stored: {}", e.getMessage());
+        }
+    }
+
+    /** The published projects with a live site: status now, uptime and response time per hour. */
+    public List<SiteHistory> history() {
+        List<SiteHistory> out = new ArrayList<>();
+        for (Card c : projects.listPublished()) {
+            if (c.liveUrl() == null) {
+                continue;
+            }
+            List<Hour> hours = jdbc.query("""
+                    select date_trunc('hour', checked_at) as h, avg(case when up then 1.0 else 0 end), avg(latency_ms) filter (where up), count(*)
+                    from site_check where project_id = ? and checked_at >= now() - interval '24 hours'
+                    group by 1 order by 1""",
+                    (rs, i) -> new Hour(rs.getTimestamp(1).toInstant(), rs.getDouble(2),
+                            rs.getObject(3) == null ? null : (int) Math.round(rs.getDouble(3)), rs.getInt(4)), c.id());
+            Double day = ratio(c, "24 hours");
+            Double week = ratio(c, "7 days");
+            Integer latency = jdbc.queryForObject("""
+                    select round(avg(latency_ms)) from site_check
+                    where project_id = ? and up and checked_at >= now() - interval '24 hours'""", Integer.class, c.id());
+            java.sql.Timestamp down = jdbc.queryForObject(
+                    "select max(checked_at) from site_check where project_id = ? and not up", java.sql.Timestamp.class, c.id());
+            out.add(new SiteHistory(c.slug(), c.title().fr(), c.liveUrl(), sites.get(c.liveUrl()), day, week, latency,
+                    down == null ? null : down.toInstant(), hours));
+        }
+        return out;
+    }
+
+    private Double ratio(Card c, String interval) {
+        return jdbc.queryForObject("select avg(case when up then 1.0 else 0 end) from site_check where project_id = ? "
+                + "and checked_at >= now() - interval '" + interval + "'", Double.class, c.id());
+    }
+
+    /** checks are kept 30 days */
+    @Scheduled(cron = "0 55 4 * * *")
+    public void purgeChecks() {
+        jdbc.update("delete from site_check where checked_at < now() - interval '30 days'");
     }
 
     SiteStatus check(String url) {

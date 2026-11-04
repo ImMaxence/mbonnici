@@ -243,7 +243,7 @@ export class AboutPage {
   private readonly analytics = inject(AnalyticsService);
 
   cvDownloaded(): void {
-    this.analytics.outbound(undefined, this.i18n.path('about'));
+    this.analytics.cvDownload(this.i18n.path('about'));
   }
 
   /** published projects, for the skills that link to them */

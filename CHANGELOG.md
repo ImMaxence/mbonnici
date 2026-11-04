@@ -7,6 +7,38 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [1.5.0] — 2026-11-04
+
+### Added
+- **Share pictures**: every project and note gets a 1200 × 630 JPEG for Open Graph / Twitter cards,
+  drawn by the backend in the site's style (title, tagline, the cover in a browser window or the
+  note cover, signature), cached until the content changes (`/api/og/projects/{slug}.jpg`,
+  `/api/og/notes/{slug}.jpg`, `?lang=`). WebP covers are decoded with `dwebp`: social networks do not
+  all read WebP. Pages declare the picture's size, type and alternative text; `robots.txt` lets the
+  link-preview crawlers fetch them.
+- **Error log** (back office → Journal): JavaScript errors of visitors' browsers (anonymous beacon,
+  DNT / GPC honoured, browser extensions ignored) and unexpected API errors, grouped by fingerprint
+  with a counter, first and last time seen, stack, resolve / reopen / delete; open errors are counted
+  in the sidebar and the dashboard health card. Migration V7.
+- **Live sites** panel on the dashboard: status now, one bar per hour over the last 24 hours (response
+  time and availability), uptime over 24 hours and 7 days, last outage. The 5-minute checks are now
+  stored (`site_check`, 30 days).
+- **Resume downloads** counted as their own event, with a dashboard tile.
+- Notes: **table of contents** (sticky, the section being read is highlighted), **reading progress**
+  bar and **code highlighting** (keywords, strings, comments, numbers, keys; rendered as tokens,
+  never as HTML).
+
+### Changed
+- Every capture of the starter content has a **descriptive alternative text** in French and English
+  (`seed/shots/manifest.json`, used by `seed/build-starter.mjs`); the accessibility statement lists no
+  known non-compliance any more (still "partially compliant" until a full RGAA audit).
+- Privacy policy: the error reports are described.
+- Deployment guide: pre-production checklist and Cloudflare cache rules.
+
+### Fixed
+- The dashboard crashed when a performance metric or a response time had no value yet (fields left
+  out of the JSON were compared with `null`).
+
 ## [1.4.0] — 2026-11-04
 
 ### Added

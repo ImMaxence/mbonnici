@@ -271,6 +271,73 @@ class FeaturesTest extends AbstractIntegrationTest {
     }
 
     @Test
+    void sharePicturesAreJpegForPublishedPagesOnly() throws Exception {
+        var res = mvc.perform(get("/api/og/projects/localatscv.jpg").param("lang", "en"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.IMAGE_JPEG))
+                .andReturn().getResponse();
+        byte[] jpeg = res.getContentAsByteArray();
+        assertTrue(jpeg.length > 5_000, "a real picture");
+        assertEquals((byte) 0xFF, jpeg[0]);
+        assertEquals((byte) 0xD8, jpeg[1]);
+        var img = ImageIO.read(new java.io.ByteArrayInputStream(jpeg));
+        assertEquals(1200, img.getWidth());
+        assertEquals(630, img.getHeight());
+        mvc.perform(get("/api/og/projects/localatscv.jpg").param("lang", "en").header("If-None-Match", res.getHeader("ETag")))
+                .andExpect(status().isNotModified());
+        // drafts and unknown slugs have none
+        mvc.perform(get("/api/og/projects/nailsbyanastasie.jpg")).andExpect(status().isNotFound());
+        mvc.perform(get("/api/og/notes/nope.jpg")).andExpect(status().isNotFound());
+        mvc.perform(get("/robots.txt")).andExpect(content().string(containsString("Allow: /api/og/")));
+    }
+
+    @Test
+    void errorsAreLoggedGroupedAndResolvable() throws Exception {
+        String report = """
+                {"message": "TypeError: x is undefined", "stack": "TypeError: x is undefined\\n    at main.js:1:2042", "path": "/fr/projets"}
+                """;
+        mvc.perform(post("/api/analytics/errors").contentType(MediaType.APPLICATION_JSON).content(report)).andExpect(status().isAccepted());
+        mvc.perform(post("/api/analytics/errors").contentType(MediaType.APPLICATION_JSON)
+                        .content(report.replace("1:2042", "1:2077"))).andExpect(status().isAccepted());
+        // opted out, or an extension's error: not logged
+        mvc.perform(post("/api/analytics/errors").header("DNT", "1").contentType(MediaType.APPLICATION_JSON)
+                        .content(report.replace("x is", "y is"))).andExpect(status().isAccepted());
+        mvc.perform(post("/api/analytics/errors").contentType(MediaType.APPLICATION_JSON).content("""
+                        {"message": "boom", "stack": "at chrome-extension://abc/content.js:1:1", "path": "/fr"}
+                        """)).andExpect(status().isAccepted());
+
+        String open = mvc.perform(get("/api/admin/errors"))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+        List<Integer> counts = JsonPath.read(open, "$[?(@.message == 'TypeError: x is undefined')].occurrences");
+        assertEquals(List.of(2), counts, "same error, other column: one entry");
+        assertEquals(List.of(), JsonPath.read(open, "$[?(@.message == 'TypeError: y is undefined')]"));
+        assertEquals(List.of(), JsonPath.read(open, "$[?(@.message == 'boom')]"));
+        Integer id = JsonPath.<List<Integer>>read(open, "$[?(@.message == 'TypeError: x is undefined')].id").getFirst();
+
+        mvc.perform(get("/api/admin/errors/summary")).andExpect(jsonPath("$.open").value(greaterThanOrEqualTo(1)));
+        mvc.perform(put("/api/admin/errors/" + id + "/resolved").with(csrf())).andExpect(status().isOk());
+        mvc.perform(get("/api/admin/errors").param("resolved", "true")).andExpect(jsonPath("$[*].id", hasItem(id)));
+        mvc.perform(delete("/api/admin/errors/resolved").with(csrf())).andExpect(status().isOk());
+        mvc.perform(get("/api/admin/errors").param("resolved", "true")).andExpect(jsonPath("$[*].id", not(hasItem(id))));
+    }
+
+    @Test
+    void cvDownloadsAndSiteHistoryShowOnTheDashboard() throws Exception {
+        mvc.perform(post("/api/analytics/events").contentType(MediaType.APPLICATION_JSON).content("""
+                        {"events": [{"type": "CV_DOWNLOAD", "path": "/fr/a-propos", "locale": "fr"}]}
+                        """))
+                .andExpect(status().isAccepted());
+        mvc.perform(get("/api/admin/analytics/overview").param("days", "7"))
+                .andExpect(jsonPath("$.cvDownloads").value(greaterThanOrEqualTo(1)));
+        // the checks are off in tests: every live site is listed, without history yet
+        mvc.perform(get("/api/admin/insights/sites"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[*].slug", hasItem("localatscv")))
+                .andExpect(jsonPath("$[0].hours").isArray());
+    }
+
+    @Test
     void insightsAnswerEvenWhenDisabled() throws Exception {
         mvc.perform(get("/api/insights")).andExpect(status().isOk()).andExpect(jsonPath("$").isMap());
     }

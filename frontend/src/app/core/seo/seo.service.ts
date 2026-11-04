@@ -16,6 +16,10 @@ export interface SeoInput {
   type?: 'website' | 'article' | 'profile';
   jsonLd?: object | object[];
   noindex?: boolean;
+  /** describes the share picture (og:image:alt) */
+  imageAlt?: string;
+  /** size of the share picture when known (the generated ones are 1200 × 630 JPEG) */
+  imageSize?: { width: number; height: number; type: string };
 }
 
 /**
@@ -57,12 +61,18 @@ export class SeoService {
     this.property('og:description', input.description);
     this.property('og:url', url);
     this.property('og:image', image);
+    this.property('og:image:alt', input.imageAlt ?? fullTitle);
+    const size = input.image ? input.imageSize : { width: 1200, height: 630, type: 'image/png' };
+    this.property('og:image:width', size ? String(size.width) : null);
+    this.property('og:image:height', size ? String(size.height) : null);
+    this.property('og:image:type', size?.type ?? null);
     this.property('og:locale', lang === 'fr' ? 'fr_FR' : 'en_GB');
     this.property('og:locale:alternate', lang === 'fr' ? 'en_GB' : 'fr_FR');
     this.tag('twitter:card', 'summary_large_image');
     this.tag('twitter:title', fullTitle);
     this.tag('twitter:description', input.description);
     this.tag('twitter:image', image);
+    this.tag('twitter:image:alt', input.imageAlt ?? fullTitle);
 
     this.link('canonical', url);
     for (const l of LANGS) {
@@ -105,7 +115,12 @@ export class SeoService {
     this.meta.updateTag({ name, content });
   }
 
-  private property(property: string, content: string): void {
+  /** null removes the tag (a size known on one page must not stay on the next one) */
+  private property(property: string, content: string | null): void {
+    if (content === null) {
+      this.meta.removeTag(`property="${property}"`);
+      return;
+    }
     this.meta.updateTag({ property, content });
   }
 

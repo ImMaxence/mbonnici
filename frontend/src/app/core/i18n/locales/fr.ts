@@ -307,6 +307,7 @@ export const fr = {
             'Pour savoir quelles pages et quels projets sont consultés, le site enregistre des événements anonymes (page vue, projet consulté, lien sortant). Chaque visite est associée à un identifiant éphémère calculé à partir de votre adresse IP et de votre navigateur, haché avec un sel qui change chaque jour : il est impossible de vous reconnaître d’un jour à l’autre et l’adresse IP n’est jamais stockée.',
             'Les signaux « Do Not Track » et « Global Privacy Control » de votre navigateur sont respectés : aucun événement n’est enregistré lorsqu’ils sont activés. Les événements bruts sont supprimés après 13 mois.',
             'Pour vérifier que le site reste rapide, votre navigateur envoie aussi, quand vous quittez la première page visitée, quelques mesures de performance (temps d’affichage, réactivité, stabilité de la mise en page) avec le chemin de la page et la largeur de l’écran. Ces mesures ne sont rattachées à aucun identifiant, pas même éphémère, respectent les mêmes signaux et sont supprimées après 13 mois.',
+            'Si une erreur technique survient dans votre navigateur, son message et la page concernée sont envoyés au site pour être corrigés, sans aucune information sur vous ; ces rapports respectent les mêmes signaux et sont effacés au plus tard 90 jours après la dernière occurrence.',
           ],
         },
         {
@@ -394,7 +395,7 @@ export const fr = {
         {
           h: 'État de conformité',
           p: [
-            'Le site {siteUrl} est partiellement conforme avec le référentiel général d’amélioration de l’accessibilité (RGAA) version 4.1.2 et avec les règles WCAG 2.2 de niveau AA, en raison des non-conformités et des dérogations énumérées ci-dessous.',
+            'Le site {siteUrl} est partiellement conforme avec le référentiel général d’amélioration de l’accessibilité (RGAA) version 4.1.2 et avec les règles WCAG 2.2 de niveau AA. Aucune non-conformité n’est connue à ce jour, mais l’évaluation n’a pas couvert les 106 critères du RGAA lors d’un audit complet : le site ne peut donc pas être déclaré totalement conforme.',
           ],
         },
         {
@@ -407,7 +408,7 @@ export const fr = {
         {
           h: 'Contenus non accessibles',
           p: [
-            'Non-conformités connues : une partie des captures d’écran des projets a encore un texte alternatif générique (« page d’accueil de… ») qui ne décrit pas leur contenu en détail. Chaque image peut recevoir une description depuis l’espace d’administration, où les images sans texte alternatif sont signalées ; cette déclaration sera mise à jour une fois toutes les descriptions rédigées.',
+            'Non-conformités connues : aucune à ce jour. Chaque capture d’écran des projets dispose d’un texte alternatif qui décrit son contenu (page, titres, actions visibles) ; les images ajoutées sans description sont signalées dans l’espace d’administration.',
             'Le site chargé en mode « En direct » est un site tiers dont l’accessibilité ne dépend pas de ce site. Le CV au format PDF est généré à partir du contenu de la page À propos, qui en reste la version accessible de référence.',
             'Dérogation pour charge disproportionnée : aucune. Contenus non soumis à l’obligation : les sites tiers chargés dans un cadre à la demande du visiteur.',
           ],
@@ -442,6 +443,7 @@ export const fr = {
   },
 
   notes: {
+    toc: 'Sommaire',
     titleA: 'Notes',
     titleB: 'de terrain',
     subtitle: 'Ce que j’apprends en construisant et en hébergeant mes projets : décisions, outils, erreurs utiles',
@@ -483,6 +485,37 @@ export const fr = {
   },
 
   admin: {
+    errors: {
+      title: 'Journal des erreurs',
+      intro: 'Erreurs JavaScript des visiteurs et erreurs inattendues de l’API, regroupées. Aucune donnée sur les visiteurs, seulement la page',
+      open: 'À traiter',
+      resolved: 'Résolues',
+      none: 'Aucune erreur à traiter',
+      noneResolved: 'Aucune erreur résolue',
+      source: { CLIENT: 'Navigateur', SERVER: 'Serveur' },
+      occurrences: '{n} fois',
+      first: 'première',
+      last: 'dernière',
+      detail: 'Détail technique',
+      markResolved: 'Marquer comme résolue',
+      reopen: 'Rouvrir',
+      delete: 'Supprimer',
+      confirmDelete: 'Supprimer cette erreur du journal ?',
+      clear: 'Vider les résolues',
+      confirmClear: 'Supprimer toutes les erreurs résolues ?',
+      openCount: '{n} à traiter',
+      allClear: 'rien à signaler',
+    },
+    sites: {
+      title: 'Sites en ligne',
+      subtitle: 'Vérifiés toutes les 5 minutes, historique de 30 jours',
+      site: 'Site',
+      now: 'Maintenant',
+      last24: 'Dernières 24 h',
+      latency: 'Réponse',
+      barsLabel: 'Une barre par heure : hauteur = temps de réponse, couleur = disponibilité',
+      lastDown: 'Dernière indisponibilité : {when}',
+    },
     unsaved: {
       title: 'Quitter sans enregistrer ?',
       message: 'Les modifications faites sur cette page seront perdues',
@@ -556,6 +589,7 @@ export const fr = {
       footer: 'Accès réservé · les tentatives refusées sont journalisées',
     },
     nav: {
+      errors: 'Journal',
       notes: 'Notes',
       dashboard: 'Tableau de bord',
       projects: 'Projets',
@@ -569,6 +603,8 @@ export const fr = {
       logout: 'Se déconnecter',
     },
     dashboard: {
+      cvDownloads: 'CV téléchargés',
+      cvHint: 'PDF ouverts depuis À propos et le pied de page',
       title: 'Tableau de bord',
       hello: 'Bonjour {name}',
       subtitle: 'voici comment se porte le site',

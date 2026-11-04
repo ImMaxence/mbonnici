@@ -106,6 +106,44 @@ public class WebpEncoder {
         }
     }
 
+    /**
+     * WebP → pixels, with the reference decoder ({@code dwebp}, same package), for the server-side
+     * drawings (share pictures). Empty when the binary is missing or the data is not WebP.
+     */
+    public Optional<java.awt.image.BufferedImage> decode(byte[] webp) {
+        if (!available()) {
+            return Optional.empty();
+        }
+        Path in = null;
+        Path out = null;
+        try {
+            in = Files.createTempFile("decode-", ".webp");
+            out = Files.createTempFile("decode-", ".png");
+            Files.write(in, webp);
+            String dwebp = binary.endsWith("cwebp") ? binary.substring(0, binary.length() - "cwebp".length()) + "dwebp" : "dwebp";
+            Process p = new ProcessBuilder(dwebp, "-quiet", in.toString(), "-o", out.toString()).redirectErrorStream(true).start();
+            boolean done = p.waitFor(20, TimeUnit.SECONDS);
+            p.getInputStream().readNBytes(2000);
+            if (!done) {
+                p.destroyForcibly();
+                return Optional.empty();
+            }
+            if (p.exitValue() != 0) {
+                return Optional.empty();
+            }
+            return Optional.ofNullable(javax.imageio.ImageIO.read(out.toFile()));
+        } catch (IOException e) {
+            log.debug("WebP decoding failed: {}", e.getMessage());
+            return Optional.empty();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return Optional.empty();
+        } finally {
+            deleteQuietly(in);
+            deleteQuietly(out);
+        }
+    }
+
     private static void deleteQuietly(Path p) {
         if (p != null) {
             try {

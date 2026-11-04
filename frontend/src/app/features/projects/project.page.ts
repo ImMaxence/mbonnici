@@ -567,7 +567,10 @@ export class ProjectPage {
         ...(this.preview() ? { noindex: true } : {}),
         slug: p.slug,
         type: 'article',
-        image: p.cover?.url ?? p.gallery[0]?.url ?? null,
+        // a 1200 × 630 JPEG drawn by the backend (social networks do not all read WebP)
+        image: `/api/og/projects/${p.slug}.jpg?lang=${this.i18n.lang()}`,
+        imageSize: { width: 1200, height: 630, type: 'image/jpeg' },
+        imageAlt: title + (description ? ' — ' + description : ''),
         jsonLd: [
           {
             '@type': p.repoUrl ? 'SoftwareSourceCode' : 'CreativeWork',

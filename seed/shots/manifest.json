@@ -4,34 +4,58 @@
       {
         "src": "localatscv/gallery-1.webp",
         "w": 1440,
-        "h": 900
+        "h": 900,
+        "alt": {
+          "fr": "Éditeur de CV : formulaire du profil (prénom, nom, titre, coordonnées) à gauche et aperçu en direct du CV de Camille Martin à droite",
+          "en": "CV editor: profile form (first name, last name, title, contact details) on the left and a live preview of Camille Martin’s CV on the right"
+        }
       },
       {
         "src": "localatscv/gallery-2.webp",
         "w": 1440,
-        "h": 1002
+        "h": 1002,
+        "alt": {
+          "fr": "Huit modèles de CV pour le même profil, clairs et sombres, du plus classique au plus graphique",
+          "en": "Eight CV templates for the same profile, light and dark, from classic to more graphic"
+        }
       },
       {
         "src": "localatscv/gallery-3.webp",
         "w": 1440,
-        "h": 900
+        "h": 900,
+        "alt": {
+          "fr": "Adaptation à une offre : l’annonce collée à gauche, un score de correspondance de 74 avec les mots-clés trouvés et manquants, et le contrôle ATS à 95 au-dessus de l’aperçu",
+          "en": "Tailoring to a job offer: the ad pasted on the left, a match score of 74 with the keywords found and missing, and the ATS check at 95 above the preview"
+        }
       },
       {
         "src": "localatscv/gallery-4.webp",
         "w": 1440,
-        "h": 821
+        "h": 821,
+        "alt": {
+          "fr": "Section « Le saviez-vous ? » : avant le recruteur, un logiciel lit votre CV, avec la comparaison entre ce que vous voyez et ce que lit le robot",
+          "en": "“Did you know?” section: software reads your CV before the recruiter, comparing what you see with what the robot reads"
+        }
       }
     ],
     "desktop": {
       "src": "localatscv/desktop.webp",
       "w": 1440,
-      "h": 900
+      "h": 900,
+      "alt": {
+        "fr": "Page d’accueil de LocalATSCV : titre « Le CV qui décroche l’entretien, prêt en quelques minutes », boutons Créer mon CV et Tester mon CV, aperçu du CV d’une boulangère avec un score de correspondance de 86",
+        "en": "LocalATSCV home page: headline “The CV that lands the interview, ready in minutes”, Create my CV and Test my CV buttons, a baker’s CV preview with a match score of 86"
+      }
     },
     "mobile": {
       "src": "localatscv/mobile.webp",
       "w": 640,
       "h": 1387,
-      "bare": true
+      "bare": true,
+      "alt": {
+        "fr": "LocalATSCV sur téléphone : la même accroche, la présentation du service et le bouton Créer mon CV gratuitement",
+        "en": "LocalATSCV on a phone: the same headline, the service description and the Create my free CV button"
+      }
     }
   },
   "localcutvideo": {
@@ -39,34 +63,58 @@
       {
         "src": "localcutvideo/gallery-1.webp",
         "w": 1600,
-        "h": 940
+        "h": 940,
+        "alt": {
+          "fr": "Éditeur vidéo : transcription à gauche, vidéo verticale sous-titrée « In your browser » au centre, réglages de transcription Whisper à droite et frise des coupes en bas",
+          "en": "Video editor: transcript on the left, a vertical video subtitled “In your browser” in the middle, Whisper transcription settings on the right and the cut timeline at the bottom"
+        }
       },
       {
         "src": "localcutvideo/gallery-2.webp",
         "w": 1600,
-        "h": 940
+        "h": 940,
+        "alt": {
+          "fr": "Fin du montage automatique : 6 coupes, 17 secondes retirées et 56 mots sous-titrés, avec la liste des étapes (silences, hésitations, cadrage sur le visage)",
+          "en": "Automatic edit done: 6 cuts, 17 seconds removed and 56 words subtitled, with the list of steps (silences, hesitations, face framing)"
+        }
       },
       {
         "src": "localcutvideo/gallery-3.webp",
         "w": 1600,
-        "h": 940
+        "h": 940,
+        "alt": {
+          "fr": "Réglages de la détection des silences (seuil, durée minimale, marge) et frise où les passages coupés sont en rouge",
+          "en": "Silence detection settings (threshold, minimum length, padding) and the timeline with the cut parts in red"
+        }
       },
       {
         "src": "localcutvideo/gallery-4.webp",
         "w": 1400,
-        "h": 900
+        "h": 900,
+        "alt": {
+          "fr": "Créateur de miniatures : image tirée de la vidéo avec le titre « I edited this video in 2 minutes » et choix du format 16:9, 9:16 ou 1:1",
+          "en": "Thumbnail maker: a frame of the video with the title “I edited this video in 2 minutes” and a choice of 16:9, 9:16 or 1:1"
+        }
       }
     ],
     "desktop": {
       "src": "localcutvideo/desktop.webp",
       "w": 1440,
-      "h": 900
+      "h": 900,
+      "alt": {
+        "fr": "Page d’accueil de LocalCutVideo : « Edit your videos in one click without uploading anything », bouton d’essai gratuit, aperçu de l’éditeur avec transcription et forme d’onde, et quatre chiffres clés dont 0 vidéo envoyée et 44 langues",
+        "en": "LocalCutVideo home page: “Edit your videos in one click without uploading anything”, a free trial button, an editor preview with transcript and waveform, and four key figures including 0 videos uploaded and 44 languages"
+      }
     },
     "mobile": {
       "src": "localcutvideo/mobile.webp",
       "w": 640,
       "h": 1387,
-      "bare": true
+      "bare": true,
+      "alt": {
+        "fr": "LocalCutVideo sur téléphone : « Montez vos vidéos en un clic, sans rien envoyer sur internet », boutons Monter ma vidéo gratuitement et Essayer la démo",
+        "en": "LocalCutVideo on a phone: “Edit your videos in one click, without uploading anything”, Edit my video for free and Try the demo buttons"
+      }
     }
   },
   "meowtrix": {
@@ -74,34 +122,58 @@
       {
         "src": "meowtrix/gallery-1.webp",
         "w": 1280,
-        "h": 800
+        "h": 800,
+        "alt": {
+          "fr": "Terrain Eau : des carpes koï, un poisson et des libellules au-dessus d’un étang avec nénuphars et un rocher",
+          "en": "Water ground: koi carp, a fish and dragonflies over a pond with water lilies and a rock"
+        }
       },
       {
         "src": "meowtrix/gallery-2.webp",
         "w": 1280,
-        "h": 800
+        "h": 800,
+        "alt": {
+          "fr": "Terrain Ciel : des papillons bleus, orange, rouges et blancs au-dessus d’une prairie fleurie",
+          "en": "Sky ground: blue, orange, red and white butterflies over a flowery meadow"
+        }
       },
       {
         "src": "meowtrix/gallery-3.webp",
         "w": 520,
-        "h": 784
+        "h": 784,
+        "alt": {
+          "fr": "Panneau de réglages : Lézards, Chenilles et Souris avec leur nombre et leur robe, bouton Aléatoire et bouton Jouer, compteur de prises du chat",
+          "en": "Settings panel: lizards, caterpillars and mice with their number and colour, a Random button, the Play button and the cat’s catch counter"
+        }
       },
       {
         "src": "meowtrix/gallery-4.webp",
         "w": 1280,
-        "h": 800
+        "h": 800,
+        "alt": {
+          "fr": "Décor de Noël : une botte rouge et blanche, des feuilles et des animaux coiffés de bonnets de Père Noël sur un sol enneigé",
+          "en": "Christmas scenery: a red and white boot, leaves and animals wearing Santa hats on snowy ground"
+        }
       }
     ],
     "desktop": {
       "src": "meowtrix/desktop.webp",
       "w": 1280,
-      "h": 800
+      "h": 800,
+      "alt": {
+        "fr": "Meowtrix en jeu, vue du dessus : un lézard vert, des insectes et une grenouille se déplacent sur un sol de terre entre une feuille morte, un caillou et un tuyau jaune",
+        "en": "Meowtrix in play, seen from above: a green lizard, insects and a frog move on dirt ground between a dead leaf, a stone and a yellow pipe"
+      }
     },
     "mobile": {
       "src": "meowtrix/mobile.webp",
       "w": 640,
       "h": 1387,
-      "bare": true
+      "bare": true,
+      "alt": {
+        "fr": "Meowtrix sur téléphone : choix du terrain (Terre, Eau, Ciel), réglage du nombre de lézards et de leur robe, liste des animaux à ajouter et bouton Jouer",
+        "en": "Meowtrix on a phone: choice of ground (Earth, Water, Sky), number and colour of the lizards, list of animals to add and the Play button"
+      }
     }
   },
   "a2e-environnement": {
@@ -109,34 +181,58 @@
       {
         "src": "a2e-environnement/gallery-1.webp",
         "w": 1440,
-        "h": 900
+        "h": 900,
+        "alt": {
+          "fr": "La même page d’accueil en thème sombre",
+          "en": "The same home page in the dark theme"
+        }
       },
       {
         "src": "a2e-environnement/gallery-2.webp",
         "w": 1440,
-        "h": 900
+        "h": 900,
+        "alt": {
+          "fr": "Page Nos prestations : filtres par domaine et section Stations d’épuration & eau potable avec les cartes Autosurveillance et Essais d’oxygénation",
+          "en": "Services page: filters by field and the Wastewater & drinking water section with the Self-monitoring and Oxygenation tests cards"
+        }
       },
       {
         "src": "a2e-environnement/gallery-3.webp",
         "w": 1440,
-        "h": 900
+        "h": 900,
+        "alt": {
+          "fr": "Page Références « Ils nous ont fait confiance » : filtres par type de mission et cartes des clients (collectivités, industriels, chambre de commerce)",
+          "en": "References page “They trusted us”: filters by type of work and client cards (local authorities, industry, chamber of commerce)"
+        }
       },
       {
         "src": "a2e-environnement/gallery-4.webp",
         "w": 1440,
-        "h": 900
+        "h": 900,
+        "alt": {
+          "fr": "Page Contact « Parlons de votre projet » : formulaire en étapes et contacts directs des experts par domaine",
+          "en": "Contact page “Let’s talk about your project”: a step-by-step form and the experts’ direct contacts by field"
+        }
       }
     ],
     "desktop": {
       "src": "a2e-environnement/desktop.webp",
       "w": 1440,
-      "h": 900
+      "h": 900,
+      "alt": {
+        "fr": "Page d’accueil d’A2E Environnement : « L’expertise de l’eau, du prélèvement à l’étude », photo d’une station d’épuration, badge Organisme habilité et quatre chiffres clés",
+        "en": "A2E Environnement home page: “Water expertise, from sampling to study”, a photo of a wastewater plant, an Accredited body badge and four key figures"
+      }
     },
     "mobile": {
       "src": "a2e-environnement/mobile.webp",
       "w": 640,
       "h": 1387,
-      "bare": true
+      "bare": true,
+      "alt": {
+        "fr": "A2E Environnement sur téléphone : la même accroche, les boutons Découvrir nos prestations et Nous contacter, puis la photo de la station d’épuration",
+        "en": "A2E Environnement on a phone: the same headline, the Our services and Contact us buttons, then the wastewater plant photo"
+      }
     }
   },
   "les-creations-de-yona": {
@@ -144,29 +240,49 @@
       {
         "src": "les-creations-de-yona/gallery-1.webp",
         "w": 1280,
-        "h": 900
+        "h": 900,
+        "alt": {
+          "fr": "Page d’une recette : photo d’une tarte aux pommes et crème d’amandes, niveau de difficulté et introduction de l’autrice",
+          "en": "A recipe page: a photo of an apple and almond cream tart, the difficulty level and the author’s introduction"
+        }
       },
       {
         "src": "les-creations-de-yona/gallery-2.webp",
         "w": 1280,
-        "h": 900
+        "h": 900,
+        "alt": {
+          "fr": "Toutes les recettes : recherche, filtres (salé ou sucré, nombre de personnes, ingrédient, catégorie) et cartes illustrées",
+          "en": "All recipes: search, filters (savoury or sweet, servings, ingredient, category) and illustrated cards"
+        }
       },
       {
         "src": "les-creations-de-yona/gallery-3.webp",
         "w": 1280,
-        "h": 900
+        "h": 900,
+        "alt": {
+          "fr": "Back-office « Bonjour Yona » : menu d’administration (recettes, menus, galerie, sauvegarde…) et journal des nouveautés de la version 1.11.0",
+          "en": "Back office “Hello Yona”: the admin menu (recipes, menus, gallery, backup…) and the changelog of version 1.11.0"
+        }
       }
     ],
     "desktop": {
       "src": "les-creations-de-yona/desktop.webp",
       "w": 1280,
-      "h": 900
+      "h": 900,
+      "alt": {
+        "fr": "Page d’accueil des Créations de Yona : deux recettes à la une (velouté de potimarron, tarte fine aux pommes) illustrées, et la recherche « Que voulez-vous cuisiner ? »",
+        "en": "Les Créations de Yona home page: two featured recipes (pumpkin soup, thin apple tart) with illustrations, and the “What do you want to cook?” search"
+      }
     },
     "mobile": {
       "src": "les-creations-de-yona/mobile.webp",
       "w": 640,
       "h": 1387,
-      "bare": true
+      "bare": true,
+      "alt": {
+        "fr": "Les Créations de Yona sur téléphone : recette de cookies à la une avec photo, puis la fenêtre de consentement à la mesure d’audience avec les boutons Refuser et Accepter",
+        "en": "Les Créations de Yona on a phone: a featured cookie recipe with a photo, then the analytics consent window with Refuse and Accept buttons"
+      }
     }
   },
   "clienthub-crm": {
@@ -177,19 +293,31 @@
       {
         "src": "epic-road-trip-planner/gallery-1.webp",
         "w": 1600,
-        "h": 871
+        "h": 871,
+        "alt": {
+          "fr": "Carte d’Europe avec un itinéraire rose de Paris à Marseille, étapes marquées de drapeaux et menu des styles de carte (vélo, transport, plein air…)",
+          "en": "A map of Europe with a pink route from Paris to Marseille, stops marked with flags and the map style menu (cycling, transport, outdoors…)"
+        }
       }
     ],
     "desktop": {
       "src": "epic-road-trip-planner/desktop.webp",
       "w": 1600,
-      "h": 871
+      "h": 871,
+      "alt": {
+        "fr": "Page d’accueil de CoqEnVoyage : « Bienvenue dans votre Planificateur de Voyage » devant trois illustrations de paysages, formulaire ville de départ, destination et dates",
+        "en": "CoqEnVoyage home page: “Welcome to your Trip Planner” over three landscape illustrations, with departure city, destination and dates fields"
+      }
     },
     "mobile": {
       "src": "epic-road-trip-planner/mobile.webp",
       "w": 640,
       "h": 1398,
-      "bare": true
+      "bare": true,
+      "alt": {
+        "fr": "CoqEnVoyage sur téléphone : la même bienvenue, le formulaire de recherche et le début de la sélection d’expériences",
+        "en": "CoqEnVoyage on a phone: the same welcome, the search form and the start of the experiences selection"
+      }
     }
   },
   "time-manager": {
@@ -197,13 +325,21 @@
     "desktop": {
       "src": "time-manager/desktop.webp",
       "w": 1600,
-      "h": 874
+      "h": 874,
+      "alt": {
+        "fr": "Écran de connexion de Time Manager : « Welcome back! » avec les champs identifiant et mot de passe et les boutons Log in et Back",
+        "en": "Time Manager sign-in screen: “Welcome back!” with username and password fields and Log in and Back buttons"
+      }
     },
     "mobile": {
       "src": "time-manager/mobile.webp",
       "w": 640,
       "h": 1149,
-      "bare": true
+      "bare": true,
+      "alt": {
+        "fr": "Time Manager sur téléphone : écran d’accueil sombre « Your Daily Time Planner » avec le bouton Get Started",
+        "en": "Time Manager on a phone: dark welcome screen “Your Daily Time Planner” with the Get Started button"
+      }
     }
   },
   "kryptonews": {
@@ -211,29 +347,49 @@
       {
         "src": "kryptonews/gallery-1.webp",
         "w": 1600,
-        "h": 866
+        "h": 866,
+        "alt": {
+          "fr": "La page d’accueil avec un autre thème de couleur, vert, et le sélecteur de thèmes en bas à droite",
+          "en": "The home page with another colour theme, green, and the theme picker at the bottom right"
+        }
       },
       {
         "src": "kryptonews/gallery-2.webp",
         "w": 1600,
-        "h": 866
+        "h": 866,
+        "alt": {
+          "fr": "Page News : articles d’actualité crypto avec image, titre, source et date, et une barre de recherche",
+          "en": "News page: crypto news articles with picture, title, source and date, and a search bar"
+        }
       },
       {
         "src": "kryptonews/gallery-3.webp",
         "w": 1600,
-        "h": 866
+        "h": 866,
+        "alt": {
+          "fr": "Page Crypto : tableau des dix premières cryptomonnaies avec prix, variations sur 1 h, 24 h et 7 jours et volume",
+          "en": "Crypto page: a table of the top ten cryptocurrencies with price, 1 h, 24 h and 7 day changes and volume"
+        }
       }
     ],
     "desktop": {
       "src": "kryptonews/desktop.webp",
       "w": 1600,
-      "h": 866
+      "h": 866,
+      "alt": {
+        "fr": "Page d’accueil de Kryptonews : « Think Forward, welcome to the world of crypto trade collectibles », bouton Get started et pièces de cryptomonnaies en 3D sur fond violet",
+        "en": "Kryptonews home page: “Think Forward, welcome to the world of crypto trade collectibles”, a Get started button and 3D crypto coins on a purple background"
+      }
     },
     "mobile": {
       "src": "kryptonews/mobile.webp",
       "w": 640,
       "h": 1393,
-      "bare": true
+      "bare": true,
+      "alt": {
+        "fr": "Kryptonews sur téléphone : l’accroche « Think Forward » et le bouton Get started",
+        "en": "Kryptonews on a phone: the “Think Forward” headline and the Get started button"
+      }
     }
   },
   "redditech": {
@@ -242,13 +398,21 @@
       {
         "src": "redditech/gallery-1.webp",
         "w": 1600,
-        "h": 900
+        "h": 900,
+        "alt": {
+          "fr": "Maquettes de Redditech : la liste des subreddits suivis, première version à gauche et version finale à droite",
+          "en": "Redditech mock-ups: the list of followed subreddits, first version on the left and final version on the right"
+        }
       }
     ],
     "desktop": {
       "src": "redditech/desktop.webp",
       "w": 1600,
-      "h": 900
+      "h": 900,
+      "alt": {
+        "fr": "Maquettes de Redditech : deux écrans de connexion au compte Reddit côte à côte, l’ancien et le nouveau design",
+        "en": "Redditech mock-ups: two Reddit sign-in screens side by side, the old and the new design"
+      }
     }
   },
   "mern-irc": {
@@ -256,18 +420,30 @@
       {
         "src": "mern-irc/gallery-1.webp",
         "w": 1600,
-        "h": 735
+        "h": 735,
+        "alt": {
+          "fr": "Salon de discussion : « Welcome @Mafia », liste des utilisateurs actifs et notification « Mafia joined the group »",
+          "en": "Chat room: “Welcome @Mafia”, the list of active users and the “Mafia joined the group” notification"
+        }
       },
       {
         "src": "mern-irc/gallery-2.webp",
         "w": 1600,
-        "h": 727
+        "h": 727,
+        "alt": {
+          "fr": "Deux fenêtres côte à côte : KindCat et Mafia échangent des messages dans le salon général",
+          "en": "Two windows side by side: KindCat and Mafia exchange messages in the general room"
+        }
       }
     ],
     "desktop": {
       "src": "mern-irc/desktop.webp",
       "w": 1600,
-      "h": 733
+      "h": 733,
+      "alt": {
+        "fr": "Écran d’accueil de MERN IRC : champ « Enter your nickname » sur fond lavande",
+        "en": "MERN IRC welcome screen: an “Enter your nickname” field on a lavender background"
+      }
     }
   },
   "nailsbyanastasie": {
@@ -275,13 +451,21 @@
     "desktop": {
       "src": "nailsbyanastasie/desktop.webp",
       "w": 1440,
-      "h": 900
+      "h": 900,
+      "alt": {
+        "fr": "Page de fin de Nails by Anastasie : « Merci pour tout », ce projet de prothésie ongulaire s’arrête là, avec un lien vers Les créations de Yona",
+        "en": "Nails by Anastasie closing page: “Thank you for everything”, this nail art project ends here, with a link to Les créations de Yona"
+      }
     },
     "mobile": {
       "src": "nailsbyanastasie/mobile.webp",
       "w": 640,
       "h": 1073,
-      "bare": true
+      "bare": true,
+      "alt": {
+        "fr": "La même page de fin sur téléphone, avec le bouton Les créations de Yona",
+        "en": "The same closing page on a phone, with the Les créations de Yona button"
+      }
     }
   }
 }

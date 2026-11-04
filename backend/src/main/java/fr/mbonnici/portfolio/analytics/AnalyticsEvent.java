@@ -15,7 +15,7 @@ import java.util.UUID;
 @Table(name = "analytics_event")
 public class AnalyticsEvent {
 
-    public enum Type { PAGE_VIEW, PROJECT_VIEW, OUTBOUND_CLICK, CONTACT_SUBMIT }
+    public enum Type { PAGE_VIEW, PROJECT_VIEW, OUTBOUND_CLICK, CONTACT_SUBMIT, CV_DOWNLOAD }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

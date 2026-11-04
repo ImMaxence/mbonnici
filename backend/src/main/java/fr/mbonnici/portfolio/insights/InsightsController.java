@@ -16,6 +16,12 @@ public class InsightsController {
         this.service = service;
     }
 
+    /** back office: status, uptime and response time of each live site over the last day */
+    @GetMapping("/api/admin/insights/sites")
+    public java.util.List<InsightsService.SiteHistory> sites() {
+        return service.history();
+    }
+
     /** slug → live status of the site and GitHub figures, for the published projects. */
     @GetMapping("/api/insights")
     public ResponseEntity<Map<String, InsightsService.Insight>> all() {

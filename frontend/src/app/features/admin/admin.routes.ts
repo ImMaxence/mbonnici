@@ -37,6 +37,7 @@ export const ADMIN_ROUTES: Routes = [
       { path: 'notes/new', loadComponent: () => import('./note-edit.page').then((m) => m.NoteEditPage), canDeactivate: [unsavedGuard] },
       { path: 'notes/:id', loadComponent: () => import('./note-edit.page').then((m) => m.NoteEditPage), canDeactivate: [unsavedGuard] },
       { path: 'backups', loadComponent: () => import('./backups.page').then((m) => m.BackupsPage) },
+      { path: 'errors', loadComponent: () => import('./errors.page').then((m) => m.ErrorsPage) },
       { path: 'changelog', loadComponent: () => import('./changelog.page').then((m) => m.ChangelogPage) },
     ],
   },
