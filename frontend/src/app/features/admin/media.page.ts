@@ -165,7 +165,7 @@ import { focalPosition } from '../../shared/ui/shots';
       pointer-events: none;
     }
     .warn-text {
-      color: #b45309;
+      color: var(--warning);
     }
     .danger-text {
       color: var(--danger, #c62828);

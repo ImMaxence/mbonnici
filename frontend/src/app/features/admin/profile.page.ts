@@ -19,6 +19,7 @@ import { IconComponent } from '../../shared/ui/icon.component';
 import { ConfirmService } from '../../shared/ui/confirm.service';
 import { TooltipDirective } from '../../shared/ui/tooltip.directive';
 import { SortMove, SortableDirective, moveItem } from '../../shared/ui/sortable.directive';
+import { CvPanelComponent } from './cv-panel.component';
 import { MissingLangComponent } from './missing-lang.component';
 import { HasUnsavedChanges, snapshot, warnBeforeUnload } from './unsaved.guard';
 
@@ -26,7 +27,7 @@ type Section = 'experience' | 'education' | 'skill';
 
 @Component({
   selector: 'app-admin-profile',
-  imports: [FormsModule, TranslatePipe, LocalizedPipe, IconComponent, TooltipDirective, SortableDirective, MissingLangComponent],
+  imports: [FormsModule, TranslatePipe, LocalizedPipe, IconComponent, TooltipDirective, SortableDirective, MissingLangComponent, CvPanelComponent],
   template: `
     <div class="admin-head">
       <h1>{{ 'admin.profile.title' | t }}</h1>
@@ -43,6 +44,9 @@ type Section = 'experience' | 'education' | 'skill';
     @if (error()) {
       <p class="field-error">{{ error() }}</p>
     }
+
+    <!-- ── Resume (PDF) ─────────────────────────────────────────────── -->
+    <app-cv-panel />
 
     <!-- ── Experiences ─────────────────────────────────────────────── -->
     <div class="panel">
@@ -66,23 +70,23 @@ type Section = 'experience' | 'education' | 'skill';
       </div>
       @if (editing() === 'experience' && exp) {
         <form class="form-grid cols-2 editor" (ngSubmit)="saveExperience()">
-          <div class="field"><label>{{ 'admin.profile.company' | t }}</label><input class="input" name="company" [(ngModel)]="exp.company" required /></div>
-          <div class="field"><label>{{ 'admin.profile.companyUrl' | t }}</label><input class="input" name="companyUrl" [(ngModel)]="exp.companyUrl" /></div>
-          <div class="field"><label>{{ 'admin.profile.role' | t }} ({{ lang() }})</label><input class="input" name="role" [(ngModel)]="exp.role[lang()]" required /></div>
-          <div class="field"><label>{{ 'admin.profile.location' | t }}</label><input class="input" name="location" [(ngModel)]="exp.location" /></div>
-          <div class="field span-2"><label>{{ 'admin.profile.description' | t }} ({{ lang() }})</label><textarea class="textarea" name="description" rows="4" [(ngModel)]="exp.description[lang()]"></textarea></div>
+          <div class="field"><label for="prof-company">{{ 'admin.profile.company' | t }}</label><input id="prof-company" class="input" name="company" [(ngModel)]="exp.company" required /></div>
+          <div class="field"><label for="prof-companyUrl">{{ 'admin.profile.companyUrl' | t }}</label><input id="prof-companyUrl" class="input" name="companyUrl" [(ngModel)]="exp.companyUrl" /></div>
+          <div class="field"><label for="prof-role">{{ 'admin.profile.role' | t }} ({{ lang() }})</label><input id="prof-role" class="input" name="role" [(ngModel)]="exp.role[lang()]" required /></div>
+          <div class="field"><label for="prof-location">{{ 'admin.profile.location' | t }}</label><input id="prof-location" class="input" name="location" [(ngModel)]="exp.location" /></div>
+          <div class="field span-2"><label for="prof-description">{{ 'admin.profile.description' | t }} ({{ lang() }})</label><textarea id="prof-description" class="textarea" name="description" rows="4" [(ngModel)]="exp.description[lang()]"></textarea></div>
           <div class="field">
-            <label>{{ 'admin.profile.contract' | t }}</label>
-            <select class="select" name="contractType" [(ngModel)]="exp.contractType">
+            <label for="prof-contractType">{{ 'admin.profile.contract' | t }}</label>
+            <select id="prof-contractType" class="select" name="contractType" [(ngModel)]="exp.contractType">
               @for (c of contracts; track c) {
                 <option [value]="c">{{ 'about.contract.' + c | t }}</option>
               }
             </select>
           </div>
-          <div class="field"><label>{{ 'admin.profile.order' | t }}</label><input class="input" type="number" name="sortOrder" [(ngModel)]="exp.sortOrder" /></div>
-          <div class="field"><label>{{ 'admin.profile.start' | t }}</label><input class="input" type="date" name="startDate" [(ngModel)]="exp.startDate" required /></div>
-          <div class="field"><label>{{ 'admin.profile.end' | t }}</label><input class="input" type="date" name="endDate" [(ngModel)]="exp.endDate" /></div>
-          <div class="field span-2"><label>{{ 'admin.profile.skillsList' | t }}</label><input class="input" name="skills" [ngModel]="exp.skills.join(', ')" (ngModelChange)="exp.skills = split($event)" /></div>
+          <div class="field"><label for="prof-sortOrder">{{ 'admin.profile.order' | t }}</label><input id="prof-sortOrder" class="input" type="number" name="sortOrder" [(ngModel)]="exp.sortOrder" /></div>
+          <div class="field"><label for="prof-startDate">{{ 'admin.profile.start' | t }}</label><input id="prof-startDate" class="input" type="date" name="startDate" [(ngModel)]="exp.startDate" required /></div>
+          <div class="field"><label for="prof-endDate">{{ 'admin.profile.end' | t }}</label><input id="prof-endDate" class="input" type="date" name="endDate" [(ngModel)]="exp.endDate" /></div>
+          <div class="field span-2"><label for="prof-skills">{{ 'admin.profile.skillsList' | t }}</label><input id="prof-skills" class="input" name="skills" [ngModel]="exp.skills.join(', ')" (ngModelChange)="exp.skills = split($event)" /></div>
           <div class="row span-2">
             <button type="submit" class="btn btn-accent">{{ 'admin.profile.save' | t }}</button>
             <button type="button" class="btn btn-ghost" (click)="editing.set(null)">{{ 'admin.projectForm.cancel' | t }}</button>
@@ -112,13 +116,13 @@ type Section = 'experience' | 'education' | 'skill';
       </div>
       @if (editing() === 'education' && edu) {
         <form class="form-grid cols-2 editor" (ngSubmit)="saveEducation()">
-          <div class="field"><label>{{ 'admin.profile.school' | t }}</label><input class="input" name="school" [(ngModel)]="edu.school" required /></div>
-          <div class="field"><label>{{ 'admin.profile.schoolUrl' | t }}</label><input class="input" name="schoolUrl" [(ngModel)]="edu.schoolUrl" /></div>
-          <div class="field"><label>{{ 'admin.profile.degree' | t }} ({{ lang() }})</label><input class="input" name="degree" [(ngModel)]="edu.degree[lang()]" required /></div>
-          <div class="field"><label>{{ 'admin.profile.location' | t }}</label><input class="input" name="location" [(ngModel)]="edu.location" /></div>
-          <div class="field"><label>{{ 'admin.profile.start' | t }}</label><input class="input" type="date" name="startDate" [(ngModel)]="edu.startDate" required /></div>
-          <div class="field"><label>{{ 'admin.profile.end' | t }}</label><input class="input" type="date" name="endDate" [(ngModel)]="edu.endDate" /></div>
-          <div class="field"><label>{{ 'admin.profile.order' | t }}</label><input class="input" type="number" name="sortOrder" [(ngModel)]="edu.sortOrder" /></div>
+          <div class="field"><label for="edu-school">{{ 'admin.profile.school' | t }}</label><input id="edu-school" class="input" name="school" [(ngModel)]="edu.school" required /></div>
+          <div class="field"><label for="edu-schoolUrl">{{ 'admin.profile.schoolUrl' | t }}</label><input id="edu-schoolUrl" class="input" name="schoolUrl" [(ngModel)]="edu.schoolUrl" /></div>
+          <div class="field"><label for="edu-degree">{{ 'admin.profile.degree' | t }} ({{ lang() }})</label><input id="edu-degree" class="input" name="degree" [(ngModel)]="edu.degree[lang()]" required /></div>
+          <div class="field"><label for="edu-location">{{ 'admin.profile.location' | t }}</label><input id="edu-location" class="input" name="location" [(ngModel)]="edu.location" /></div>
+          <div class="field"><label for="edu-startDate">{{ 'admin.profile.start' | t }}</label><input id="edu-startDate" class="input" type="date" name="startDate" [(ngModel)]="edu.startDate" required /></div>
+          <div class="field"><label for="edu-endDate">{{ 'admin.profile.end' | t }}</label><input id="edu-endDate" class="input" type="date" name="endDate" [(ngModel)]="edu.endDate" /></div>
+          <div class="field"><label for="edu-sortOrder">{{ 'admin.profile.order' | t }}</label><input id="edu-sortOrder" class="input" type="number" name="sortOrder" [(ngModel)]="edu.sortOrder" /></div>
           <div class="row span-2">
             <button type="submit" class="btn btn-accent">{{ 'admin.profile.save' | t }}</button>
             <button type="button" class="btn btn-ghost" (click)="editing.set(null)">{{ 'admin.projectForm.cancel' | t }}</button>
@@ -150,17 +154,17 @@ type Section = 'experience' | 'education' | 'skill';
       </div>
       @if (editing() === 'skill' && sk) {
         <form class="form-grid cols-2 editor" (ngSubmit)="saveSkill()">
-          <div class="field"><label>{{ 'admin.profile.name' | t }}</label><input class="input" name="name" [(ngModel)]="sk.name" required /></div>
+          <div class="field"><label for="sk-name">{{ 'admin.profile.name' | t }}</label><input id="sk-name" class="input" name="name" [(ngModel)]="sk.name" required /></div>
           <div class="field">
-            <label>{{ 'admin.profile.category' | t }}</label>
-            <select class="select" name="category" [(ngModel)]="sk.category">
+            <label for="sk-category">{{ 'admin.profile.category' | t }}</label>
+            <select id="sk-category" class="select" name="category" [(ngModel)]="sk.category">
               @for (c of skillCategories; track c) {
                 <option [value]="c">{{ 'about.skillCategories.' + c | t }}</option>
               }
             </select>
           </div>
-          <div class="field"><label>{{ 'admin.profile.level' | t }}</label><input class="input" type="number" min="1" max="5" name="level" [(ngModel)]="sk.level" /></div>
-          <div class="field"><label>{{ 'admin.profile.order' | t }}</label><input class="input" type="number" name="sortOrder" [(ngModel)]="sk.sortOrder" /></div>
+          <div class="field"><label for="sk-level">{{ 'admin.profile.level' | t }}</label><input id="sk-level" class="input" type="number" min="1" max="5" name="level" [(ngModel)]="sk.level" /></div>
+          <div class="field"><label for="sk-sortOrder">{{ 'admin.profile.order' | t }}</label><input id="sk-sortOrder" class="input" type="number" name="sortOrder" [(ngModel)]="sk.sortOrder" /></div>
           <div class="row span-2">
             <button type="submit" class="btn btn-accent">{{ 'admin.profile.save' | t }}</button>
             @if (skId) {

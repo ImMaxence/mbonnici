@@ -168,7 +168,7 @@ function emptyForm(): ProjectUpsert {
             <label for="f-accent">{{ 'admin.projectForm.accent' | t }}</label>
             <div class="row" style="gap:.5rem">
               <input id="f-accent" type="color" name="accentColor" [(ngModel)]="form.accentColor" class="color" />
-              <input class="input mono" name="accentHex" [(ngModel)]="form.accentColor" pattern="^#[0-9a-fA-F]{6}$" style="max-width: 140px" />
+              <input class="input mono" name="accentHex" [attr.aria-label]="('admin.projectForm.accent' | t) + ' (hex)'" [(ngModel)]="form.accentColor" pattern="^#[0-9a-fA-F]{6}$" style="max-width: 140px" />
             </div>
             @if (fieldErrors()['accentColor']) {
               <span class="field-error">{{ fieldErrors()['accentColor'] }}</span>

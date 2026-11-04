@@ -1,4 +1,4 @@
-import { Component, effect, inject, input } from '@angular/core';
+import { Component, computed, effect, inject, input } from '@angular/core';
 import { type Profile, type ProjectCard, type Settings } from '../../core/api/models';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { LocalizedPipe, TranslatePipe } from '../../core/i18n/translate.pipe';
@@ -6,6 +6,7 @@ import { SeoService } from '../../core/seo/seo.service';
 import { LinkDirective } from '../../shared/curtain/link.directive';
 import { MagneticDirective } from '../../shared/cursor/magnetic.directive';
 import { FooterComponent } from '../../shared/ui/footer.component';
+import { cvLink } from '../../shared/ui/cv';
 import { IconComponent } from '../../shared/ui/icon.component';
 import { MarkdownComponent } from '../../shared/ui/markdown.component';
 import { RevealDirective } from '../../shared/ui/reveal.directive';
@@ -48,9 +49,8 @@ import { ToolboxComponent } from '../../shared/ui/toolbox.component';
             @if (settings()?.linkedinUrl; as li) {
               <a class="btn btn-ghost" [href]="li" target="_blank" rel="noopener noreferrer me" appMagnetic><app-icon name="linkedin" [size]="16" /> LinkedIn</a>
             }
-            @if (profile()?.experiences?.length) {
-              <!-- generated from this page's content, always up to date -->
-              <a class="btn btn-ghost" [href]="'/api/cv?lang=' + i18n.lang() + '&download=true'" download (click)="cvDownloaded()" appMagnetic>
+            @if (cv(); as c) {
+              <a class="btn btn-ghost" [href]="c.href" download (click)="cvDownloaded()" appMagnetic>
                 <app-icon name="download" [size]="16" /> {{ 'about.cv' | t }}
               </a>
             }
@@ -241,6 +241,8 @@ export class AboutPage {
   readonly settings = input<Settings>();
   readonly profile = input<Profile>();
   private readonly analytics = inject(AnalyticsService);
+
+  readonly cv = computed(() => cvLink(this.settings(), this.i18n.lang(), this.i18n.locale()));
 
   cvDownloaded(): void {
     this.analytics.cvDownload(this.i18n.path('about'));

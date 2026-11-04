@@ -1,17 +1,10 @@
-import AxeBuilder from '@axe-core/playwright';
 import { type APIRequestContext, type Page, expect, request, test } from '@playwright/test';
+import { expectAccessible } from './axe';
 
-/** v1.4.0 features: list view, tech filter, contact from a project, CV, notes, unsaved changes. */
+/** List view, tech filter, contact from a project, the uploaded resume, unsaved changes, share pictures, CSP reports. */
 
 async function noIntro(page: Page): Promise<void> {
   await page.addInitScript(() => sessionStorage.setItem('mb.intro', '1'));
-}
-
-async function axe(page: Page): Promise<void> {
-  await page.waitForTimeout(1500);
-  const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).exclude('app-cursor').analyze();
-  const blocking = results.violations.filter((v) => v.impact === 'serious' || v.impact === 'critical');
-  expect(blocking, JSON.stringify(blocking.map((v) => ({ id: v.id, nodes: v.nodes.map((n) => n.target) })), null, 2)).toEqual([]);
 }
 
 /** an API session signed in through the local login (DEV_LOGIN) */
@@ -30,7 +23,7 @@ test.describe('projects', () => {
     await page.getByRole('button', { name: 'Liste' }).click();
     await expect(page.locator('.rows .row').first()).toBeVisible();
     expect(await page.locator('.rows .row').count()).toBeGreaterThanOrEqual(10);
-    await axe(page);
+    await expectAccessible(page);
     await page.reload();
     await expect(page.locator('.rows .row').first()).toBeVisible();
     await page.getByRole('button', { name: 'Grille' }).click();
@@ -62,47 +55,36 @@ test.describe('projects', () => {
   });
 });
 
-test('the CV is a PDF in both languages', async ({ request: api }) => {
-  for (const lang of ['fr', 'en']) {
-    const res = await api.get(`/api/cv?lang=${lang}`);
-    expect(res.status()).toBe(200);
-    expect(res.headers()['content-type']).toContain('application/pdf');
-    expect((await res.body()).subarray(0, 4).toString()).toBe('%PDF');
-  }
-});
-
-test('notes: published notes get a section, a page and a feed', async ({ page, baseURL }) => {
+test('an uploaded resume gets a download button on the contact page', async ({ page, baseURL }) => {
   const { api, headers } = await admin(baseURL!);
-  const created = await api.post('/api/admin/articles', {
-    headers,
-    data: {
-      title: { fr: 'Note de test e2e', en: 'E2E test note' },
-      summary: { fr: 'Un résumé', en: 'A summary' },
-      body: { fr: '## Titre\n\nUn paragraphe avec `du code`.\n\n```ts\nconst a = 1;\n```', en: '## Heading\n\nA paragraph.' },
-      status: 'PUBLISHED',
-      tags: ['e2e'],
-      coverMediaId: null,
-      publishedAt: null,
-    },
-  });
-  expect(created.status()).toBe(201);
-  const note = await created.json();
+  const pdf = '%PDF-1.7\n% e2e resume\n%%EOF\n';
   try {
     await noIntro(page);
-    await page.goto('/fr');
-    await expect(page.locator('app-header').getByRole('link', { name: /Notes/ }).first()).toBeAttached();
-    await page.goto('/fr/notes');
-    await expect(page.locator('.notes .note').first()).toContainText('Note de test e2e');
-    await axe(page);
-    await page.locator('.notes .note', { hasText: 'Note de test e2e' }).click();
-    await expect(page).toHaveURL(/\/fr\/notes\/note-de-test-e2e/);
-    await expect(page.locator('h1')).toContainText('Note de test e2e');
-    await expect(page.locator('pre.code')).toContainText('const a = 1;');
-    await axe(page);
-    const rss = await page.request.get('/en/rss.xml');
-    expect(await rss.text()).toContain('<title>E2E test note</title>');
+    await page.goto('/fr/contact');
+    await expect(page.locator('h1')).toBeVisible();
+    await expect(page.getByRole('link', { name: /Télécharger mon CV/ })).toHaveCount(0);
+
+    // uploaded from the back office (Profil → CV)
+    await page.goto('/api/auth/dev-login');
+    await page.goto('/admin/profile');
+    const french = page.locator('app-cv-panel .cv-row').first();
+    await french.locator('input[type=file]').setInputFiles({ name: 'cv.pdf', mimeType: 'application/pdf', buffer: Buffer.from(pdf) });
+    await expect(french).toContainText('PDF ·');
+    await expect(page.locator('app-cv-panel .cv-row').nth(1)).toContainText('l’autre langue');
+
+    await page.goto('/fr/contact');
+    const link = page.getByRole('link', { name: /Télécharger mon CV/ });
+    await expect(link).toBeVisible();
+    await expect(link).toHaveAttribute('href', '/api/cv?lang=fr&download=true');
+    const res = await page.request.get('/api/cv?lang=fr&download=true');
+    expect(res.headers()['content-type']).toContain('application/pdf');
+    expect(await res.text()).toBe(pdf);
+    // English visitors get the French file, and are told so
+    await page.goto('/en/contact');
+    await expect(page.getByRole('link', { name: /Download my resume/ })).toContainText('in French');
+    await expectAccessible(page);
   } finally {
-    await api.delete(`/api/admin/articles/${note.id}`, { headers });
+    await api.delete('/api/admin/cv/fr', { headers });
     await api.dispose();
   }
 });
@@ -138,4 +120,29 @@ test('project pages share a generated 1200 × 630 JPEG', async ({ page, request:
   const res = await api.get(new URL(og!).pathname + new URL(og!).search);
   expect(res.status()).toBe(200);
   expect(res.headers()['content-type']).toContain('image/jpeg');
+});
+
+test('a resource blocked by the CSP shows in the journal', async ({ page, baseURL }) => {
+  test.skip(baseURL!.startsWith('https://'), 'over HTTPS browsers batch their reports (about a minute)');
+  const probe = 'https://cdn.example.com/e2e-probe.js';
+  await noIntro(page);
+  await page.goto('/fr/contact');
+  await page.evaluate((src) => {
+    const s = document.createElement('script');
+    s.src = src;
+    document.head.appendChild(s);
+  }, probe);
+  const { api, headers } = await admin(baseURL!);
+  const find = async (): Promise<{ id: number; source: string; path: string } | undefined> =>
+    ((await (await api.get('/api/admin/errors')).json()) as { id: number; source: string; message: string; path: string }[]).find((e) =>
+      e.message.endsWith(probe),
+    );
+  try {
+    await expect.poll(async () => (await find())?.source, { timeout: 15_000 }).toBe('CSP');
+    const entry = (await find())!;
+    expect(entry.path).toBe('/fr/contact');
+    await api.delete(`/api/admin/errors/${entry.id}`, { headers });
+  } finally {
+    await api.dispose();
+  }
 });

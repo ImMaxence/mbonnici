@@ -7,6 +7,52 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [1.6.0] — 2026-11-04
+
+### Added
+- **Your own resume**: upload a PDF per language in the back office (Profil → CV; drag and drop or
+  pick a file, 10 MB, replace or remove). Once there is one, a **Download my resume** button appears
+  on the contact page (with its size, and the language when the visitor gets the other one), and the
+  links on About and in the footer come back. Stored in the bucket, so backups and restores carry it.
+  Migration V8 (resume columns).
+
+### Changed
+- `/api/cv` serves the uploaded file instead of generating one; it is revalidated on every request
+  and kept out of search engines (`X-Robots-Tag: noindex`, no longer allowed in `robots.txt`).
+- The share-picture fonts moved to `resources/fonts`.
+
+### Removed
+- The **PDF resume generated** from the site content (OpenHTMLtoPDF / PDFBox dependency dropped).
+- The **notes** section, its back-office pages, its share pictures and the **RSS feeds**
+  (`/fr/rss.xml`, `/en/rss.xml`); notes leave the sitemap and `llms.txt`. The `article` table is gone
+  from the schema (migration V6 no longer creates it: nothing was deployed yet, local databases start
+  again from scratch).
+
+## [1.5.1] — 2026-11-04
+
+### Added
+- **CSP violations in the Journal**: the pages' Content-Security-Policy asks browsers to report what
+  it blocks (`report-to` with `Reporting-Endpoints`, and `report-uri` for older browsers) to
+  `/api/analytics/csp`. Violations are grouped like the other errors (source "CSP"); resources of
+  browser extensions are ignored. The privacy policy mentions these reports.
+- Phone menu: an **Administration** link when signed in (it was only in the desktop bar).
+
+### Changed
+- Phone menu: choosing a page no longer flashes the current page before the transition. The new page
+  renders under the menu, which then lifts: the menu is the transition.
+- The **Menu button** holds its two strokes in a round knob, drawn on whole pixels (crisp on every
+  screen).
+- Accessibility tests now cover every public and back-office page in both themes, the image viewer,
+  the contact form errors, the profile editors and the phone menu, with the WCAG 2.2 AA and
+  best-practice rules at every impact level (they used to fail on serious and critical issues only).
+
+### Fixed
+- Back office: status colours (published, online, trends, performance ratings, missing translation)
+  were below the 4.5:1 contrast ratio. The light theme's success, warning and danger colours and its
+  faint text are darker; the dashboard's ink card has its own trend chip.
+- Back office: the settings and profile fields were not tied to their labels, the project's accent
+  code field had no name, and the note preview could not be scrolled with the keyboard.
+
 ## [1.5.0] — 2026-11-04
 
 ### Added

@@ -20,7 +20,9 @@ const browserDistFolder = join(import.meta.dirname, '../browser');
 const API_BASE_URL = (process.env['API_BASE_URL'] ?? 'http://localhost:8080').replace(/\/$/, '');
 const PROXY_API = process.env['PROXY_API'] !== 'false';
 const IS_PROD = process.env['NODE_ENV'] === 'production';
-const PROXIED_FILES = new Set(['/sitemap.xml', '/robots.txt', '/llms.txt', '/llms-full.txt', '/fr/rss.xml', '/en/rss.xml']);
+/** browsers only use the Reporting API (report-to) on HTTPS sites; over plain HTTP report-uri does the job */
+const HTTPS_SITE = (process.env['APP_URL'] ?? '').startsWith('https://');
+const PROXIED_FILES = new Set(['/sitemap.xml', '/robots.txt', '/llms.txt', '/llms-full.txt']);
 const LANGS = ['fr', 'en'];
 
 // Hop-by-hop and body-framing headers that must never be copied through the proxy.
@@ -77,6 +79,9 @@ function contentSecurityPolicy(nonce: string): string {
     "base-uri 'self'",
     "form-action 'self' https://accounts.google.com",
     "frame-ancestors 'none'",
+    // violations land in the back-office journal (Reporting API, report-uri for the other browsers)
+    'report-uri /api/analytics/csp',
+    ...(HTTPS_SITE ? ['report-to csp'] : []),
   ];
   if (IS_PROD) {
     directives.push('upgrade-insecure-requests');
@@ -192,6 +197,7 @@ app.use(async (req, res, next) => {
       if (name !== 'content-length') res.setHeader(name, value);
     });
     res.setHeader('Content-Security-Policy', contentSecurityPolicy(nonce));
+    if (HTTPS_SITE) res.setHeader('Reporting-Endpoints', 'csp="/api/analytics/csp"');
     res.setHeader('Cache-Control', 'private, no-cache');
     res.status(response.status).send(html);
   } catch (error) {

@@ -29,7 +29,7 @@ import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.test.context.support.WithMockUser;
 
-/** v1.4.0: case studies and previews, notes, CV, web vitals, archived messages, responsive images. */
+/** Case studies and previews, the resume, web vitals, archived messages, responsive images, share pictures, errors. */
 @WithMockUser(roles = "ADMIN")
 class FeaturesTest extends AbstractIntegrationTest {
 
@@ -65,67 +65,53 @@ class FeaturesTest extends AbstractIntegrationTest {
     }
 
     @Test
-    void notesArePublishedWithFeedAndSitemap() throws Exception {
-        String created = mvc.perform(post("/api/admin/articles").with(csrf()).contentType(MediaType.APPLICATION_JSON).content("""
-                        {"title": {"fr": "Héberger soi-même", "en": "Self-hosting"},
-                         "summary": {"fr": "Coolify, Cloudflare et SeaweedFS", "en": "Coolify, Cloudflare and SeaweedFS"},
-                         "body": {"fr": "## Pourquoi\\n\\nParce que.", "en": "## Why\\n\\nBecause."},
-                         "status": "DRAFT", "tags": ["devops", "devops", " coolify "]}
-                        """))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.slug").value("heberger-soi-meme"))
-                .andExpect(jsonPath("$.tags.length()").value(2))
-                .andReturn().getResponse().getContentAsString();
-        String id = JsonPath.read(created, "$.id");
+    void theUploadedResumeIsServedInTheOtherLanguageWhenNeeded() throws Exception {
+        // nothing uploaded: no file, no button
+        mvc.perform(get("/api/cv").param("lang", "fr")).andExpect(status().isNotFound());
+        mvc.perform(get("/api/settings")).andExpect(jsonPath("$.cv.fr").doesNotExist());
+        // PDF only
+        mvc.perform(multipart("/api/admin/cv/fr").file(new MockMultipartFile("file", "cv.png", "image/png", png(10, 10))).with(csrf()))
+                .andExpect(status().isBadRequest());
+        mvc.perform(multipart("/api/admin/cv/de").file(new MockMultipartFile("file", "cv.pdf", "application/pdf", pdf("x"))).with(csrf()))
+                .andExpect(status().isBadRequest());
 
-        mvc.perform(get("/api/articles/heberger-soi-meme")).andExpect(status().isNotFound());
-        mvc.perform(get("/api/admin/articles/" + id + "/preview")).andExpect(status().isOk())
-                .andExpect(jsonPath("$.body.en").value(containsString("Because")));
-
-        mvc.perform(put("/api/admin/articles/" + id + "/status").with(csrf()).param("status", "PUBLISHED"))
+        byte[] fr = pdf("français");
+        mvc.perform(multipart("/api/admin/cv/fr").file(new MockMultipartFile("file", "Mon CV.pdf", "application/pdf", fr)).with(csrf()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.publishedAt").exists());
-        mvc.perform(get("/api/articles"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[*].slug", hasItem("heberger-soi-meme")))
-                .andExpect(jsonPath("$[0].minutes.fr").value(1));
-        mvc.perform(get("/api/articles/heberger-soi-meme"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.title.en").value("Self-hosting"));
-
-        mvc.perform(get("/en/rss.xml"))
-                .andExpect(status().isOk())
-                .andExpect(content().contentTypeCompatibleWith("application/rss+xml"))
-                .andExpect(content().string(containsString("<title>Self-hosting</title>")))
-                .andExpect(content().string(containsString("/en/notes/heberger-soi-meme</link>")));
-        mvc.perform(get("/fr/rss.xml"))
-                .andExpect(content().string(containsString("<title>Héberger soi-même</title>")));
-        mvc.perform(get("/sitemap.xml"))
-                .andExpect(content().string(containsString("/fr/notes/heberger-soi-meme")))
-                .andExpect(content().string(containsString("/en/notes</loc>")));
-        mvc.perform(get("/llms.txt")).andExpect(content().string(containsString("## Notes")));
-
-        mvc.perform(delete("/api/admin/articles/" + id).with(csrf())).andExpect(status().isNoContent());
-        mvc.perform(get("/api/articles")).andExpect(jsonPath("$[*].slug", not(hasItem("heberger-soi-meme"))));
-    }
-
-    @Test
-    void cvIsAPdfMadeFromTheContent() throws Exception {
-        var res = mvc.perform(get("/api/cv").param("lang", "fr"))
+                .andExpect(jsonPath("$.fr.size").value(fr.length))
+                .andExpect(jsonPath("$.en").doesNotExist());
+        mvc.perform(get("/api/settings")).andExpect(jsonPath("$.cv.fr.size").value(fr.length));
+        // an English visitor gets the French file while there is no English one
+        var res = mvc.perform(get("/api/cv").param("lang", "en"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_PDF))
-                .andExpect(header().string("Content-Disposition", containsString("maxence-bonnici-cv.pdf")))
+                .andExpect(header().string("Content-Disposition", containsString("CV-Maxence-Bonnici.pdf")))
+                .andExpect(header().string("X-Robots-Tag", containsString("noindex")))
                 .andReturn().getResponse();
-        byte[] pdf = res.getContentAsByteArray();
-        assertTrue(pdf.length > 10_000, "a real document");
-        assertEquals("%PDF", new String(pdf, 0, 4));
-        String etag = res.getHeader("ETag");
-        mvc.perform(get("/api/cv").param("lang", "fr").header("If-None-Match", etag)).andExpect(status().isNotModified());
+        org.junit.jupiter.api.Assertions.assertArrayEquals(fr, res.getContentAsByteArray());
+        mvc.perform(get("/api/cv").param("lang", "en").header("If-None-Match", res.getHeader("ETag")))
+                .andExpect(status().isNotModified());
 
+        byte[] en = pdf("english");
+        mvc.perform(multipart("/api/admin/cv/en").file(new MockMultipartFile("file", "resume.pdf", "application/pdf", en)).with(csrf()))
+                .andExpect(status().isOk());
         mvc.perform(get("/api/cv").param("lang", "en").param("download", "true"))
-                .andExpect(status().isOk())
                 .andExpect(header().string("Content-Disposition", containsString("attachment")))
-                .andExpect(header().string("Content-Disposition", containsString("maxence-bonnici-resume.pdf")));
+                .andExpect(header().string("Content-Disposition", containsString("Resume-Maxence-Bonnici.pdf")))
+                .andExpect(content().bytes(en));
+        mvc.perform(get("/api/cv").param("lang", "fr")).andExpect(content().bytes(fr));
+
+        // removed: the other language stands in, then nothing
+        mvc.perform(delete("/api/admin/cv/fr").with(csrf())).andExpect(status().isOk()).andExpect(jsonPath("$.fr").doesNotExist());
+        mvc.perform(get("/api/cv").param("lang", "fr")).andExpect(content().bytes(en));
+        mvc.perform(delete("/api/admin/cv/en").with(csrf())).andExpect(status().isOk());
+        mvc.perform(get("/api/cv").param("lang", "fr")).andExpect(status().isNotFound());
+        // personal: kept out of search engines
+        mvc.perform(get("/robots.txt")).andExpect(content().string(not(containsString("/api/cv"))));
+    }
+
+    private static byte[] pdf(String text) {
+        return ("%PDF-1.7\n% " + text + "\n%%EOF\n").getBytes(java.nio.charset.StandardCharsets.UTF_8);
     }
 
     @Test
@@ -287,7 +273,6 @@ class FeaturesTest extends AbstractIntegrationTest {
                 .andExpect(status().isNotModified());
         // drafts and unknown slugs have none
         mvc.perform(get("/api/og/projects/nailsbyanastasie.jpg")).andExpect(status().isNotFound());
-        mvc.perform(get("/api/og/notes/nope.jpg")).andExpect(status().isNotFound());
         mvc.perform(get("/robots.txt")).andExpect(content().string(containsString("Allow: /api/og/")));
     }
 
@@ -320,6 +305,46 @@ class FeaturesTest extends AbstractIntegrationTest {
         mvc.perform(get("/api/admin/errors").param("resolved", "true")).andExpect(jsonPath("$[*].id", hasItem(id)));
         mvc.perform(delete("/api/admin/errors/resolved").with(csrf())).andExpect(status().isOk());
         mvc.perform(get("/api/admin/errors").param("resolved", "true")).andExpect(jsonPath("$[*].id", not(hasItem(id))));
+    }
+
+    @Test
+    void cspViolationsReachTheJournalInBothFormats() throws Exception {
+        // Reporting API (current browsers)
+        mvc.perform(post("/api/analytics/csp").contentType("application/reports+json").content("""
+                        [{"type": "csp-violation", "age": 10, "url": "https://mbonnici.fr/fr/contact",
+                          "body": {"documentURL": "https://mbonnici.fr/fr/contact?x=1", "blockedURL": "https://cdn.example.com/lib.js?v=3",
+                                   "effectiveDirective": "script-src-elem", "disposition": "enforce",
+                                   "sourceFile": "https://mbonnici.fr/main-ABC.js", "lineNumber": 1, "columnNumber": 812}},
+                         {"type": "deprecation", "body": {"message": "ignored"}}]
+                        """))
+                .andExpect(status().isNoContent());
+        // report-uri (older browsers): the same violation elsewhere in the bundle → the same entry
+        mvc.perform(post("/api/analytics/csp").contentType("application/csp-report").content("""
+                        {"csp-report": {"document-uri": "https://mbonnici.fr/fr/projets", "blocked-uri": "https://cdn.example.com/lib.js",
+                                        "violated-directive": "script-src-elem", "effective-directive": "script-src-elem",
+                                        "source-file": "https://mbonnici.fr/main-ABC.js", "line-number": 1, "column-number": 990}}
+                        """))
+                .andExpect(status().isNoContent());
+        // inline code, an extension's resource, garbage
+        mvc.perform(post("/api/analytics/csp").contentType("application/csp-report").content("""
+                        {"csp-report": {"document-uri": "https://mbonnici.fr/admin/projects", "blocked-uri": "inline",
+                                        "violated-directive": "style-src-elem", "script-sample": ".x{color:red}"}}
+                        """))
+                .andExpect(status().isNoContent());
+        mvc.perform(post("/api/analytics/csp").contentType("application/csp-report").content("""
+                        {"csp-report": {"document-uri": "https://mbonnici.fr/fr", "blocked-uri": "chrome-extension://abc/inject.js",
+                                        "violated-directive": "script-src-elem"}}
+                        """))
+                .andExpect(status().isNoContent());
+        mvc.perform(post("/api/analytics/csp").contentType("application/csp-report").content("not json"))
+                .andExpect(status().isNoContent());
+
+        String open = mvc.perform(get("/api/admin/errors")).andReturn().getResponse().getContentAsString();
+        String lib = "Blocked by the CSP (script-src-elem): https://cdn.example.com/lib.js";
+        assertEquals(List.of(2), JsonPath.read(open, "$[?(@.message == '" + lib + "')].occurrences"));
+        assertEquals(List.of("CSP"), JsonPath.read(open, "$[?(@.message == '" + lib + "')].source"));
+        assertEquals(List.of("/admin…"), JsonPath.read(open, "$[?(@.message == 'Blocked by the CSP (style-src-elem): inline')].path"));
+        assertEquals(List.of(), JsonPath.read(open, "$[?(@.message =~ /.*extension.*/)]"));
     }
 
     @Test

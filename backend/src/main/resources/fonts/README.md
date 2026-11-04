@@ -1,7 +1,7 @@
-# CV fonts
+# Fonts
 
-TrueType files embedded in the PDF resume (CvService), all under the SIL Open Font License 1.1,
-which allows embedding:
+TrueType files used to draw the share pictures (`og/OgImageService`), all under the SIL Open Font
+License 1.1:
 
 - Inter, Inter Tight — Rasmus Andersson
 - Instrument Serif — Instrument

@@ -128,7 +128,6 @@ export class AdminShellComponent {
       key: 'content',
       links: [
         { path: '/admin/projects', icon: 'layers', key: 'projects' },
-        { path: '/admin/notes', icon: 'file', key: 'notes' },
         { path: '/admin/media', icon: 'image', key: 'media' },
         { path: '/admin/profile', icon: 'user', key: 'profile' },
         { path: '/admin/messages', icon: 'inbox', key: 'messages', badge: () => this.unread() },

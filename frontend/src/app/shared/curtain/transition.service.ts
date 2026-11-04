@@ -64,6 +64,22 @@ export class TransitionService {
     }
   }
 
+  /**
+   * Navigates without the curtain because something else already covers the viewport (the phone
+   * menu): the new page renders underneath and the cover is lifted afterwards by its owner.
+   */
+  async navigateUnder(url: string): Promise<void> {
+    if (this.router.url === url) return;
+    this.ours = true;
+    try {
+      window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
+      await this.router.navigateByUrl(url);
+      await frames(2);
+    } finally {
+      this.ours = false;
+    }
+  }
+
   /** Called by the root component: back/forward navigations get a quick reveal only. */
   onNavigationEnd(): void {
     if (this.first) {

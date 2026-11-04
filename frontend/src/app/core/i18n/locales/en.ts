@@ -3,7 +3,6 @@ import type { Dictionary } from './fr';
 /** English dictionary — must mirror fr.ts key for key (enforced by the Dictionary type). */
 export const en: Dictionary = {
   meta: {
-    notes: { title: 'Notes', description: 'Notes by Maxence Bonnici: web development, self-hosting, tools and lessons learned' },
     siteName: 'Maxence Bonnici',
     home: {
       title: 'Maxence Bonnici — Full Stack Developer, Java & Angular',
@@ -36,7 +35,6 @@ export const en: Dictionary = {
   },
 
   nav: {
-    notes: 'Notes',
     home: 'Home',
     projects: 'Projects',
     about: 'About',
@@ -216,6 +214,9 @@ export const en: Dictionary = {
     subtitle: 'One message is enough, no endless form and no newsletter',
     direct: 'Directly',
     socials: 'Social',
+    cv: 'Resume',
+    cvDownload: 'Download my resume',
+    cvIn: { fr: 'in French', en: 'in English' },
     form: {
       about: 'About',
       prefill: 'Hello, I saw the {title} project and would like to talk about a similar one: ',
@@ -267,7 +268,7 @@ export const en: Dictionary = {
         {
           h: 'Typefaces',
           p: [
-            'The site uses the Inter and Inter Tight (Rasmus Andersson), Instrument Serif (Instrument) and JetBrains Mono (JetBrains) typefaces, all distributed under the SIL Open Font License 1.1, which allows their use on a website. They are bundled with the site through the Fontsource project and served from the same server as the pages: no request is sent to Google Fonts or any other third party. The same fonts are embedded in the PDF resume, which the licence allows.',
+            'The site uses the Inter and Inter Tight (Rasmus Andersson), Instrument Serif (Instrument) and JetBrains Mono (JetBrains) typefaces, all distributed under the SIL Open Font License 1.1, which allows their use on a website. They are bundled with the site through the Fontsource project and served from the same server as the pages: no request is sent to Google Fonts or any other third party. The same fonts are used to draw the preview pictures of the projects on social networks, which the licence allows.',
           ],
         },
         {
@@ -300,7 +301,7 @@ export const en: Dictionary = {
             'To know which pages and projects are viewed, the site records anonymous events (page view, project view, outbound link). Each visit is tied to an ephemeral identifier computed from your IP address and browser, hashed with a salt that changes every day: you cannot be recognised from one day to the next and the IP address is never stored.',
             'Your browser’s “Do Not Track” and “Global Privacy Control” signals are honoured: no event is recorded when they are on. Raw events are deleted after 13 months.',
             'To check that the site stays fast, your browser also sends, when you leave the first page you visited, a few performance measurements (display time, responsiveness, layout stability) with the page path and the screen width. They are tied to no identifier, not even a temporary one, follow the same signals and are deleted after 13 months.',
-            'If a technical error happens in your browser, its message and the page concerned are sent to the site to be fixed, with no information about you; these reports follow the same signals and are erased at the latest 90 days after the last occurrence.',
+            'If a technical error happens in your browser, its message and the page concerned are sent to the site to be fixed, with no information about you; these reports follow the same signals. Likewise, your browser itself reports to the site the resources its security policy (CSP) blocked: only the address of the page and that of the resource are kept. These reports are erased at the latest 90 days after the last occurrence.',
           ],
         },
         {
@@ -402,14 +403,14 @@ export const en: Dictionary = {
           h: 'Non-accessible content',
           p: [
             'Known non-compliances: none to date. Every project screenshot has an alternative text that describes its content (page, headings, visible actions); pictures added without a description are flagged in the back office.',
-            'The site loaded in “Live” mode is a third-party site whose accessibility does not depend on this site. The PDF resume is generated from the content of the About page, which remains its accessible reference version.',
+            'The site loaded in “Live” mode is a third-party site whose accessibility does not depend on this site. The PDF resume is a document uploaded as is; its content is also on the About page, which is its accessible version.',
             'Exemption for disproportionate burden: none. Content outside the scope: third-party sites loaded in a frame at the visitor’s request.',
           ],
         },
         {
           h: 'Preparation of this statement',
           p: [
-            'This statement was prepared on 4 November 2026 and updated with version 1.4.0 (notes, projects list view, picture viewer). Technologies used: HTML, CSS, JavaScript (Angular), SVG. Test environment: a recent Chromium browser (Playwright), on desktop and in a mobile viewport.',
+            'This statement was prepared on 4 November 2026 and updated with version 1.6.0. Technologies used: HTML, CSS, JavaScript (Angular), SVG. Test environment: a recent Chromium browser (Playwright), on desktop and in a mobile viewport.',
             'The site follows system preferences: light or dark theme and reduced motion (the opening, transition and scroll animations are then disabled). Every feature can be used with a keyboard, a skip link leads straight to the content and each page change is announced to screen readers.',
           ],
         },
@@ -435,19 +436,6 @@ export const en: Dictionary = {
     back: 'Back to editing',
   },
 
-  notes: {
-    toc: 'Contents',
-    titleA: 'Field',
-    titleB: 'notes',
-    subtitle: 'What I learn while building and hosting my projects: decisions, tools, useful mistakes',
-    empty: 'No note published yet',
-    read: 'Read',
-    minutes: '{n} min read',
-    all: 'All notes',
-    neighbours: 'Note navigation',
-    newer: 'Newer note',
-    older: 'Older note',
-  },
 
   notFound: {
     title: 'Lost on the way',
@@ -480,12 +468,12 @@ export const en: Dictionary = {
   admin: {
     errors: {
       title: 'Error log',
-      intro: 'JavaScript errors of visitors and unexpected API errors, grouped. Nothing about the visitors, only the page',
+      intro: 'JavaScript errors of visitors, resources blocked by the security policy (CSP) and unexpected API errors, grouped. Nothing about the visitors, only the page',
       open: 'To handle',
       resolved: 'Resolved',
       none: 'No error to handle',
       noneResolved: 'No resolved error',
-      source: { CLIENT: 'Browser', SERVER: 'Server' },
+      source: { CLIENT: 'Browser', SERVER: 'Server', CSP: 'CSP' },
       occurrences: '{n} times',
       first: 'first',
       last: 'last',
@@ -523,26 +511,6 @@ export const en: Dictionary = {
     preview: {
       open: 'Preview',
       tip: 'The public page as it will look, even as a draft (save your changes first)',
-    },
-    notes: {
-      title: 'Notes',
-      intro: 'Short Markdown articles, published in the Notes section of the site (it appears with the first published note)',
-      new: 'New note',
-      edit: 'Edit the note',
-      empty: 'No note yet',
-      first: 'Write the first note',
-      confirmDelete: 'Delete “{title}”?',
-      fieldTitle: 'Title',
-      summary: 'Summary',
-      summaryHint: 'One or two sentences, shown in the list, the RSS feed and link previews',
-      body: 'Text (Markdown)',
-      bodyHint: '## heading, **bold**, *italic*, `code`, [link](https://…), lists, > quote and ``` code blocks',
-      livePreview: 'Live preview',
-      previewEmpty: 'The rendered text shows here while you type',
-      slugHint: 'Leave empty to make it from the French title',
-      date: 'Publication date',
-      dateHint: 'Empty: the date of the first publication',
-      cover: 'Cover picture (optional)',
     },
     vitals: {
       title: 'Real-user performance',
@@ -583,7 +551,6 @@ export const en: Dictionary = {
     },
     nav: {
       errors: 'Error log',
-      notes: 'Notes',
       dashboard: 'Dashboard',
       projects: 'Projects',
       media: 'Media',
@@ -597,7 +564,7 @@ export const en: Dictionary = {
     },
     dashboard: {
       cvDownloads: 'Resume downloads',
-      cvHint: 'PDFs opened from About and the footer',
+      cvHint: 'Resumes opened from Contact, About and the footer',
       title: 'Dashboard',
       hello: 'Hello {name}',
       subtitle: 'here is how the site is doing',
@@ -712,7 +679,7 @@ export const en: Dictionary = {
     media: {
       noAltCount: '{n} without alternative text',
       unused: 'UNUSED',
-      unusedTip: 'No project, note or setting uses this picture',
+      unusedTip: 'No project or setting uses this picture',
       unusedOnly: 'Unused only ({n})',
       cleanUp: 'Delete the unused ones ({n})',
       cleanUpTitle: 'Delete {n} unused pictures?',
@@ -740,6 +707,23 @@ export const en: Dictionary = {
       select: 'Select',
       done: 'Done',
       copyUrl: 'Copy URL',
+    },
+    cv: {
+      title: 'Resume',
+      intro: 'One PDF per language, 10 MB at most. Once a resume is uploaded it can be downloaded from the Contact and About pages and the footer; with only one, it serves both languages',
+      lang: { fr: 'French', en: 'English' },
+      none: 'No resume: no download button on the site',
+      fallback: 'None: visitors get the resume of the other language',
+      uploaded: 'uploaded on {date}',
+      uploading: 'Uploading…',
+      upload: 'Upload a PDF',
+      replace: 'Replace',
+      open: 'Open',
+      remove: 'Remove',
+      confirmRemove: 'Remove the {lang} resume?',
+      onlyPdf: 'Only PDF files are accepted',
+      tooLarge: 'The file is larger than 10 MB',
+      failed: 'The upload failed, try again',
     },
     profile: {
       title: 'Profile',

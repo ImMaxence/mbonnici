@@ -96,7 +96,7 @@ interface NavItem {
         </div>
         <nav class="menu-links">
           @for (item of allItems(); track $index; let i = $index) {
-            <a [href]="item.path" [class.is-active]="item.active" [attr.aria-current]="item.active ? 'page' : null" (click)="go($event, item)" [style.--i]="i">
+            <a [href]="item.path" [class.is-active]="item.active" [attr.aria-current]="item.active ? 'page' : null" [class.is-pending]="pending() === item.key" (click)="go($event, item)" [style.--i]="i">
               <span class="n" aria-hidden="true">{{ item.n }}</span>
               <span class="t">{{ item.label }}</span>
             </a>
@@ -110,9 +110,14 @@ interface NavItem {
               </button>
             }
           </div>
-          <button type="button" class="btn btn-ghost" (click)="switchLang()">
-            <app-icon name="globe" [size]="16" /> {{ i18n.other() === 'fr' ? 'Français' : 'English' }}
-          </button>
+          <div class="foot-links">
+            <button type="button" class="btn btn-ghost" (click)="switchLang()">
+              <app-icon name="globe" [size]="16" /> {{ i18n.other() === 'fr' ? 'Français' : 'English' }}
+            </button>
+            @if (auth.isAdmin()) {
+              <a class="btn btn-ghost" href="/admin"><app-icon name="settings" [size]="16" /> {{ 'nav.admin' | t }}</a>
+            }
+          </div>
         </div>
       </div>
     </dialog>
@@ -306,36 +311,45 @@ interface NavItem {
     .menu-btn {
       display: none;
       align-items: center;
-      gap: 0.7rem;
+      gap: 0.75rem;
       height: 42px;
       line-height: 1;
-      padding: 0 0.6rem 0 1rem;
+      padding: 0 5px 0 1.1rem;
       border-radius: var(--radius-pill);
       background: var(--fg);
       color: var(--bg);
       font-size: 0.85rem;
       font-weight: 600;
+      letter-spacing: -0.01em;
+      -webkit-tap-highlight-color: transparent;
+      transition: transform 0.4s var(--ease-spring);
+    }
+    .menu-btn:active {
+      transform: scale(0.96);
     }
     .menu-btn i {
-      position: relative;
-      width: 26px;
-      height: 26px;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--bg);
+      color: var(--fg);
       display: grid;
       place-content: center;
-      gap: 5px;
+      gap: 4px;
     }
     .menu-btn b {
       display: block;
-      width: 14px;
-      height: 1.5px;
+      width: 12px;
+      height: 2px;
+      border-radius: 1px;
       background: currentColor;
       transition: transform 0.45s var(--ease-out);
     }
     .menu-btn.is-open b:first-child {
-      transform: translateY(3.25px) rotate(45deg);
+      transform: translateY(3px) rotate(45deg);
     }
     .menu-btn.is-open b:last-child {
-      transform: translateY(-3.25px) rotate(-45deg);
+      transform: translateY(-3px) rotate(-45deg);
     }
     @media (max-width: 899px) {
       .inner {
@@ -385,6 +399,12 @@ interface NavItem {
       transition-duration: 0.4s;
       transition-delay: 0s;
     }
+    .menu-links .n {
+      transition: opacity 0.3s;
+    }
+    .menu.is-closing .menu-links .n {
+      opacity: 0;
+    }
     .menu-inner {
       min-height: 100%;
       display: grid;
@@ -431,6 +451,9 @@ interface NavItem {
         transform: translate3d(0, 110%, 0);
       }
     }
+    .menu-links a.is-pending .t {
+      color: var(--accent);
+    }
     .menu-links a.is-active .t {
       font-family: var(--font-serif);
       font-style: italic;
@@ -445,6 +468,11 @@ interface NavItem {
       align-items: center;
       justify-content: space-between;
       padding-top: var(--space-6);
+    }
+    .foot-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-2);
     }
     .seg {
       display: inline-grid;
@@ -485,6 +513,8 @@ export class HeaderComponent {
 
   readonly open = signal(false);
   readonly closing = signal(false);
+  /** the menu entry being opened (the menu stays up until the new page is there) */
+  readonly pending = signal<string | null>(null);
   readonly modes: { id: ThemeMode; icon: string }[] = [
     { id: 'light', icon: 'sun' },
     { id: 'dark', icon: 'moon' },
@@ -501,8 +531,6 @@ export class HeaderComponent {
       { key: 'home', label: d.home },
       { key: 'projects', label: d.projects },
       { key: 'about', label: d.about },
-      // only once a note is published
-      ...(this.store.settings()?.hasNotes ? [{ key: 'notes' as PageKey, label: d.notes }] : []),
       { key: 'contact', label: d.contact },
     ];
     return nav.map((n, i) => {
@@ -529,8 +557,10 @@ export class HeaderComponent {
   go(event: MouseEvent, item: NavItem): void {
     if (event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0) return;
     event.preventDefault();
-    const wasOpen = this.open();
-    if (wasOpen) this.closeMenu(true);
+    if (this.open()) {
+      void this.leaveMenu(item.active ? null : item.path, item.key);
+      return;
+    }
     if (item.active) {
       window.scrollTo({ top: 0, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
       return;
@@ -539,9 +569,27 @@ export class HeaderComponent {
   }
 
   switchLang(): void {
-    if (this.open()) this.closeMenu(true);
     const target = this.i18n.alternatePath(this.router.url, this.i18n.other());
+    if (this.open()) {
+      void this.leaveMenu(target, 'lang');
+      return;
+    }
     void this.transition.navigate(target, this.i18n.other() === 'fr' ? 'Français' : 'English');
+  }
+
+  /**
+   * From the phone menu the menu itself is the transition: the new page renders underneath while it
+   * covers the screen, then it lifts (no glimpse of the old page, no second animation).
+   */
+  private async leaveMenu(url: string | null, key: string): Promise<void> {
+    if (this.pending() || this.closing()) return;
+    this.pending.set(key);
+    if (url) {
+      await this.transition.navigateUnder(url);
+    } else {
+      window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
+    }
+    this.closeMenu();
   }
 
   setMode(mode: ThemeMode, event: MouseEvent): void {
@@ -551,17 +599,18 @@ export class HeaderComponent {
   openMenu(): void {
     if (!this.browser) return;
     this.closing.set(false);
+    this.pending.set(null);
     this.menu().nativeElement.showModal();
     this.open.set(true);
   }
 
-  /** @param instant skip the closing animation (a page transition takes over) */
-  closeMenu(instant = false): void {
+  closeMenu(): void {
     const dialog = this.menu().nativeElement;
-    if (instant || matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
       this.closing.set(true);
       dialog.close();
       this.open.set(false);
+      this.pending.set(null);
       return;
     }
     if (this.closing()) return;
@@ -571,6 +620,7 @@ export class HeaderComponent {
     setTimeout(() => {
       dialog.close();
       this.open.set(false);
+      this.pending.set(null);
     }, 650);
   }
 

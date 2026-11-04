@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.WebRequest;
 
-/** Share pictures (og:image) of the published projects and notes, 1200 × 630 JPEG. */
+/** Share pictures (og:image) of the published projects, 1200 × 630 JPEG. */
 @RestController
 public class OgController {
 
@@ -24,12 +24,6 @@ public class OgController {
     public ResponseEntity<byte[]> project(@PathVariable String slug, @RequestParam(defaultValue = "fr") String lang,
             WebRequest request) {
         return respond(service.project(slug, lang), request);
-    }
-
-    @GetMapping("/api/og/notes/{slug}.jpg")
-    public ResponseEntity<byte[]> note(@PathVariable String slug, @RequestParam(defaultValue = "fr") String lang,
-            WebRequest request) {
-        return respond(service.note(slug, lang), request);
     }
 
     private static ResponseEntity<byte[]> respond(OgImageService.Rendered r, WebRequest request) {

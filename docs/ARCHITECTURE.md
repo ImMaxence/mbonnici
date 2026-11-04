@@ -113,16 +113,15 @@ lists them and `MediaDto.srcset` gives the browser the choice. Pictures stored b
 without their copies) get them from a background job at start-up and after a restore. Each picture
 also has a focal point (`focal_x`, `focal_y`, top centre by default) used as `object-position`.
 
-## Notes, CV, insights and web vitals (1.4.0)
+## Case studies, resume, insights and web vitals
 
-- **Notes** (`article` table): Markdown in both languages, `ArticleService` (cache `articles`,
-  evicts `settings` too because `PublicSettings.hasNotes` shows the Notes section). Public
-  `/api/articles`, admin `/api/admin/articles` (+ `/{id}/preview`), RSS at `/fr/rss.xml` and
-  `/en/rss.xml` (`SeoController`, proxied by the SSR server like `sitemap.xml`).
 - **Case study**: `project.context_*`, `role_*`, `challenges_*`, `results_*` (Markdown).
-- **CV**: `CvService` builds XHTML from settings, profile and featured projects and renders it with
-  OpenHTMLtoPDF (PDFBox) using the TTF fonts in `resources/cv/fonts` (OFL). The PDF is cached per
-  language until the content fingerprint changes; `GET /api/cv?lang=&download=`.
+- **Resume** (1.6.0, replaces the PDF generated from the content in 1.4–1.5): the owner uploads a
+  PDF per language in Profil → CV (`POST|DELETE /api/admin/cv/{lang}`, 10 MB, `%PDF-` checked). The
+  file is an object of the bucket (`YYYY/MM/<uuid>.pdf`, so backups carry it); its key, size and date
+  are `site_settings.cv_{fr,en}_{key,size,at}` (V8). `GET /api/cv?lang=&download=` serves the
+  visitor's language or the other one, revalidated with an ETag, `X-Robots-Tag: noindex`.
+  `PublicSettings.cv` tells the site whether to show the download buttons.
 - **Insights**: `InsightsService` keeps in memory the live status of each published project's site
   (GET every 5 min, 8 s timeout) and GitHub figures (stars, last push, languages, every 6 h with
   ETags). Exposed at `/api/insights`, fetched by the browser only (`InsightsStore`), never part of the
@@ -137,8 +136,8 @@ also has a focal point (`focal_x`, `focal_y`, top centre by default) used as `ob
 ## Share pictures, monitoring (1.5.0)
 
 - **Share pictures**: `OgImageService` draws 1200 × 630 JPEGs with Java2D and the TTF fonts of
-  `resources/cv/fonts` (eyebrow, Inter Tight title fitted on three lines, tagline, signature; the cover
-  in a browser window, or a note cover, or the project initial on its accent colour). Covers are
+  `resources/fonts` (eyebrow, Inter Tight title fitted on three lines, tagline, signature; the cover
+  in a browser window, or the project initial on its accent colour). Covers are
   decoded from WebP with `dwebp` (`WebpEncoder.decode`), the 1280 px copy when there is one. Cached in
   memory per page and language until the content fingerprint changes.
 - **Site checks**: every check of `InsightsService` is also stored in `site_check` (30 days);
@@ -147,6 +146,8 @@ also has a focal point (`focal_x`, `focal_y`, top centre by default) used as `ob
   with numbers and ids masked, first stack frames without line numbers). Server errors come from
   `GlobalExceptionHandler` (5xx), browser errors from `ReportingErrorHandler` (Angular's
   `ErrorHandler`, fed by `provideBrowserGlobalErrorListeners`) through `/api/analytics/errors`.
+  Since 1.5.1 the CSP of the pages also reports its violations there (`report-to` + `Reporting-Endpoints`,
+  `report-uri` as a fallback) to `/api/analytics/csp`, which reads both report formats.
 
 ## Contact messages
 

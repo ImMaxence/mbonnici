@@ -34,7 +34,6 @@ const ICONS: Record<string, IconDef> = {
   download: { d: 'M12 4v11M7 10l5 5 5-5M5 20h14' },
   file: { d: 'M6 3h8.5L19 7.5V21H6zM14 3v5h5M9 13h7M9 17h5' },
   gauge: { d: 'M4.9 19a9 9 0 1 1 14.2 0M12 14l4-5M12 15a1 1 0 1 0 0-2 1 1 0 0 0 0 2z' },
-  rss: { d: 'M5 19h.01M5 12a7 7 0 0 1 7 7M5 5a14 14 0 0 1 14 14' },
   logout: { d: 'M10 4H5v16h5M14 16l4-4-4-4M18 12H9' },
   drag: { d: 'M9 6h.01M15 6h.01M9 12h.01M15 12h.01M9 18h.01M15 18h.01' },
   plus: { d: 'M12 5v14M5 12h14' },

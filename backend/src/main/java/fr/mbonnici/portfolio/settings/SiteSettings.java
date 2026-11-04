@@ -76,6 +76,20 @@ public class SiteSettings {
     @jakarta.persistence.JoinColumn(name = "avatar_media_id")
     private fr.mbonnici.portfolio.media.Media avatar;
 
+    /** the resume uploaded in the back office (a PDF in the bucket), per language */
+    @Column(name = "cv_fr_key")
+    private String cvFrKey;
+    @Column(name = "cv_fr_size")
+    private Integer cvFrSize;
+    @Column(name = "cv_fr_at")
+    private Instant cvFrAt;
+    @Column(name = "cv_en_key")
+    private String cvEnKey;
+    @Column(name = "cv_en_size")
+    private Integer cvEnSize;
+    @Column(name = "cv_en_at")
+    private Instant cvEnAt;
+
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt = Instant.now();
 
@@ -112,6 +126,23 @@ public class SiteSettings {
     public void setLegalContactEmail(String legalContactEmail) { this.legalContactEmail = legalContactEmail; }
     public fr.mbonnici.portfolio.media.Media getAvatar() { return avatar; }
     public void setAvatar(fr.mbonnici.portfolio.media.Media avatar) { this.avatar = avatar; }
+    public String getCvKey(String lang) { return "en".equals(lang) ? cvEnKey : cvFrKey; }
+    public Integer getCvSize(String lang) { return "en".equals(lang) ? cvEnSize : cvFrSize; }
+    public Instant getCvAt(String lang) { return "en".equals(lang) ? cvEnAt : cvFrAt; }
+
+    /** key null: no resume in that language any more */
+    public void setCv(String lang, String key, Integer size, Instant at) {
+        if ("en".equals(lang)) {
+            cvEnKey = key;
+            cvEnSize = size;
+            cvEnAt = at;
+        } else {
+            cvFrKey = key;
+            cvFrSize = size;
+            cvFrAt = at;
+        }
+    }
+
     public Instant getUpdatedAt() { return updatedAt; }
     public void touch() { this.updatedAt = Instant.now(); }
 }

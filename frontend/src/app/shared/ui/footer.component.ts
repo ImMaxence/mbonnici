@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
 import type { Settings } from '../../core/api/models';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { LocalizedPipe, TranslatePipe } from '../../core/i18n/translate.pipe';
@@ -6,6 +6,7 @@ import { MotionService } from '../../core/motion/motion.service';
 import { AnalyticsService } from '../../core/analytics/analytics.service';
 import { LinkDirective } from '../curtain/link.directive';
 import { MagneticDirective } from '../cursor/magnetic.directive';
+import { cvLink } from './cv';
 import { IconComponent } from './icon.component';
 
 @Component({
@@ -28,9 +29,6 @@ import { IconComponent } from './icon.component';
             <a [appLink]="i18n.path('home')" [linkLabel]="'nav.home' | t">{{ 'nav.home' | t }}</a>
             <a [appLink]="i18n.path('projects')" [linkLabel]="'nav.projects' | t">{{ 'nav.projects' | t }}</a>
             <a [appLink]="i18n.path('about')" [linkLabel]="'nav.about' | t">{{ 'nav.about' | t }}</a>
-            @if (settings()?.hasNotes) {
-              <a [appLink]="i18n.path('notes')" [linkLabel]="'nav.notes' | t">{{ 'nav.notes' | t }}</a>
-            }
             <a [appLink]="i18n.path('contact')" [linkLabel]="'nav.contact' | t">{{ 'nav.contact' | t }}</a>
           </nav>
           <div class="col links">
@@ -41,7 +39,9 @@ import { IconComponent } from './icon.component';
             @if (settings()?.linkedinUrl; as li) {
               <a [href]="li" target="_blank" rel="noopener noreferrer me">LinkedIn <app-icon name="arrow-up-right" [size]="14" /></a>
             }
-            <a [href]="'/api/cv?lang=' + i18n.lang()" target="_blank" rel="noopener" (click)="cv()">{{ 'footer.cv' | t }} <app-icon name="arrow-up-right" [size]="14" /></a>
+            @if (cvHref(); as href) {
+              <a [href]="href" target="_blank" rel="noopener" (click)="cv()">{{ 'footer.cv' | t }} <app-icon name="arrow-up-right" [size]="14" /></a>
+            }
             <a href="https://github.com/ImMaxence/mbonnici" target="_blank" rel="noopener noreferrer">{{ 'footer.source' | t }} <app-icon name="arrow-up-right" [size]="14" /></a>
           </div>
         </div>
@@ -176,6 +176,8 @@ export class FooterComponent {
   readonly year = new Date().getFullYear();
 
   private readonly analytics = inject(AnalyticsService);
+  /** opened in the browser's PDF viewer */
+  readonly cvHref = computed(() => cvLink(this.settings(), this.i18n.lang(), this.i18n.locale(), false)?.href ?? null);
 
   cv(): void {
     this.analytics.cvDownload(location.pathname);

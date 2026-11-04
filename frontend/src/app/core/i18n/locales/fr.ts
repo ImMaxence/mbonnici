@@ -8,7 +8,6 @@
  */
 export const fr = {
   meta: {
-    notes: { title: 'Notes', description: 'Notes de Maxence Bonnici : développement web, auto-hébergement, outils et retours d’expérience' },
     siteName: 'Maxence Bonnici',
     home: {
       title: 'Maxence Bonnici — Développeur Full Stack Java & Angular',
@@ -43,7 +42,6 @@ export const fr = {
   },
 
   nav: {
-    notes: 'Notes',
     home: 'Accueil',
     projects: 'Projets',
     about: 'À propos',
@@ -223,6 +221,9 @@ export const fr = {
     subtitle: 'Un message suffit, pas de formulaire interminable ni de newsletter',
     direct: 'En direct',
     socials: 'Réseaux',
+    cv: 'CV',
+    cvDownload: 'Télécharger mon CV',
+    cvIn: { fr: 'en français', en: 'en anglais' },
     form: {
       about: 'À propos de',
       prefill: 'Bonjour, j’ai vu le projet {title} et j’aimerais vous parler d’un projet similaire : ',
@@ -274,7 +275,7 @@ export const fr = {
         {
           h: 'Polices de caractères',
           p: [
-            'Le site utilise les polices Inter et Inter Tight (Rasmus Andersson), Instrument Serif (Instrument) et JetBrains Mono (JetBrains), toutes distribuées sous licence SIL Open Font License 1.1, qui autorise leur usage sur un site web. Elles sont intégrées au site via le projet Fontsource et servies depuis le même serveur que les pages : aucune requête n’est envoyée à Google Fonts ni à un autre service tiers. Les mêmes polices sont intégrées au CV au format PDF, ce que la licence permet.',
+            'Le site utilise les polices Inter et Inter Tight (Rasmus Andersson), Instrument Serif (Instrument) et JetBrains Mono (JetBrains), toutes distribuées sous licence SIL Open Font License 1.1, qui autorise leur usage sur un site web. Elles sont intégrées au site via le projet Fontsource et servies depuis le même serveur que les pages : aucune requête n’est envoyée à Google Fonts ni à un autre service tiers. Les mêmes polices servent à dessiner les images d’aperçu des projets sur les réseaux sociaux, ce que la licence permet.',
           ],
         },
         {
@@ -307,7 +308,7 @@ export const fr = {
             'Pour savoir quelles pages et quels projets sont consultés, le site enregistre des événements anonymes (page vue, projet consulté, lien sortant). Chaque visite est associée à un identifiant éphémère calculé à partir de votre adresse IP et de votre navigateur, haché avec un sel qui change chaque jour : il est impossible de vous reconnaître d’un jour à l’autre et l’adresse IP n’est jamais stockée.',
             'Les signaux « Do Not Track » et « Global Privacy Control » de votre navigateur sont respectés : aucun événement n’est enregistré lorsqu’ils sont activés. Les événements bruts sont supprimés après 13 mois.',
             'Pour vérifier que le site reste rapide, votre navigateur envoie aussi, quand vous quittez la première page visitée, quelques mesures de performance (temps d’affichage, réactivité, stabilité de la mise en page) avec le chemin de la page et la largeur de l’écran. Ces mesures ne sont rattachées à aucun identifiant, pas même éphémère, respectent les mêmes signaux et sont supprimées après 13 mois.',
-            'Si une erreur technique survient dans votre navigateur, son message et la page concernée sont envoyés au site pour être corrigés, sans aucune information sur vous ; ces rapports respectent les mêmes signaux et sont effacés au plus tard 90 jours après la dernière occurrence.',
+            'Si une erreur technique survient dans votre navigateur, son message et la page concernée sont envoyés au site pour être corrigés, sans aucune information sur vous ; ces rapports respectent les mêmes signaux. De même, votre navigateur signale de lui-même au site les ressources que sa politique de sécurité (CSP) a bloquées : seules l’adresse de la page et celle de la ressource sont conservées. Ces rapports sont effacés au plus tard 90 jours après la dernière occurrence.',
           ],
         },
         {
@@ -409,14 +410,14 @@ export const fr = {
           h: 'Contenus non accessibles',
           p: [
             'Non-conformités connues : aucune à ce jour. Chaque capture d’écran des projets dispose d’un texte alternatif qui décrit son contenu (page, titres, actions visibles) ; les images ajoutées sans description sont signalées dans l’espace d’administration.',
-            'Le site chargé en mode « En direct » est un site tiers dont l’accessibilité ne dépend pas de ce site. Le CV au format PDF est généré à partir du contenu de la page À propos, qui en reste la version accessible de référence.',
+            'Le site chargé en mode « En direct » est un site tiers dont l’accessibilité ne dépend pas de ce site. Le CV au format PDF est un document déposé tel quel ; son contenu est repris sur la page À propos, qui en est la version accessible.',
             'Dérogation pour charge disproportionnée : aucune. Contenus non soumis à l’obligation : les sites tiers chargés dans un cadre à la demande du visiteur.',
           ],
         },
         {
           h: 'Établissement de cette déclaration',
           p: [
-            'Cette déclaration a été établie le 4 novembre 2026 et mise à jour avec la version 1.4.0 (notes, vue liste des projets, visionneuse d’images). Technologies utilisées : HTML, CSS, JavaScript (Angular), SVG. Environnement de test : navigateur Chromium récent (Playwright), sur ordinateur et en affichage mobile.',
+            'Cette déclaration a été établie le 4 novembre 2026 et mise à jour avec la version 1.6.0. Technologies utilisées : HTML, CSS, JavaScript (Angular), SVG. Environnement de test : navigateur Chromium récent (Playwright), sur ordinateur et en affichage mobile.',
             'Le site respecte les préférences du système : thème clair ou sombre, réduction des animations (les animations d’ouverture, de transition et de défilement sont alors désactivées). Toutes les fonctions sont utilisables au clavier, un lien d’évitement mène directement au contenu et chaque changement de page est annoncé aux lecteurs d’écran.',
           ],
         },
@@ -442,19 +443,6 @@ export const fr = {
     back: 'Revenir à l’édition',
   },
 
-  notes: {
-    toc: 'Sommaire',
-    titleA: 'Notes',
-    titleB: 'de terrain',
-    subtitle: 'Ce que j’apprends en construisant et en hébergeant mes projets : décisions, outils, erreurs utiles',
-    empty: 'Aucune note publiée pour l’instant',
-    read: 'Lire',
-    minutes: '{n} min de lecture',
-    all: 'Toutes les notes',
-    neighbours: 'Navigation entre notes',
-    newer: 'Note plus récente',
-    older: 'Note plus ancienne',
-  },
 
   notFound: {
     title: 'Perdu en chemin',
@@ -487,12 +475,12 @@ export const fr = {
   admin: {
     errors: {
       title: 'Journal des erreurs',
-      intro: 'Erreurs JavaScript des visiteurs et erreurs inattendues de l’API, regroupées. Aucune donnée sur les visiteurs, seulement la page',
+      intro: 'Erreurs JavaScript des visiteurs, ressources bloquées par la politique de sécurité (CSP) et erreurs inattendues de l’API, regroupées. Aucune donnée sur les visiteurs, seulement la page',
       open: 'À traiter',
       resolved: 'Résolues',
       none: 'Aucune erreur à traiter',
       noneResolved: 'Aucune erreur résolue',
-      source: { CLIENT: 'Navigateur', SERVER: 'Serveur' },
+      source: { CLIENT: 'Navigateur', SERVER: 'Serveur', CSP: 'CSP' },
       occurrences: '{n} fois',
       first: 'première',
       last: 'dernière',
@@ -530,26 +518,6 @@ export const fr = {
     preview: {
       open: 'Aperçu',
       tip: 'La page publique telle qu’elle sera, même en brouillon (enregistrez d’abord vos changements)',
-    },
-    notes: {
-      title: 'Notes',
-      intro: 'Articles courts en Markdown, publiés dans la section Notes du site (elle apparaît dès la première note publiée)',
-      new: 'Nouvelle note',
-      edit: 'Modifier la note',
-      empty: 'Aucune note pour l’instant',
-      first: 'Écrire la première note',
-      confirmDelete: 'Supprimer « {title} » ?',
-      fieldTitle: 'Titre',
-      summary: 'Résumé',
-      summaryHint: 'Une ou deux phrases, affichées dans la liste, le flux RSS et les aperçus de partage',
-      body: 'Texte (Markdown)',
-      bodyHint: '## titre, **gras**, *italique*, `code`, [lien](https://…), listes, > citation et blocs ``` de code',
-      livePreview: 'Aperçu en direct',
-      previewEmpty: 'Le rendu du texte s’affiche ici pendant que vous écrivez',
-      slugHint: 'Laissez vide pour le générer depuis le titre français',
-      date: 'Date de publication',
-      dateHint: 'Vide : la date de la première publication',
-      cover: 'Image de couverture (facultative)',
     },
     vitals: {
       title: 'Performances réelles',
@@ -590,7 +558,6 @@ export const fr = {
     },
     nav: {
       errors: 'Journal',
-      notes: 'Notes',
       dashboard: 'Tableau de bord',
       projects: 'Projets',
       media: 'Médias',
@@ -604,7 +571,7 @@ export const fr = {
     },
     dashboard: {
       cvDownloads: 'CV téléchargés',
-      cvHint: 'PDF ouverts depuis À propos et le pied de page',
+      cvHint: 'CV ouverts depuis Contact, À propos et le pied de page',
       title: 'Tableau de bord',
       hello: 'Bonjour {name}',
       subtitle: 'voici comment se porte le site',
@@ -719,7 +686,7 @@ export const fr = {
     media: {
       noAltCount: '{n} sans texte alternatif',
       unused: 'INUTILISÉE',
-      unusedTip: 'Aucun projet, aucune note ni aucun réglage n’utilise cette image',
+      unusedTip: 'Aucun projet ni aucun réglage n’utilise cette image',
       unusedOnly: 'Inutilisées seulement ({n})',
       cleanUp: 'Supprimer les inutilisées ({n})',
       cleanUpTitle: 'Supprimer {n} images inutilisées ?',
@@ -747,6 +714,23 @@ export const fr = {
       select: 'Sélectionner',
       done: 'Terminé',
       copyUrl: 'Copier l’URL',
+    },
+    cv: {
+      title: 'CV',
+      intro: 'Un PDF par langue, 10 Mo au plus. Dès qu’un CV est déposé, il se télécharge depuis les pages Contact et À propos et le pied de page ; s’il n’y en a qu’un, il sert aux deux langues',
+      lang: { fr: 'Français', en: 'Anglais' },
+      none: 'Aucun CV : pas de bouton de téléchargement sur le site',
+      fallback: 'Aucun : les visiteurs reçoivent le CV de l’autre langue',
+      uploaded: 'déposé le {date}',
+      uploading: 'Envoi en cours…',
+      upload: 'Déposer un PDF',
+      replace: 'Remplacer',
+      open: 'Ouvrir',
+      remove: 'Retirer',
+      confirmRemove: 'Retirer le CV {lang} ?',
+      onlyPdf: 'Seuls les fichiers PDF sont acceptés',
+      tooLarge: 'Le fichier dépasse 10 Mo',
+      failed: 'L’envoi a échoué, réessayez',
     },
     profile: {
       title: 'Profil',

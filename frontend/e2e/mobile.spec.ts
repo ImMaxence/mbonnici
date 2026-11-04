@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { expectAccessible, prepare } from './axe';
 
 test.describe('phone layout', () => {
   test('home fits the viewport without horizontal scroll', async ({ page }) => {
@@ -30,8 +31,24 @@ test.describe('phone layout', () => {
     await page.getByRole('button', { name: 'Menu' }).tap();
     await expect(menu).toBeVisible();
     await menu.getByRole('link', { name: /À propos/ }).tap();
+    // the menu covers the screen until the new page is there (the old page never shows again)
     await page.waitForURL('**/fr/a-propos');
+    await expect(menu).toBeVisible();
+    await expect(page.locator('h1')).toBeAttached();
     await expect(menu).toBeHidden();
+  });
+
+  test('the menu passes axe and links to the back office when signed in', async ({ page }) => {
+    await prepare(page);
+    await page.goto('/fr');
+    await page.getByRole('button', { name: 'Menu' }).tap();
+    const menu = page.getByRole('dialog', { name: 'Menu' });
+    await expect(menu.getByRole('link', { name: 'Administration' })).toHaveCount(0);
+    await expectAccessible(page, 1000);
+    await page.goto('/api/auth/dev-login');
+    await page.goto('/fr');
+    await page.getByRole('button', { name: 'Menu' }).tap();
+    await expect(menu.getByRole('link', { name: 'Administration' })).toBeVisible();
   });
 
   test('project cards stack in one column and the detail page works', async ({ page }) => {

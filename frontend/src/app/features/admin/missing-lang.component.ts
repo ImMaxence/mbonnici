@@ -35,8 +35,8 @@ export function missingIn(lang: Lang, fields: readonly (Localized | null | undef
       height: 20px;
       padding: 0 7px;
       border-radius: 99px;
-      border: 1px dashed color-mix(in srgb, #d97706 70%, transparent);
-      color: #b45309;
+      border: 1px dashed color-mix(in srgb, var(--warning) 70%, transparent);
+      color: var(--warning);
       font: 600 10px/1 var(--font-mono);
       letter-spacing: 0.04em;
       white-space: nowrap;

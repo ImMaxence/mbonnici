@@ -1,6 +1,6 @@
 -- ─────────────────────────────────────────────────────────────────────────────
--- v1.4.0: responsive images, focal points, case studies, articles, archived
--- messages and real-user performance metrics.
+-- v1.4.0: responsive images, focal points, case studies, archived messages and
+-- real-user performance metrics.
 -- ─────────────────────────────────────────────────────────────────────────────
 
 -- media: smaller WebP copies stored next to the original (<key>-w640.webp …) and the point of the
@@ -24,25 +24,6 @@ alter table project
 -- contact messages can be put away without deleting them
 alter table contact_message add column archived boolean not null default false;
 create index contact_message_archived_idx on contact_message (archived, created_at desc);
-
--- notes / articles (Markdown)
-create table article (
-  id              uuid primary key default gen_random_uuid(),
-  slug            text        not null unique,
-  title_fr        text        not null,
-  title_en        text        not null,
-  summary_fr      text        not null default '',
-  summary_en      text        not null default '',
-  body_fr         text        not null default '',
-  body_en         text        not null default '',
-  status          text        not null default 'DRAFT',          -- DRAFT | PUBLISHED
-  cover_media_id  uuid references media (id) on delete set null,
-  tags            text[]      not null default '{}',
-  created_at      timestamptz not null default now(),
-  updated_at      timestamptz not null default now(),
-  published_at    timestamptz
-);
-create index article_listing_idx on article (status, published_at desc);
 
 -- Core Web Vitals measured in visitors' browsers (no identifier at all)
 create table web_vital (

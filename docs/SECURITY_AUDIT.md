@@ -157,11 +157,9 @@ readable by the authenticated owner.
   are dropped, nothing identifies the visitor (no hash, no IP).
 - **`/api/cv`**: public, rendered from published data only, cached (10 minutes, ETag) and cheap once
   rendered; the HTML given to the renderer is built server-side with every text escaped.
-- **Notes**: Markdown is rendered by the same template-based renderer as the project texts (no
-  `innerHTML`); fenced code is shown as text.
-- **Previews** (`/api/admin/projects/{id}/preview`, `/api/admin/articles/{id}/preview`) are admin-only
+- **Previews** (`/api/admin/projects/{id}/preview`) are admin-only
   and the preview pages are `noindex`.
-- **Unused media clean-up** deletes only pictures referenced by no project, gallery, note or setting
+- **Unused media clean-up** deletes only pictures referenced by no project, gallery or setting
   (computed server-side at the time of the request), after a confirmation dialog.
 
 ## v1.5.0 additions
@@ -174,3 +172,21 @@ readable by the authenticated owner.
   increments counters). Admin paths are reduced to `/admin…`. Messages are shown as text in the back
   office (no HTML).
 - **`site_check`** stores only a status code and a latency per check; purged after 30 days.
+
+## v1.5.1 additions
+
+- **`/api/analytics/csp`**: CSP violation reports sent by browsers (Reporting API and `report-uri`
+  formats). Same protections as the error beacon (CSRF-exempt, analytics rate limit, DNT / GPC when the
+  browser sends them, 500 entries at most); bodies over 64 KB, unparsable JSON and resources of browser
+  extensions are dropped, at most 10 violations are read per request, URLs are stored without their
+  query string and admin paths are reduced to `/admin…`.
+
+## v1.6.0 changes
+
+- **Notes and RSS removed** (`/api/articles`, `/api/admin/articles`, `/{fr,en}/rss.xml`,
+  `/api/og/notes/*`): less public surface. The PDF generator (OpenHTMLtoPDF / PDFBox) is gone too.
+- **Uploaded resume**: `POST /api/admin/cv/{lang}` is admin-only (session + CSRF), the size is checked
+  before the body is read (10 MB) and the file must start with `%PDF-`; it is stored under a random
+  key. `GET /api/cv` serves it as `application/pdf` with `nosniff` and `X-Robots-Tag: noindex`, and
+  `robots.txt` no longer allows `/api/cv`: a resume carries personal details and stays out of search
+  engines.

@@ -16,25 +16,21 @@ public class SettingsService {
 
     private final SettingsRepository repository;
     private final fr.mbonnici.portfolio.media.MediaRepository media;
-    private final fr.mbonnici.portfolio.article.ArticleRepository articles;
-
-    public SettingsService(SettingsRepository repository, fr.mbonnici.portfolio.media.MediaRepository media,
-            fr.mbonnici.portfolio.article.ArticleRepository articles) {
+    public SettingsService(SettingsRepository repository, fr.mbonnici.portfolio.media.MediaRepository media) {
         this.repository = repository;
         this.media = media;
-        this.articles = articles;
     }
 
     @Cacheable(CACHE)
     @Transactional(readOnly = true)
     public PublicSettings get() {
-        return PublicSettings.from(load(), hasNotes());
+        return PublicSettings.from(load());
     }
 
     /** Back office: texts as stored, without the fallback to the other language. */
     @Transactional(readOnly = true)
     public PublicSettings getRaw() {
-        return PublicSettings.raw(load(), hasNotes());
+        return PublicSettings.raw(load());
     }
 
     @CacheEvict(value = CACHE, allEntries = true)
@@ -62,11 +58,7 @@ public class SettingsService {
                 : media.findById(in.avatarMediaId())
                         .orElseThrow(() -> new fr.mbonnici.portfolio.common.NotFoundException("Avatar media")));
         s.touch();
-        return PublicSettings.raw(repository.save(s), hasNotes());
-    }
-
-    private boolean hasNotes() {
-        return articles.existsByStatus(fr.mbonnici.portfolio.article.Article.Status.PUBLISHED);
+        return PublicSettings.raw(repository.save(s));
     }
 
     private SiteSettings load() {

@@ -28,10 +28,7 @@ import type {
   SkillInput,
   StagedPreview,
   ApplyRestore,
-  AdminArticle,
-  ArticleDetail,
-  ArticleStatus,
-  ArticleUpsert,
+  CvStatus,
   Insight,
   ProjectDetail,
   VitalsOverview,
@@ -189,31 +186,19 @@ export class ApiService {
     return firstValueFrom(this.http.post<{ started: boolean; running: boolean }>('/api/admin/media/variants', null));
   }
 
-  // ── admin: notes ───────────────────────────────────────────────────────────
-  adminArticles(): Promise<AdminArticle[]> {
-    return firstValueFrom(this.http.get<AdminArticle[]>('/api/admin/articles'));
+  // ── admin: resume ──────────────────────────────────────────────────────────
+  cvStatus(): Promise<CvStatus> {
+    return firstValueFrom(this.http.get<CvStatus>('/api/admin/cv'));
   }
 
-  adminArticle(id: string): Promise<AdminArticle> {
-    return firstValueFrom(this.http.get<AdminArticle>(`/api/admin/articles/${id}`));
+  uploadCv(lang: 'fr' | 'en', file: File): Promise<CvStatus> {
+    const form = new FormData();
+    form.append('file', file);
+    return firstValueFrom(this.http.post<CvStatus>(`/api/admin/cv/${lang}`, form));
   }
 
-  saveArticle(body: ArticleUpsert, id?: string): Promise<AdminArticle> {
-    return id
-      ? firstValueFrom(this.http.put<AdminArticle>(`/api/admin/articles/${id}`, body))
-      : firstValueFrom(this.http.post<AdminArticle>('/api/admin/articles', body));
-  }
-
-  setArticleStatus(id: string, status: ArticleStatus): Promise<AdminArticle> {
-    return firstValueFrom(this.http.put<AdminArticle>(`/api/admin/articles/${id}/status`, null, { params: { status } }));
-  }
-
-  previewArticle(id: string): Promise<ArticleDetail> {
-    return firstValueFrom(this.http.get<ArticleDetail>(`/api/admin/articles/${id}/preview`));
-  }
-
-  deleteArticle(id: string): Promise<void> {
-    return firstValueFrom(this.http.delete<void>(`/api/admin/articles/${id}`));
+  deleteCv(lang: 'fr' | 'en'): Promise<CvStatus> {
+    return firstValueFrom(this.http.delete<CvStatus>(`/api/admin/cv/${lang}`));
   }
 
   // ── admin: profile ─────────────────────────────────────────────────────────

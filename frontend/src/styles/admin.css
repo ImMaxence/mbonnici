@@ -1073,7 +1073,7 @@ dialog.confirm {
   gap: 0.4rem;
   margin-top: 0.3rem;
   font-size: 0.78rem;
-  color: #b45309;
+  color: var(--warning);
 }
 
 .unsaved i {

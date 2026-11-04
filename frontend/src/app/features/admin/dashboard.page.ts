@@ -459,6 +459,10 @@ const PAD = { top: 16, right: 16, bottom: 28, left: 36 };
       color: var(--bg);
       border-color: var(--fg);
     }
+    .kpi.main .trend {
+      color: var(--bg);
+      background: color-mix(in srgb, var(--bg) 14%, transparent);
+    }
     .kpi.main .k-label,
     .kpi.main .faint {
       color: color-mix(in srgb, var(--bg) 65%, transparent);
@@ -704,12 +708,12 @@ const PAD = { top: 16, right: 16, bottom: 28, left: 36 };
     [data-rating='good'] .v-value,
     td[data-rating='good'],
     .chip-v[data-rating='good'] {
-      color: #15803d;
+      color: var(--success);
     }
     [data-rating='ni'] .v-value,
     td[data-rating='ni'],
     .chip-v[data-rating='ni'] {
-      color: #b45309;
+      color: var(--warning);
     }
     [data-rating='poor'] .v-value,
     td[data-rating='poor'],

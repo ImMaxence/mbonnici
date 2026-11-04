@@ -161,8 +161,19 @@ export interface Settings {
   /** picture next to the name in the header */
   avatar: MediaDto | null;
   updatedAt: string;
-  /** at least one published note: the Notes section is shown */
-  hasNotes?: boolean;
+  /** the uploaded resumes; a language without one is left out (no download button when both are) */
+  cv?: CvStatus;
+}
+
+/** a resume PDF uploaded in the back office */
+export interface CvFile {
+  size: number;
+  uploadedAt: string;
+}
+
+export interface CvStatus {
+  fr?: CvFile;
+  en?: CvFile;
 }
 
 export interface SettingsUpdate {
@@ -274,57 +285,10 @@ export interface Insight {
   repo: RepoStats | null;
 }
 
-// ── notes (articles) ─────────────────────────────────────────────────────────
-export type ArticleStatus = 'DRAFT' | 'PUBLISHED';
-
-export interface ArticleCard {
-  id: string;
-  slug: string;
-  title: Localized;
-  summary: Localized;
-  tags: string[];
-  cover: MediaDto | null;
-  publishedAt: string | null;
-  minutes: { fr: number; en: number };
-}
-
-export interface ArticleDetail extends ArticleCard {
-  body: Localized;
-  updatedAt: string;
-  previous: ArticleCard | null;
-  next: ArticleCard | null;
-}
-
-export interface AdminArticle {
-  id: string;
-  slug: string;
-  title: Localized;
-  summary: Localized;
-  body: Localized;
-  status: ArticleStatus;
-  tags: string[];
-  coverMediaId: string | null;
-  cover: MediaDto | null;
-  createdAt: string;
-  updatedAt: string;
-  publishedAt: string | null;
-}
-
-export interface ArticleUpsert {
-  slug?: string | null;
-  title: Localized;
-  summary: Localized;
-  body: Localized;
-  status: ArticleStatus;
-  tags: string[];
-  coverMediaId: string | null;
-  publishedAt: string | null;
-}
-
 // ── monitoring (back office) ─────────────────────────────────────────────────
 export interface ErrorEntry {
   id: number;
-  source: 'CLIENT' | 'SERVER';
+  source: 'CLIENT' | 'SERVER' | 'CSP';
   message: string;
   detail: string | null;
   path: string | null;

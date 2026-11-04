@@ -51,7 +51,8 @@ to publish projects, pictures and career updates without touching the code.
 - **Projects in a grid or a list** (the cover follows the pointer), **case studies**, live status of
   each site ("Online · 120 ms") and GitHub figures, skills linked to the projects that use them,
   an image viewer with swipe and keyboard, responsive WebP copies with a focal point.
-- **Notes** (Markdown articles with RSS) and a **CV as a PDF** generated from the About content.
+- **Your own CV** (a PDF per language uploaded in the back office) offered on the contact and about
+  pages once there is one.
 
 **Content & SEO**
 - French and English with localised URLs (`/fr/projets/meowtrix`, `/en/projects/meowtrix`),

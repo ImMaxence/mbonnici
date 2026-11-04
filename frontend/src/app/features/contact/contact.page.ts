@@ -10,6 +10,7 @@ import { SeoService } from '../../core/seo/seo.service';
 import { LinkDirective } from '../../shared/curtain/link.directive';
 import { MagneticDirective } from '../../shared/cursor/magnetic.directive';
 import { FooterComponent } from '../../shared/ui/footer.component';
+import { cvLink } from '../../shared/ui/cv';
 import { IconComponent } from '../../shared/ui/icon.component';
 import { RevealDirective } from '../../shared/ui/reveal.directive';
 
@@ -60,6 +61,15 @@ interface FormErrors {
               }
             </div>
           </div>
+          @if (cv(); as c) {
+            <div class="block" appReveal [revealDelay]="150">
+              <span class="eyebrow">{{ 'contact.cv' | t }}</span>
+              <a class="btn btn-ghost cv" [href]="c.href" download (click)="cvDownloaded()" appMagnetic>
+                <app-icon name="download" [size]="16" /> {{ 'contact.cvDownload' | t }}
+                <span class="cv-meta">PDF · {{ c.size }}@if (c.lang !== i18n.lang()) { · {{ 'contact.cvIn.' + c.lang | t }}}</span>
+              </a>
+            </div>
+          }
         </div>
 
         <div class="card form-card" appReveal [revealDelay]="150">
@@ -127,6 +137,13 @@ interface FormErrors {
     </main>
   `,
   styles: `
+    .cv-meta {
+      font-family: var(--font-mono);
+      font-size: var(--fs-micro);
+      letter-spacing: 0.02em;
+      color: var(--fg-3);
+      font-weight: 400;
+    }
     .about-project {
       display: flex;
       flex-wrap: wrap;
@@ -223,6 +240,7 @@ export class ContactPage {
     const slug = this.project();
     return slug ? ((this.projects() ?? []).find((p) => p.slug === slug) ?? null) : null;
   });
+  readonly cv = computed(() => cvLink(this.settings(), this.i18n.lang(), this.i18n.locale()));
   readonly state = signal<State>('idle');
   readonly copied = signal(false);
   readonly model = { name: '', email: '', message: '', website: '' };
@@ -306,6 +324,10 @@ export class ContactPage {
     this.touched.set({});
     this.submitted.set(false);
     this.state.set('idle');
+  }
+
+  cvDownloaded(): void {
+    this.analytics.cvDownload(this.i18n.path('contact'));
   }
 
   async copy(mail: string): Promise<void> {

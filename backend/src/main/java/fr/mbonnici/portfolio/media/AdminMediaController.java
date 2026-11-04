@@ -74,7 +74,7 @@ public class AdminMediaController {
         service.delete(id);
     }
 
-    /** images referenced by no project, article or setting */
+    /** images referenced by no project or setting */
     @GetMapping("/unused")
     public Map<String, List<UUID>> unused() {
         return Map.of("ids", service.unused());

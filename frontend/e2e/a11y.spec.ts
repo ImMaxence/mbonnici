@@ -1,26 +1,106 @@
-import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
+import { expectAccessible, prepare } from './axe';
 
-const pages = ['/fr', '/fr/projets', '/fr/projets/localatscv', '/fr/a-propos', '/fr/contact', '/fr/confidentialite', '/fr/accessibilite', '/en'];
+/**
+ * Automated accessibility checks of every page, public and back office, in both themes. The phone
+ * menu is checked in mobile.spec.ts, the contact page with a resume in features.spec.ts.
+ * Automated rules cover part of RGAA only: they complement a manual review, they do not replace it.
+ */
+const publicPages = [
+  '/fr',
+  '/en',
+  '/fr/projets',
+  '/fr/projets/localatscv',
+  '/en/projects/meowtrix',
+  '/fr/a-propos',
+  '/en/about',
+  '/fr/contact',
+  '/fr/mentions-legales',
+  '/fr/confidentialite',
+  '/fr/conditions-utilisation',
+  '/fr/accessibilite',
+  '/fr/page-inexistante',
+];
+const adminPages = [
+  '/admin',
+  '/admin/projects',
+  '/admin/projects/new',
+  '/admin/media',
+  '/admin/messages',
+  '/admin/settings',
+  '/admin/backups',
+  '/admin/errors',
+  '/admin/changelog',
+];
 
-for (const theme of ['light', 'dark'] as const)
-for (const path of pages) {
-  test(`accessibility (${theme}): ${path} has no serious or critical violations`, async ({ page }) => {
-    await page.addInitScript((mode) => {
-      sessionStorage.setItem('mb.intro', '1');
-      localStorage.setItem('mb.mode', mode);
-    }, theme);
-    await page.goto(path);
-    await page.waitForLoadState('networkidle');
-    // let the entrance animations finish: axe measures contrast on the final opacity
-    await page.waitForTimeout(1800);
-    const results = await new AxeBuilder({ page })
-      .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
-      // decorative canvases and the custom cursor are aria-hidden on purpose
-      .exclude('app-cursor')
-      .analyze();
-    const blocking = results.violations.filter((v) => v.impact === 'serious' || v.impact === 'critical');
-    expect(blocking, JSON.stringify(blocking.map((v) => ({ id: v.id, nodes: v.nodes.map((n) => n.target) })), null, 2)).toEqual([]);
+for (const theme of ['light', 'dark'] as const) {
+  test.describe(`${theme} theme`, () => {
+    test.beforeEach(async ({ page }) => prepare(page, theme));
+
+    for (const path of publicPages) {
+      test(`${path} passes axe`, async ({ page }) => {
+        await page.goto(path);
+        await page.waitForLoadState('networkidle');
+        await expectAccessible(page);
+      });
+    }
+
+    test('projects list view passes axe', async ({ page }) => {
+      await page.goto('/fr/projets');
+      await page.getByRole('button', { name: 'Liste' }).click();
+      await expect(page.locator('.rows .row').first()).toBeVisible();
+      await expectAccessible(page);
+      await page.getByRole('button', { name: 'Grille' }).click();
+    });
+
+    test('contact form showing its errors passes axe', async ({ page }) => {
+      await page.goto('/fr/contact');
+      await page.waitForLoadState('networkidle');
+      await page.locator('form button[type=submit]').click();
+      await expect(page.locator('[aria-invalid="true"]').first()).toBeVisible();
+      await expectAccessible(page, 600);
+    });
+
+    test('image viewer passes axe', async ({ page }) => {
+      await page.goto('/fr/projets/localatscv');
+      await page.waitForLoadState('networkidle');
+      const open = page.locator('app-slider button.open').first();
+      await open.scrollIntoViewIfNeeded();
+      await open.click({ force: true });
+      await expect(page.locator('dialog.viewer')).toBeVisible();
+      await expectAccessible(page, 900);
+    });
+
+    for (const path of adminPages) {
+      test(`admin ${path} passes axe`, async ({ page }) => {
+        await page.goto('/api/auth/dev-login');
+        await page.goto(path);
+        await page.waitForLoadState('networkidle');
+        await expectAccessible(page);
+      });
+    }
+
+    test('admin project editor passes axe', async ({ page }) => {
+      await page.goto('/api/auth/dev-login');
+      const projects = (await (await page.request.get('/api/admin/projects')).json()) as { id: string }[];
+      await page.goto(`/admin/projects/${projects[0].id}`);
+      await page.waitForLoadState('networkidle');
+      await expectAccessible(page);
+    });
+
+    test('admin profile and its editors pass axe', async ({ page }) => {
+      await page.goto('/api/auth/dev-login');
+      await page.goto('/admin/profile');
+      await page.waitForLoadState('networkidle');
+      await expectAccessible(page);
+      // experience, education, skill
+      for (let i = 0; i < 3; i++) {
+        await page.getByRole('button', { name: 'Ajouter' }).nth(i).click();
+        await expect(page.getByRole('button', { name: 'Annuler' })).toBeVisible();
+        await expectAccessible(page, 500);
+        await page.getByRole('button', { name: 'Annuler' }).click();
+      }
+    });
   });
 }
 

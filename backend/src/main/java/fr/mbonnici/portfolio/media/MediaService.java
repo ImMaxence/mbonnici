@@ -160,7 +160,7 @@ public class MediaService {
         evictProjects();
     }
 
-    /** Images no project, article or setting points to. */
+    /** Images no project or setting points to. */
     @Transactional(readOnly = true)
     public List<UUID> unused() {
         return repository.findUnusedIds();
@@ -291,7 +291,7 @@ public class MediaService {
     public record Served(Media media, String contentType, byte[] bytes, String variant) {}
 
     private void evictProjects() {
-        for (String name : new String[] {"projects", "settings", "articles"}) {
+        for (String name : new String[] {"projects", "settings"}) {
             var cache = cacheManager.getCache(name);
             if (cache != null) {
                 cache.clear();

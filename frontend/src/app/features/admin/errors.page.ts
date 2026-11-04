@@ -82,6 +82,9 @@ import { TooltipDirective } from '../../shared/ui/tooltip.directive';
     .error[data-source='CLIENT'] {
       border-left-color: #e0a12a;
     }
+    .error[data-source='CSP'] {
+      border-left-color: var(--accent);
+    }
     .err-head {
       display: flex;
       align-items: baseline;

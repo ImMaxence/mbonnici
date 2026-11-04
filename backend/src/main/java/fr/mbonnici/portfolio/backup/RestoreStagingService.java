@@ -47,7 +47,7 @@ public class RestoreStagingService {
     private static final String MEDIA_KEY = DatabaseDump.MEDIA_KEY;
 
     /** Tables offered for selection, in display order. */
-    static final List<String> VISIBLE = List.of("site_settings", "project", "article", "experience", "education", "skill",
+    static final List<String> VISIBLE = List.of("site_settings", "project", "experience", "education", "skill",
             "media", "contact_message", "analytics_event");
     /** Columns that change on every save and would make every row look modified. */
     private static final Set<String> VOLATILE = Set.of("updated_at");
@@ -217,7 +217,7 @@ public class RestoreStagingService {
         Map<String, String> linksA = table.equals("project") ? linkSignatures(archiveAll.get("project_media")) : Map.of();
         Map<String, String> linksB = table.equals("project") ? linkSignatures(liveAll.get("project_media")) : Map.of();
         String uniqueCol = switch (table) {
-            case "project", "article" -> "slug";
+            case "project" -> "slug";
             case "media" -> "object_key";
             default -> null;
         };
@@ -318,7 +318,7 @@ public class RestoreStagingService {
     private static String label(String table, PgCsv.Table t, List<String> r) {
         return switch (table) {
             case "site_settings" -> t.get(r, "owner_name");
-            case "project", "article" -> t.get(r, "title_fr");
+            case "project" -> t.get(r, "title_fr");
             case "experience" -> t.get(r, "company") + " — " + t.get(r, "role_fr");
             case "education" -> t.get(r, "school");
             case "skill" -> t.get(r, "name");
@@ -331,7 +331,7 @@ public class RestoreStagingService {
     private static String detail(String table, PgCsv.Table t, List<String> r) {
         return switch (table) {
             case "site_settings" -> t.get(r, "headline_fr");
-            case "project", "article" -> "/" + t.get(r, "slug") + " · " + t.get(r, "status");
+            case "project" -> "/" + t.get(r, "slug") + " · " + t.get(r, "status");
             case "experience" -> t.get(r, "start_date") + " → " + Objects.requireNonNullElse(t.get(r, "end_date"), "…");
             case "education" -> t.get(r, "degree_fr");
             case "skill" -> t.get(r, "category") + " · " + t.get(r, "level");
@@ -392,12 +392,6 @@ public class RestoreStagingService {
                 needed.add(projects.get(p, "cover_media_id"));
             }
         }
-        PgCsv.Table articles = s.tables().get("article");
-        for (List<String> a : articles.rows()) {
-            if (ids.get("article").contains(articles.get(a, "id")) && articles.get(a, "cover_media_id") != null) {
-                needed.add(articles.get(a, "cover_media_id"));
-            }
-        }
         PgCsv.Table settingsTable = s.tables().get("site_settings");
         for (List<String> r : settingsTable.rows()) {
             if (ids.get("site_settings").contains(settingsTable.get(r, "id")) && settingsTable.get(r, "avatar_media_id") != null) {
@@ -428,6 +422,17 @@ public class RestoreStagingService {
         for (List<String> r : media.rows()) {
             if (ids.get("media").contains(media.get(r, "id"))) {
                 keys.add(media.get(r, "object_key"));
+            }
+        }
+        // the settings bring their resume PDFs
+        for (List<String> r : settingsTable.rows()) {
+            if (ids.get("site_settings").contains(settingsTable.get(r, "id"))) {
+                for (String column : List.of("cv_fr_key", "cv_en_key")) {
+                    String key = settingsTable.get(r, column);
+                    if (key != null && key.matches(MEDIA_KEY)) {
+                        keys.add(key);
+                    }
+                }
             }
         }
         int objects = keys.isEmpty() ? 0 : copyObjects(s, keys);

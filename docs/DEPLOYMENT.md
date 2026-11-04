@@ -84,11 +84,12 @@ dashboard shows which commit is running on each tier.
   |---|---|---|
   | starts with `/api/media/` | Eligible for cache, edge TTL: respect origin | immutable pictures (1 year, ETag) |
   | starts with `/api/og/` | Eligible for cache, edge TTL: respect origin | share pictures (1 day, ETag) |
-  | equals `/fr/rss.xml`, `/en/rss.xml`, `/sitemap.xml`, `/llms.txt`, `/llms-full.txt` | Eligible for cache, respect origin | 1 hour |
+  | equals `/sitemap.xml`, `/llms.txt`, `/llms-full.txt` | Eligible for cache, respect origin | 1 hour |
   | starts with `/api/` (anything else) | **Bypass cache** | sessions, CSRF, admin, beacons |
   | everything else (HTML) | **Bypass cache** | each page carries a per-request CSP nonce |
 
-  `/api/cv` may also be cached (10 minutes, ETag) but it is cheap once rendered.
+  `/api/cv` (the uploaded resume) stays in the bypass rule: it is revalidated so a new upload shows at
+  once.
 - The backend reads the real visitor IP from `CF-Connecting-IP` (`TRUST_PROXY=true`), so rate
   limits and analytics work behind the proxy.
 
@@ -108,7 +109,8 @@ dashboard shows which commit is running on each tier.
    depuis un fichier), check the dashboard (Versions & santé all "ok", Sites en ligne filled after a
    few minutes), make a first backup.
 6. **Checks**: `https://mbonnici.fr/robots.txt`, `/sitemap.xml`, a project page shared in the
-   LinkedIn Post Inspector (share picture), `/api/cv?lang=fr`, the contact form (a message appears in
+   LinkedIn Post Inspector (share picture), the resume (Profil → CV, then the button on the contact
+   page), the contact form (a message appears in
    the back office).
 
 ## 4. Sub-projects on the same domain

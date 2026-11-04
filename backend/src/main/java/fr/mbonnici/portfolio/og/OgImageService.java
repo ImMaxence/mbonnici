@@ -1,7 +1,5 @@
 package fr.mbonnici.portfolio.og;
 
-import fr.mbonnici.portfolio.article.ArticleDtos;
-import fr.mbonnici.portfolio.article.ArticleService;
 import fr.mbonnici.portfolio.config.AppProperties;
 import fr.mbonnici.portfolio.media.MediaDto;
 import fr.mbonnici.portfolio.media.MediaService;
@@ -40,7 +38,7 @@ import javax.imageio.stream.MemoryCacheImageOutputStream;
 import org.springframework.stereotype.Service;
 
 /**
- * Share pictures (Open Graph / Twitter cards, 1200 × 630 JPEG) for projects and notes, drawn with
+ * Share pictures (Open Graph / Twitter cards, 1200 × 630 JPEG) of the projects, drawn with
  * Java2D in the site's style: paper background, Inter Tight title, the cover in a browser window
  * bleeding off the right edge. WebP covers are decoded with dwebp: social networks do not all read
  * WebP, a JPEG they all do. Cached in memory until the content changes.
@@ -62,7 +60,6 @@ public class OgImageService {
     public record Rendered(byte[] jpeg, String fingerprint) {}
 
     private final ProjectService projects;
-    private final ArticleService articles;
     private final SettingsService settings;
     private final MediaService media;
     private final WebpEncoder webp;
@@ -74,10 +71,9 @@ public class OgImageService {
     private final Font mono;
     private final Font serif;
 
-    public OgImageService(ProjectService projects, ArticleService articles, SettingsService settings, MediaService media,
+    public OgImageService(ProjectService projects, SettingsService settings, MediaService media,
             WebpEncoder webp, AppProperties props) {
         this.projects = projects;
-        this.articles = articles;
         this.settings = settings;
         this.media = media;
         this.webp = webp;
@@ -90,7 +86,7 @@ public class OgImageService {
     }
 
     private static Font font(String file) {
-        try (InputStream in = OgImageService.class.getResourceAsStream("/cv/fonts/" + file)) {
+        try (InputStream in = OgImageService.class.getResourceAsStream("/fonts/" + file)) {
             if (in == null) {
                 throw new IllegalStateException("missing font " + file);
             }
@@ -109,23 +105,13 @@ public class OgImageService {
                 + (p.year() == null ? "" : " · " + p.year());
         String site = p.liveUrl() != null ? host(p.liveUrl())
                 : p.repoUrl() != null ? p.repoUrl().replaceFirst("^https?://(www\\.)?", "").replaceFirst("/$", "") : host(props.url());
-        Card card = new Card(eyebrow, p.title().get(lang), p.tagline().get(lang), p.cover(), true, site, accent(p.accentColor()));
+        Card card = new Card(eyebrow, p.title().get(lang), p.tagline().get(lang), p.cover(), site, accent(p.accentColor()));
         return render("project|" + slug + "|" + lang, card);
-    }
-
-    public Rendered note(String slug, String language) {
-        String lang = lang(language);
-        ArticleDtos.Detail a = articles.getPublished(slug);
-        int minutes = lang.equals("en") ? a.minutes().en() : a.minutes().fr();
-        String eyebrow = "NOTE · " + minutes + (lang.equals("en") ? " MIN READ" : " MIN DE LECTURE");
-        Card card = new Card(eyebrow, a.title().get(lang), a.summary().get(lang), a.cover(), false, host(props.url()), ACCENT);
-        return render("note|" + slug + "|" + lang, card);
     }
 
     // ── drawing ──────────────────────────────────────────────────────────────
 
-    /** @param browser the cover is a website capture: shown in a browser window */
-    private record Card(String eyebrow, String title, String text, MediaDto cover, boolean browser, String site, Color accent) {}
+    private record Card(String eyebrow, String title, String text, MediaDto cover, String site, Color accent) {}
 
     private Rendered render(String key, Card c) {
         String owner = settings.get().ownerName();
@@ -147,10 +133,8 @@ public class OgImageService {
 
             BufferedImage cover = cover(c.cover()).orElse(null);
             int textWidth = 560;
-            if (cover != null && c.browser()) {
+            if (cover != null) {
                 browserWindow(g, cover, c.site(), focalY(c.cover()));
-            } else if (cover != null) {
-                photo(g, cover, focalY(c.cover()));
             } else {
                 mark(g, c);
             }
@@ -257,21 +241,7 @@ public class OgImageService {
         g.draw(frame);
     }
 
-    /** a note cover: a rounded photo on the right */
-    private void photo(Graphics2D g, BufferedImage cover, double focalY) {
-        int x = 680;
-        int y = 64;
-        int w = 456;
-        int h = H - 128;
-        shadow(g, x, y, w, h, 14);
-        Shape frame = new RoundRectangle2D.Double(x, y, w, h, 28, 28);
-        Shape old = g.getClip();
-        g.clip(frame);
-        drawCover(g, cover, x, y, w, h, focalY);
-        g.setClip(old);
-    }
-
-    /** no picture: a big serif quote mark (notes) or the initial in the project colour */
+    /** no picture: the initial in the project colour */
     private void mark(Graphics2D g, Card c) {
         int x = 720;
         int y = 64;
@@ -280,20 +250,10 @@ public class OgImageService {
         g.setColor(c.accent());
         g.fill(new RoundRectangle2D.Double(x, y, w, h, 28, 28));
         g.setColor(PAPER);
-        String glyph = c.browser() ? c.title().substring(0, 1).toUpperCase(Locale.ROOT) : "“";
-        g.setFont(serif.deriveFont(c.browser() ? 320f : 420f));
+        String glyph = c.title().substring(0, 1).toUpperCase(Locale.ROOT);
+        g.setFont(serif.deriveFont(320f));
         int gw = g.getFontMetrics().stringWidth(glyph);
-        g.drawString(glyph, x + (w - gw) / 2, y + (c.browser() ? h / 2 + 110 : h / 2 + 230));
-    }
-
-    /** cover-fit (width first), cropped around the focal point vertically */
-    private static void drawCover(Graphics2D g, BufferedImage img, int x, int y, int w, int h, double focalY) {
-        double scale = Math.max(w / (double) img.getWidth(), h / (double) img.getHeight());
-        int dw = (int) Math.ceil(img.getWidth() * scale);
-        int dh = (int) Math.ceil(img.getHeight() * scale);
-        int dx = x + (w - dw) / 2;
-        int dy = y - (int) Math.round((dh - h) * Math.clamp(focalY, 0, 1));
-        g.drawImage(img, dx, dy, dw, dh, null);
+        g.drawString(glyph, x + (w - gw) / 2, y + h / 2 + 110);
     }
 
     private static void shadow(Graphics2D g, int x, int y, int w, int h, int spread) {

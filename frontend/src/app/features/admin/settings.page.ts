@@ -67,37 +67,37 @@ import { missingIn } from './missing-lang.component';
             </div>
           </div>
           <div class="form-grid cols-2">
-            <div class="field"><label>{{ 'admin.settings.ownerName' | t }}</label><input class="input" name="ownerName" [(ngModel)]="f.ownerName" required /></div>
-            <div class="field"><label>{{ 'admin.settings.location' | t }}</label><input class="input" name="location" [(ngModel)]="f.location" /></div>
-            <div class="field span-2"><label>{{ 'admin.settings.headline' | t }} ({{ lang() }})</label><input class="input" name="headline" [(ngModel)]="f.headline[lang()]" /></div>
-            <div class="field span-2"><label>{{ 'admin.settings.bio' | t }} ({{ lang() }})</label><textarea class="textarea" rows="8" name="bio" [(ngModel)]="f.bio[lang()]"></textarea></div>
-            <div class="field"><label>{{ 'admin.settings.publicEmail' | t }}</label><input class="input" type="email" name="publicEmail" [(ngModel)]="f.publicEmail" /></div>
+            <div class="field"><label for="s-ownerName">{{ 'admin.settings.ownerName' | t }}</label><input id="s-ownerName" class="input" name="ownerName" [(ngModel)]="f.ownerName" required /></div>
+            <div class="field"><label for="s-location">{{ 'admin.settings.location' | t }}</label><input id="s-location" class="input" name="location" [(ngModel)]="f.location" /></div>
+            <div class="field span-2"><label for="s-headline">{{ 'admin.settings.headline' | t }} ({{ lang() }})</label><input id="s-headline" class="input" name="headline" [(ngModel)]="f.headline[lang()]" /></div>
+            <div class="field span-2"><label for="s-bio">{{ 'admin.settings.bio' | t }} ({{ lang() }})</label><textarea id="s-bio" class="textarea" rows="8" name="bio" [(ngModel)]="f.bio[lang()]"></textarea></div>
+            <div class="field"><label for="s-publicEmail">{{ 'admin.settings.publicEmail' | t }}</label><input id="s-publicEmail" class="input" type="email" name="publicEmail" [(ngModel)]="f.publicEmail" /></div>
             <div class="field">
-              <label>{{ 'admin.settings.availability' | t }}</label>
-              <select class="select" name="availability" [(ngModel)]="f.availability">
+              <label for="s-availability">{{ 'admin.settings.availability' | t }}</label>
+              <select id="s-availability" class="select" name="availability" [(ngModel)]="f.availability">
                 <option value="OPEN">{{ 'availability.OPEN' | t }}</option>
                 <option value="LISTENING">{{ 'availability.LISTENING' | t }}</option>
                 <option value="BUSY">{{ 'availability.BUSY' | t }}</option>
               </select>
             </div>
-            <div class="field"><label>{{ 'admin.settings.githubUrl' | t }}</label><input class="input" type="url" name="githubUrl" [(ngModel)]="f.githubUrl" /></div>
-            <div class="field"><label>{{ 'admin.settings.linkedinUrl' | t }}</label><input class="input" type="url" name="linkedinUrl" [(ngModel)]="f.linkedinUrl" /></div>
+            <div class="field"><label for="s-githubUrl">{{ 'admin.settings.githubUrl' | t }}</label><input id="s-githubUrl" class="input" type="url" name="githubUrl" [(ngModel)]="f.githubUrl" /></div>
+            <div class="field"><label for="s-linkedinUrl">{{ 'admin.settings.linkedinUrl' | t }}</label><input id="s-linkedinUrl" class="input" type="url" name="linkedinUrl" [(ngModel)]="f.linkedinUrl" /></div>
           </div>
         </div>
         <div class="panel">
           <h2 class="panel-title">{{ 'admin.settings.seo' | t }}</h2>
           <div class="form-grid">
-            <div class="field"><label>{{ 'admin.settings.seoTitle' | t }} ({{ lang() }})</label><input class="input" name="seoTitle" [(ngModel)]="f.seoTitle[lang()]" maxlength="70" /></div>
-            <div class="field"><label>{{ 'admin.settings.seoDescription' | t }} ({{ lang() }})</label><textarea class="textarea" rows="3" name="seoDescription" [(ngModel)]="f.seoDescription[lang()]" maxlength="170"></textarea></div>
+            <div class="field"><label for="s-seoTitle">{{ 'admin.settings.seoTitle' | t }} ({{ lang() }})</label><input id="s-seoTitle" class="input" name="seoTitle" [(ngModel)]="f.seoTitle[lang()]" maxlength="70" /></div>
+            <div class="field"><label for="s-seoDescription">{{ 'admin.settings.seoDescription' | t }} ({{ lang() }})</label><textarea id="s-seoDescription" class="textarea" rows="3" name="seoDescription" [(ngModel)]="f.seoDescription[lang()]" maxlength="170"></textarea></div>
           </div>
         </div>
         <div class="panel">
           <h2 class="panel-title">{{ 'admin.settings.legal' | t }}</h2>
           <div class="form-grid cols-2">
-            <div class="field"><label>{{ 'admin.settings.legalName' | t }}</label><input class="input" name="legalName" [(ngModel)]="f.legalName" /></div>
-            <div class="field"><label>{{ 'admin.settings.legalContactEmail' | t }}</label><input class="input" type="email" name="legalContactEmail" [(ngModel)]="f.legalContactEmail" /></div>
-            <div class="field span-2"><label>{{ 'admin.settings.legalAddress' | t }}</label><input class="input" name="legalAddress" [(ngModel)]="f.legalAddress" /></div>
-            <div class="field span-2"><label>{{ 'admin.settings.legalHost' | t }}</label><textarea class="textarea" rows="2" name="legalHost" [(ngModel)]="f.legalHost"></textarea></div>
+            <div class="field"><label for="s-legalName">{{ 'admin.settings.legalName' | t }}</label><input id="s-legalName" class="input" name="legalName" [(ngModel)]="f.legalName" /></div>
+            <div class="field"><label for="s-legalContactEmail">{{ 'admin.settings.legalContactEmail' | t }}</label><input id="s-legalContactEmail" class="input" type="email" name="legalContactEmail" [(ngModel)]="f.legalContactEmail" /></div>
+            <div class="field span-2"><label for="s-legalAddress">{{ 'admin.settings.legalAddress' | t }}</label><input id="s-legalAddress" class="input" name="legalAddress" [(ngModel)]="f.legalAddress" /></div>
+            <div class="field span-2"><label for="s-legalHost">{{ 'admin.settings.legalHost' | t }}</label><textarea id="s-legalHost" class="textarea" rows="2" name="legalHost" [(ngModel)]="f.legalHost"></textarea></div>
           </div>
         </div>
       </form>

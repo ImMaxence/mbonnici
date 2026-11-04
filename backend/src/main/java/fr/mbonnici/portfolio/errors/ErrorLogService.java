@@ -27,7 +27,8 @@ public class ErrorLogService {
     /** a busy error stops being counted after this many occurrences a day, the row stays */
     private static final int MAX_ROWS = 500;
 
-    public enum Source { CLIENT, SERVER }
+    /** CLIENT: JavaScript errors, SERVER: API errors, CSP: resources the Content-Security-Policy blocked */
+    public enum Source { CLIENT, SERVER, CSP }
 
     public record Entry(long id, Source source, String message, String detail, String path, int occurrences,
             Instant firstSeen, Instant lastSeen, boolean resolved) {}
