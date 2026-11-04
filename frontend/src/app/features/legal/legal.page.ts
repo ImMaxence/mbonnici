@@ -75,7 +75,8 @@ export class LegalPage {
       owner: s?.legal.name || s?.ownerName || 'Maxence Bonnici',
       host: s?.legal.host || '—',
       email: s?.legal.contactEmail || s?.publicEmail || '',
-      siteUrl: this.seo.origin.replace(/^https?:\/\//, ''),
+      // the published site, even when the page is rendered by a local or preview server
+      siteUrl: /localhost|127\.0\.0\.1|\[::1\]/.test(this.seo.origin) ? 'mbonnici.fr' : this.seo.origin.replace(/^https?:\/\//, ''),
       address: s?.legal.address || '',
     };
     const raw = this.i18n.get<Section[]>(`legal.${this.key()}.sections`) ?? [];

@@ -55,8 +55,11 @@ Without Drive you can still download archives and restore from a file from the s
    `ANALYTICS_SALT_SECRET`). Set `APP_URL=https://mbonnici.fr`.
 3. **Domains**: on the `frontend` service set `https://mbonnici.fr` and port `4000`.
    Leave the other services without a domain; they are not exposed.
-4. Deploy. The first start runs the Flyway migrations and seeds the initial content; the
-   backend waits for PostgreSQL and SeaweedFS to be healthy.
+4. Deploy. The first start runs the Flyway migrations; the backend waits for PostgreSQL and
+   SeaweedFS to be healthy. The site starts **empty** (owner name, legal identity and contact
+   e-mail only): sign in at `/admin` and add projects, experience and skills, or import
+   `seed/mbonnici-starter.zip` from **Sauvegardes → Restaurer depuis un fichier** and tick what
+   to keep.
 5. Enable **automatic deployments** on push (webhook) if you want `main` to go live.
 
 Persistent data lives in the named volumes `db-data` (PostgreSQL) and `seaweed-data` (images).
@@ -83,7 +86,7 @@ dashboard shows which commit is running on each tier.
 Each sub-project (`localatscv.mbonnici.fr`, `meowtrix.mbonnici.fr`, …) is its own Coolify
 resource with its own sub-domain. Register it as a project in the back office with its *live
 URL*; it then appears in the portfolio, in `sitemap.xml` (as a project page) and in `llms.txt`
-with a direct link, and can be shown live inside the iPhone simulator if it allows framing.
+with a direct link, and can be shown live in the browser frame of its page if it allows framing.
 
 ## 5. Local development
 

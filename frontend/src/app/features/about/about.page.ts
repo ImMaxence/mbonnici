@@ -23,7 +23,7 @@ import { ToolboxComponent } from '../../shared/ui/toolbox.component';
           {{ 'about.titleA' | t }} <span class="accent-word">{{ 'about.titleB' | t }}</span>
         </h1>
         <div class="head-foot">
-          <p class="lead" appReveal [revealDelay]="200">{{ settings()?.headline | l }} — {{ 'about.subtitle' | t }}</p>
+          <p class="lead" appReveal [revealDelay]="200">@if (settings()?.headline | l; as h) { {{ h }} — }{{ 'about.subtitle' | t }}</p>
           <div class="row" appReveal [revealDelay]="280">
             @if (settings()?.location; as loc) {
               <span class="chip chip-outline"><app-icon name="map-pin" [size]="13" /> {{ loc }}</span>
@@ -52,6 +52,7 @@ import { ToolboxComponent } from '../../shared/ui/toolbox.component';
         </div>
       </section>
 
+      @if (profile()?.experiences?.length) {
       <!-- ── Experience ─────────────────────────────────────────────── -->
       <section class="section container">
         <div class="section-title">
@@ -92,7 +93,9 @@ import { ToolboxComponent } from '../../shared/ui/toolbox.component';
           }
         </ol>
       </section>
+      }
 
+      @if (profile()?.education?.length) {
       <!-- ── Education ──────────────────────────────────────────────── -->
       <section class="section container">
         <div class="section-title">
@@ -120,7 +123,9 @@ import { ToolboxComponent } from '../../shared/ui/toolbox.component';
           }
         </ol>
       </section>
+      }
 
+      @if (profile()?.skills?.length) {
       <!-- ── Skills ─────────────────────────────────────────────────── -->
       <section class="section container">
         <div class="section-title">
@@ -129,6 +134,7 @@ import { ToolboxComponent } from '../../shared/ui/toolbox.component';
         </div>
         <app-toolbox [skills]="profile()?.skills ?? []" />
       </section>
+      }
 
       <app-footer [settings]="settings()" />
     </main>

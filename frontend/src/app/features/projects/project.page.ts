@@ -1,21 +1,21 @@
 import { Component, ElementRef, PLATFORM_ID, computed, effect, inject, input, signal, untracked, viewChild } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { AnalyticsService } from '../../core/analytics/analytics.service';
-import type { MediaDto, ProjectDetail, Settings } from '../../core/api/models';
+import type { ProjectDetail, Settings } from '../../core/api/models';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { LocalizedPipe, TranslatePipe } from '../../core/i18n/translate.pipe';
 import { SeoService } from '../../core/seo/seo.service';
 import { LinkDirective } from '../../shared/curtain/link.directive';
 import { CursorDirective } from '../../shared/cursor/cursor.directive';
 import { MagneticDirective } from '../../shared/cursor/magnetic.directive';
-import { IphoneComponent } from '../../shared/iphone/iphone.component';
 import { FooterComponent } from '../../shared/ui/footer.component';
 import { IconComponent } from '../../shared/ui/icon.component';
 import { MarkdownComponent } from '../../shared/ui/markdown.component';
 import { RevealDirective } from '../../shared/ui/reveal.directive';
 import { ShowcaseComponent } from '../../shared/ui/showcase.component';
-import { Visual, fromMedia, fromShot, shotAsMedia, shotsFor } from '../../shared/ui/shots';
+import { Visual, fromMedia } from '../../shared/ui/shots';
 import { SliderComponent } from '../../shared/ui/slider.component';
+import { RollTextComponent } from '../../shared/ui/roll-text.component';
 import { NoDotPipe } from '../../shared/ui/text';
 
 @Component({
@@ -27,13 +27,13 @@ import { NoDotPipe } from '../../shared/ui/text';
     LinkDirective,
     CursorDirective,
     MagneticDirective,
-    IphoneComponent,
     FooterComponent,
     IconComponent,
     MarkdownComponent,
     RevealDirective,
     ShowcaseComponent,
     SliderComponent,
+    RollTextComponent,
   ],
   template: `
     <main id="main" class="page" [style.--accent-project]="project()?.accentColor">
@@ -79,8 +79,9 @@ import { NoDotPipe } from '../../shared/ui/text';
             [slug]="p.slug"
             [title]="p.title | l"
             [accent]="p.accentColor"
+            [mode]="p.displayMode"
             [cover]="p.cover"
-            [mobileMedia]="p.mobile[0]"
+            [mobileList]="p.mobile"
             [site]="p.liveUrl"
             [live]="live()"
             [priority]="true"
@@ -108,23 +109,14 @@ import { NoDotPipe } from '../../shared/ui/text';
         }
 
         <!-- ── Mobile ─────────────────────────────────────────────────── -->
-        @if (phoneImages().length || canLive()) {
+        @if (hasPhone() && p.displayMode !== 'MOBILE' && p.displayMode !== 'DESKTOP') {
           <section class="container mobile">
             <div class="mobile-text">
               <span class="eyebrow" appReveal>{{ 'project.onMobile' | t }}</span>
               <h2 class="h2" appReveal revealSplit="words">{{ 'project.onMobileTitle' | t }}</h2>
-              @if (live()) {
-                <p class="muted">{{ 'project.liveInPhone' | t }}</p>
-              }
             </div>
             <div class="mobile-stage" appReveal>
-              <app-iphone
-                [images]="phoneImages()"
-                [src]="live() ? p.liveUrl : null"
-                [title]="p.title | l"
-                [tagline]="p.tagline | l"
-                [accent]="p.accentColor"
-              />
+              <app-showcase [slug]="p.slug" [title]="p.title | l" [accent]="p.accentColor" mode="MOBILE" [mobileList]="p.mobile" [site]="p.liveUrl" />
             </div>
           </section>
         }
@@ -132,17 +124,17 @@ import { NoDotPipe } from '../../shared/ui/text';
         <!-- ── Prev / next ───────────────────────────────────────────── -->
         <nav class="container neighbours" [attr.aria-label]="'project.neighbours' | t">
           @if (p.previous; as prev) {
-            <a class="neighbour" [appLink]="i18n.path('project', prev.slug)" [linkLabel]="prev.title | l" appCursor="label" [cursorLabel]="'common.previous' | t">
+            <a class="neighbour roll-trigger" [appLink]="i18n.path('project', prev.slug)" [linkLabel]="prev.title | l" appCursor="label" [cursorLabel]="'common.previous' | t">
               <span class="eyebrow plain">← {{ 'project.previousProject' | t }}</span>
-              <span class="h2">{{ prev.title | l }}</span>
+              <app-roll-text class="h2" [text]="prev.title | l" />
             </a>
           } @else {
             <span></span>
           }
           @if (p.next; as next) {
-            <a class="neighbour next" [appLink]="i18n.path('project', next.slug)" [linkLabel]="next.title | l" appCursor="label" [cursorLabel]="'common.next' | t">
+            <a class="neighbour next roll-trigger" [appLink]="i18n.path('project', next.slug)" [linkLabel]="next.title | l" appCursor="label" [cursorLabel]="'common.next' | t">
               <span class="eyebrow plain">{{ 'project.nextProject' | t }} →</span>
-              <span class="h2">{{ next.title | l }}</span>
+              <app-roll-text class="h2" [text]="next.title | l" />
             </a>
           }
         </nav>
@@ -292,13 +284,7 @@ import { NoDotPipe } from '../../shared/ui/text';
       align-content: start;
     }
     .mobile-stage {
-      display: grid;
-      place-items: center;
-      padding: var(--space-6) 0;
-      border-radius: var(--radius-l);
-      background:
-        radial-gradient(60% 60% at 50% 50%, color-mix(in srgb, var(--accent-project, var(--accent)) 22%, transparent), transparent 70%),
-        var(--bg-3);
+      min-width: 0;
     }
     .neighbours {
       display: grid;
@@ -314,16 +300,7 @@ import { NoDotPipe } from '../../shared/ui/text';
       gap: 0.6rem;
       padding: var(--space-6) 0;
     }
-    .neighbour .h2 {
-      transition: color var(--dur-2);
-    }
-    .neighbour:hover .h2 {
-      font-family: var(--font-serif);
-      font-style: italic;
-      font-weight: 400;
-      letter-spacing: -0.02em;
-      color: var(--accent);
-    }
+
     .neighbour.next {
       text-align: right;
       justify-items: end;
@@ -350,23 +327,17 @@ export class ProjectPage {
     return !!p?.allowIframe && !!p.liveUrl;
   });
 
-  /** back-office gallery first, otherwise the README captures */
+  /** the gallery of the back office */
   readonly gallery = computed<Visual[]>(() => {
     const p = this.project();
     if (!p) return [];
-    const title = this.i18n.l(p.title);
-    if (p.gallery.length) {
-      return p.gallery.map((m, i) => fromMedia(m, this.i18n.l(m.alt) || this.i18n.t('project.screenshot', { n: i + 1 }))!);
-    }
-    return shotsFor(p.slug).gallery.map((s, i) => fromShot(s, `${title} — ${this.i18n.t('project.screenshot', { n: i + 1 })}`)!);
+    return p.gallery.map((m, i) => fromMedia(m, this.i18n.l(m.alt) || this.i18n.t('project.screenshot', { n: i + 1 }))!);
   });
 
-  readonly phoneImages = computed<MediaDto[]>(() => {
+  /** a phone capture exists (back office or README) */
+  readonly hasPhone = computed(() => {
     const p = this.project();
-    if (!p) return [];
-    if (p.mobile.length) return p.mobile;
-    const shot = shotsFor(p.slug).mobile;
-    return shot ? [shotAsMedia(shot, this.i18n.t('project.shotAlt', { title: this.i18n.l(p.title) }))] : [];
+    return !!p && p.mobile.length > 0;
   });
 
   constructor() {
@@ -379,14 +350,13 @@ export class ProjectPage {
       const description = this.i18n.l(p.tagline) || this.i18n.t('meta.projects.description');
       const origin = this.seo.origin;
       const url = origin + this.i18n.path('project', p.slug);
-      const shot = shotsFor(p.slug).desktop;
       this.seo.set({
         title,
         description,
         page: 'project',
         slug: p.slug,
         type: 'article',
-        image: p.cover?.url ?? p.gallery[0]?.url ?? (shot ? origin + shot.src : null),
+        image: p.cover?.url ?? p.gallery[0]?.url ?? null,
         jsonLd: [
           {
             '@type': p.repoUrl ? 'SoftwareSourceCode' : 'CreativeWork',

@@ -1,4 +1,7 @@
 import { NgTemplateOutlet } from '@angular/common';
+import { RouterLink } from '@angular/router';
+import { TooltipDirective } from '../../shared/ui/tooltip.directive';
+import { AuthService } from '../../core/auth/auth.service';
 import { Component, DestroyRef, afterNextRender, computed, inject, signal } from '@angular/core';
 import { ApiService } from '../../core/api/api.service';
 import type { AdminInfo, AnalyticsOverview, KeyCount, SystemInfo } from '../../core/api/models';
@@ -22,199 +25,222 @@ const PAD = { top: 16, right: 16, bottom: 28, left: 36 };
 
 @Component({
   selector: 'app-admin-dashboard',
-  imports: [NgTemplateOutlet, TranslatePipe, LocalizedPipe, IconComponent],
+  imports: [NgTemplateOutlet, RouterLink, TooltipDirective, TranslatePipe, LocalizedPipe, IconComponent],
   template: `
     <div class="admin-head">
-      <h1>{{ 'admin.dashboard.title' | t }}</h1>
-      <div class="admin-toolbar" role="group" [attr.aria-label]="'admin.dashboard.period' | t">
+      <div>
+        <h1>{{ 'admin.dashboard.hello' | t: { name: firstName() } }}</h1>
+        <p class="muted small">{{ today }} · {{ 'admin.dashboard.subtitle' | t }}</p>
+      </div>
+      <div class="period" role="radiogroup" [attr.aria-label]="'admin.dashboard.period' | t">
         @for (d of periods; track d) {
-          <button type="button" class="chip" [attr.aria-pressed]="days() === d" (click)="setDays(d)">{{ 'admin.dashboard.days' | t: { n: d } }}</button>
+          <button type="button" role="radio" [attr.aria-checked]="days() === d" (click)="setDays(d)">{{ 'admin.dashboard.days' | t: { n: d } }}</button>
         }
       </div>
     </div>
 
     @if (overview(); as o) {
-      <div class="tiles">
-        <div class="tile">
-          <span class="stat-label">{{ 'admin.dashboard.pageViews' | t }}</span>
-          <span class="stat-value num">{{ fmt(o.pageViews) }}</span>
-          <span class="trend" [class.up]="o.pageViews >= o.pageViewsPrevious" [class.down]="o.pageViews < o.pageViewsPrevious">{{ trend(o.pageViews, o.pageViewsPrevious) }} {{ 'admin.dashboard.vsPrevious' | t }}</span>
-        </div>
-        <div class="tile">
-          <span class="stat-label">{{ 'admin.dashboard.visitors' | t }}</span>
-          <span class="stat-value num">{{ fmt(o.visitors) }}</span>
-          <span class="trend" [class.up]="o.visitors >= o.visitorsPrevious" [class.down]="o.visitors < o.visitorsPrevious">{{ trend(o.visitors, o.visitorsPrevious) }} {{ 'admin.dashboard.vsPrevious' | t }}</span>
-        </div>
-        <div class="tile"><span class="stat-label">{{ 'admin.dashboard.projectViews' | t }}</span><span class="stat-value num">{{ fmt(o.projectViews) }}</span></div>
-        <div class="tile"><span class="stat-label">{{ 'admin.dashboard.outbound' | t }}</span><span class="stat-value num">{{ fmt(o.outboundClicks) }}</span></div>
-        <div class="tile"><span class="stat-label">{{ 'admin.dashboard.contacts' | t }}</span><span class="stat-value num">{{ fmt(o.contactSubmits) }}</span></div>
-      </div>
-
-      <!-- ── Daily traffic: two series, one axis, crosshair tooltip, table view ── -->
-      <div class="panel">
-        <div class="row between" style="margin-bottom: 1rem">
-          <h2 class="panel-title" style="margin: 0">{{ 'admin.dashboard.traffic' | t }}</h2>
-          <div class="row" style="gap: 1rem">
-            <span class="legend"><i class="sw s1"></i>{{ 'admin.dashboard.views' | t }}</span>
-            <span class="legend"><i class="sw s2"></i>{{ 'admin.dashboard.visitorsShort' | t }}</span>
-            <button type="button" class="chip" [attr.aria-pressed]="table()" (click)="table.set(!table())">
-              <app-icon name="grid" [size]="12" /> table
-            </button>
-          </div>
-        </div>
-        @if (!points().length) {
-          <p class="muted">{{ 'admin.dashboard.noData' | t }}</p>
-        } @else if (table()) {
-          <table class="table">
-            <thead><tr><th>Date</th><th class="num">{{ 'admin.dashboard.views' | t }}</th><th class="num">{{ 'admin.dashboard.visitorsShort' | t }}</th></tr></thead>
-            <tbody>
-              @for (p of o.daily; track p.date) {
-                <tr><td class="mono">{{ p.date }}</td><td class="num">{{ p.views }}</td><td class="num">{{ p.visitors }}</td></tr>
-              }
-            </tbody>
-          </table>
-        } @else {
-          <div class="chart-wrap" (pointermove)="hover($event)" (pointerleave)="hovered.set(null)">
-            <svg class="chart" [attr.viewBox]="'0 0 ' + w + ' ' + h" role="img" [attr.aria-label]="'admin.dashboard.traffic' | t">
-              @for (g of gridLines(); track g.y) {
-                <line class="axis" [attr.x1]="pad.left" [attr.x2]="w - pad.right" [attr.y1]="g.y" [attr.y2]="g.y" />
-                <text class="label" [attr.x]="pad.left - 6" [attr.y]="g.y + 3" text-anchor="end">{{ g.value }}</text>
-              }
-              <path class="area" [attr.d]="areaPath()" />
-              <path class="line s1" [attr.d]="linePath('yViews')" />
-              <path class="line s2" [attr.d]="linePath('yVisitors')" />
-              @for (lbl of xLabels(); track lbl.x) {
-                <text class="label" [attr.x]="lbl.x" [attr.y]="h - 8" text-anchor="middle">{{ lbl.text }}</text>
-              }
-              @if (hovered(); as hp) {
-                <line class="crosshair" [attr.x1]="hp.x" [attr.x2]="hp.x" [attr.y1]="pad.top" [attr.y2]="h - pad.bottom" />
-                <circle class="dot s1" [attr.cx]="hp.x" [attr.cy]="hp.yViews" r="4" />
-                <circle class="dot s2" [attr.cx]="hp.x" [attr.cy]="hp.yVisitors" r="4" />
-              }
-            </svg>
-            @if (hovered(); as hp) {
-              <div class="tooltip-box" [style.left.%]="(hp.x / w) * 100">
-                <strong class="mono">{{ hp.date }}</strong>
-                <span><i class="sw s1"></i>{{ hp.views }} {{ 'admin.dashboard.views' | t }}</span>
-                <span><i class="sw s2"></i>{{ hp.visitors }} {{ 'admin.dashboard.visitorsShort' | t }}</span>
-              </div>
+      <!-- ── KPIs ── -->
+      <section class="kpis">
+        <article class="kpi main">
+          <span class="k-label">{{ 'admin.dashboard.pageViews' | t }}</span>
+          <span class="k-value num">{{ fmt(o.pageViews) }}</span>
+          <span class="k-foot">
+            <span class="trend" [class.up]="o.pageViews >= o.pageViewsPrevious" [class.down]="o.pageViews < o.pageViewsPrevious">{{ trend(o.pageViews, o.pageViewsPrevious) }}</span>
+            <span class="faint">{{ 'admin.dashboard.vsPrevious' | t }}</span>
+          </span>
+          <svg class="spark" viewBox="0 0 120 36" preserveAspectRatio="none" aria-hidden="true"><path class="spark-area" [attr.d]="spark('views', true)" /><path class="spark-line" [attr.d]="spark('views', false)" /></svg>
+        </article>
+        <article class="kpi">
+          <span class="k-label">{{ 'admin.dashboard.visitors' | t }}</span>
+          <span class="k-value num">{{ fmt(o.visitors) }}</span>
+          <span class="k-foot">
+            <span class="trend" [class.up]="o.visitors >= o.visitorsPrevious" [class.down]="o.visitors < o.visitorsPrevious">{{ trend(o.visitors, o.visitorsPrevious) }}</span>
+            <span class="faint">{{ 'admin.dashboard.vsPrevious' | t }}</span>
+          </span>
+          <svg class="spark s2" viewBox="0 0 120 36" preserveAspectRatio="none" aria-hidden="true"><path class="spark-area" [attr.d]="spark('visitors', true)" /><path class="spark-line" [attr.d]="spark('visitors', false)" /></svg>
+        </article>
+        <article class="kpi">
+          <span class="k-label">{{ 'admin.dashboard.projectViews' | t }}</span>
+          <span class="k-value num">{{ fmt(o.projectViews) }}</span>
+          <span class="k-foot faint">{{ 'admin.dashboard.perVisitor' | t: { n: perVisitor(o.projectViews, o.visitors) } }}</span>
+        </article>
+        <article class="kpi">
+          <span class="k-label">{{ 'admin.dashboard.outbound' | t }}</span>
+          <span class="k-value num">{{ fmt(o.outboundClicks) }}</span>
+          <span class="k-foot faint">{{ 'admin.dashboard.outboundHint' | t }}</span>
+        </article>
+        <a class="kpi link" routerLink="/admin/messages">
+          <span class="k-label">{{ 'admin.dashboard.contacts' | t }}</span>
+          <span class="k-value num">{{ fmt(o.contactSubmits) }}</span>
+          <span class="k-foot">
+            @if (unread() > 0) {
+              <span class="badge">{{ unread() }}</span> <span class="faint">{{ 'admin.dashboard.unread' | t }}</span>
+            } @else {
+              <span class="faint">{{ 'admin.dashboard.allRead' | t }}</span>
             }
-          </div>
-        }
-      </div>
+            <app-icon class="go" name="arrow-right" [size]="14" />
+          </span>
+        </a>
+      </section>
 
-      <div class="two">
-        <div class="panel">
-          <h2 class="panel-title">{{ 'admin.dashboard.topProjects' | t }}</h2>
-          @if (!o.topProjects.length) {
-            <p class="muted">{{ 'admin.dashboard.noData' | t }}</p>
+      <!-- ── traffic + top projects ── -->
+      <section class="grid main-grid">
+        <div class="panel traffic">
+          <div class="panel-head">
+            <h2>{{ 'admin.dashboard.traffic' | t }}</h2>
+            <div class="row" style="gap: .9rem">
+              <span class="legend"><i class="sw s1"></i>{{ 'admin.dashboard.views' | t }}</span>
+              <span class="legend"><i class="sw s2"></i>{{ 'admin.dashboard.visitorsShort' | t }}</span>
+              <button type="button" class="icon-btn" [attr.aria-pressed]="table()" (click)="table.set(!table())" [appTip]="(table() ? 'admin.dashboard.asChart' : 'admin.dashboard.asTable') | t">
+                <app-icon [name]="table() ? 'chart' : 'grid'" [size]="15" />
+              </button>
+            </div>
+          </div>
+          @if (!points().length) {
+            <div class="empty"><app-icon name="chart" [size]="22" /><p>{{ 'admin.dashboard.noData' | t }}</p></div>
+          } @else if (table()) {
+            <div class="table-scroll">
+              <table class="table">
+                <thead><tr><th>Date</th><th class="num">{{ 'admin.dashboard.views' | t }}</th><th class="num">{{ 'admin.dashboard.visitorsShort' | t }}</th></tr></thead>
+                <tbody>
+                  @for (p of o.daily; track p.date) {
+                    <tr><td class="mono">{{ p.date }}</td><td class="num">{{ p.views }}</td><td class="num">{{ p.visitors }}</td></tr>
+                  }
+                </tbody>
+              </table>
+            </div>
           } @else {
-            <table class="table">
-              <thead><tr><th>Projet</th><th class="num">{{ 'admin.dashboard.views' | t }}</th><th class="num">{{ 'admin.dashboard.clicks' | t }}</th></tr></thead>
-              <tbody>
-                @for (p of o.topProjects; track p.slug) {
-                  <tr><td>{{ p.title | l }}</td><td class="num">{{ p.views }}</td><td class="num">{{ p.clicks }}</td></tr>
+            <div class="chart-wrap" (pointermove)="hover($event)" (pointerleave)="hovered.set(null)">
+              <svg class="chart" [attr.viewBox]="'0 0 ' + w + ' ' + h" role="img" [attr.aria-label]="'admin.dashboard.traffic' | t">
+                <defs>
+                  <linearGradient id="dash-area" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0" stop-color="var(--chart-1)" stop-opacity="0.28" />
+                    <stop offset="1" stop-color="var(--chart-1)" stop-opacity="0" />
+                  </linearGradient>
+                </defs>
+                @for (g of gridLines(); track g.y) {
+                  <line class="axis" [attr.x1]="pad.left" [attr.x2]="w - pad.right" [attr.y1]="g.y" [attr.y2]="g.y" />
+                  <text class="label" [attr.x]="pad.left - 8" [attr.y]="g.y + 3" text-anchor="end">{{ g.value }}</text>
                 }
-              </tbody>
-            </table>
+                <path class="area" [attr.d]="areaPath()" fill="url(#dash-area)" />
+                <path class="line s1" [attr.d]="linePath('yViews')" />
+                <path class="line s2" [attr.d]="linePath('yVisitors')" />
+                @for (lbl of xLabels(); track lbl.x) {
+                  <text class="label" [attr.x]="lbl.x" [attr.y]="h - 6" text-anchor="middle">{{ lbl.text }}</text>
+                }
+                @if (hovered(); as hp) {
+                  <line class="crosshair" [attr.x1]="hp.x" [attr.x2]="hp.x" [attr.y1]="pad.top" [attr.y2]="h - pad.bottom" />
+                  <circle class="dot s1" [attr.cx]="hp.x" [attr.cy]="hp.yViews" r="4.5" />
+                  <circle class="dot s2" [attr.cx]="hp.x" [attr.cy]="hp.yVisitors" r="4.5" />
+                }
+              </svg>
+              @if (hovered(); as hp) {
+                <div class="tooltip-box" [style.left.%]="(hp.x / w) * 100">
+                  <strong class="mono">{{ hp.date }}</strong>
+                  <span><i class="sw s1"></i>{{ hp.views }} {{ 'admin.dashboard.views' | t }}</span>
+                  <span><i class="sw s2"></i>{{ hp.visitors }} {{ 'admin.dashboard.visitorsShort' | t }}</span>
+                </div>
+              }
+            </div>
           }
         </div>
-        <div class="panel">
-          <h2 class="panel-title">{{ 'admin.dashboard.topPaths' | t }}</h2>
-          <ng-container *ngTemplateOutlet="bars; context: { $implicit: o.topPaths }" />
-        </div>
-        <div class="panel">
-          <h2 class="panel-title">{{ 'admin.dashboard.themes' | t }}</h2>
-          <ng-container *ngTemplateOutlet="bars; context: { $implicit: o.themes }" />
-        </div>
-        <div class="panel">
-          <h2 class="panel-title">{{ 'admin.dashboard.locales' | t }}</h2>
-          <ng-container *ngTemplateOutlet="bars; context: { $implicit: o.locales }" />
-        </div>
-        <div class="panel">
-          <h2 class="panel-title">{{ 'admin.dashboard.devices' | t }}</h2>
-          <ng-container *ngTemplateOutlet="bars; context: { $implicit: o.devices }" />
-        </div>
-        <div class="panel">
-          <h2 class="panel-title">{{ 'admin.dashboard.referrers' | t }}</h2>
-          <ng-container *ngTemplateOutlet="bars; context: { $implicit: o.referrers }" />
-        </div>
 
         <div class="panel">
-          <div class="row between" style="margin-bottom: 1rem">
-            <h2 class="panel-title" style="margin: 0">{{ 'admin.server.title' | t }}</h2>
+          <div class="panel-head"><h2>{{ 'admin.dashboard.topProjects' | t }}</h2></div>
+          @if (!o.topProjects.length) {
+            <div class="empty"><app-icon name="layers" [size]="22" /><p>{{ 'admin.dashboard.noData' | t }}</p></div>
+          } @else {
+            <ol class="ranking">
+              @for (p of o.topProjects.slice(0, 7); track p.slug; let i = $index) {
+                <li>
+                  <span class="rank mono">{{ i + 1 }}</span>
+                  <span class="r-body">
+                    <span class="r-line"><strong>{{ p.title | l }}</strong><span class="num">{{ p.views }}</span></span>
+                    <span class="r-bar"><i [style.--w.%]="barShare(p.views, o.topProjects[0].views)"></i></span>
+                    <span class="faint small">{{ p.clicks }} {{ 'admin.dashboard.clicks' | t }}</span>
+                  </span>
+                </li>
+              }
+            </ol>
+          }
+        </div>
+      </section>
+
+      <!-- ── audience ── -->
+      <section class="grid three">
+        <div class="panel">
+          <div class="panel-head"><h2>{{ 'admin.dashboard.topPaths' | t }}</h2></div>
+          <ng-container *ngTemplateOutlet="bars; context: { $implicit: o.topPaths.slice(0, 6) }" />
+        </div>
+        <div class="panel">
+          <div class="panel-head"><h2>{{ 'admin.dashboard.referrers' | t }}</h2></div>
+          <ng-container *ngTemplateOutlet="bars; context: { $implicit: o.referrers.slice(0, 6) }" />
+        </div>
+        <div class="panel shares">
+          <div class="panel-head"><h2>{{ 'admin.dashboard.audience' | t }}</h2></div>
+          <ng-container *ngTemplateOutlet="share; context: { $implicit: o.devices, title: ('admin.dashboard.devices' | t) }" />
+          <ng-container *ngTemplateOutlet="share; context: { $implicit: o.locales, title: ('admin.dashboard.locales' | t) }" />
+          <ng-container *ngTemplateOutlet="share; context: { $implicit: o.themes, title: ('admin.dashboard.themes' | t) }" />
+        </div>
+      </section>
+
+      <!-- ── system ── -->
+      <section class="grid two">
+        <div class="panel">
+          <div class="panel-head">
+            <h2>{{ 'admin.server.title' | t }}</h2>
             @if (system(); as s) {
               <span class="faint small mono">{{ 'admin.server.cores' | t: { n: s.cpu.cores } }} · {{ 'admin.server.sampled' | t: { time: i18n.formatDate(s.sampledAt, { timeStyle: 'medium' }) } }}</span>
             }
           </div>
           @if (system(); as s) {
-            <div class="bars">
-              <div class="bar-row">
-                <div class="bar"><i [style.--w.%]="pctOf(s.cpu.processLoad)"></i><span>{{ 'admin.server.cpuProcess' | t }}</span></div>
-                <span class="num mono">{{ pctOf(s.cpu.processLoad) }} %</span>
-              </div>
-              <div class="bar-row">
-                <div class="bar"><i [style.--w.%]="pctOf(s.cpu.systemLoad)"></i><span>{{ 'admin.server.cpuSystem' | t }}</span></div>
-                <span class="num mono">{{ pctOf(s.cpu.systemLoad) }} %</span>
-              </div>
-              <div class="bar-row">
-                <div class="bar"><i [style.--w.%]="ratio(s.memory.usedMb, s.memory.totalMb)"></i><span>{{ 'admin.server.memory' | t }} · {{ 'admin.server.free' | t: { free: mb(s.memory.freeMb), total: mb(s.memory.totalMb) } }}</span></div>
-                <span class="num mono">{{ ratio(s.memory.usedMb, s.memory.totalMb) }} %</span>
-              </div>
-              <div class="bar-row">
-                <div class="bar"><i [style.--w.%]="ratio(s.memory.jvmHeapUsedMb, s.memory.jvmHeapMaxMb)"></i><span>{{ 'admin.server.jvm' | t }} · {{ mb(s.memory.jvmHeapUsedMb) }} / {{ mb(s.memory.jvmHeapMaxMb) }}</span></div>
-                <span class="num mono">{{ ratio(s.memory.jvmHeapUsedMb, s.memory.jvmHeapMaxMb) }} %</span>
-              </div>
-              <div class="bar-row">
-                <div class="bar"><i [style.--w.%]="ratio(s.disk.usedMb, s.disk.totalMb)"></i><span>{{ 'admin.server.disk' | t }} {{ s.disk.path }} · {{ 'admin.server.free' | t: { free: mb(s.disk.freeMb), total: mb(s.disk.totalMb) } }}</span></div>
-                <span class="num mono">{{ ratio(s.disk.usedMb, s.disk.totalMb) }} %</span>
-              </div>
+            <div class="gauges">
+              <ng-container *ngTemplateOutlet="gauge; context: { v: pctOf(s.cpu.processLoad), label: ('admin.server.cpuProcess' | t), sub: '' }" />
+              <ng-container *ngTemplateOutlet="gauge; context: { v: pctOf(s.cpu.systemLoad), label: ('admin.server.cpuSystem' | t), sub: '' }" />
+              <ng-container *ngTemplateOutlet="gauge; context: { v: ratio(s.memory.usedMb, s.memory.totalMb), label: ('admin.server.memory' | t), sub: mb(s.memory.usedMb) + ' / ' + mb(s.memory.totalMb) }" />
+              <ng-container *ngTemplateOutlet="gauge; context: { v: ratio(s.disk.usedMb, s.disk.totalMb), label: ('admin.server.disk' | t), sub: mb(s.disk.freeMb) + ' ' + ('admin.server.left' | t) }" />
             </div>
-            <dl class="kv" style="margin-top: 1rem">
+            <dl class="kv" style="margin-top: 1.25rem">
+              <dt>{{ 'admin.server.jvm' | t }}</dt>
+              <dd>{{ mb(s.memory.jvmHeapUsedMb) }} / {{ mb(s.memory.jvmHeapMaxMb) }}</dd>
               <dt>{{ 'admin.server.database' | t }}</dt>
               <dd>{{ bytes(s.data.databaseBytes) }} · {{ fmt(s.data.analyticsEvents) }} {{ 'admin.server.events' | t }}</dd>
               <dt>{{ 'admin.server.media' | t }}</dt>
               <dd>{{ bytes(s.data.mediaBytes) }} · {{ 'admin.server.mediaCount' | t: { n: s.data.mediaCount } }}</dd>
             </dl>
-            <p class="faint small" style="margin-top: .8rem">{{ 'admin.server.hint' | t }}</p>
           } @else {
             <p class="muted small">{{ 'admin.common.loading' | t }}</p>
           }
         </div>
 
         <div class="panel">
-          <h2 class="panel-title">{{ 'admin.dashboard.versions' | t }}</h2>
-          <dl class="kv">
-            <dt>{{ 'admin.dashboard.frontend' | t }}</dt>
-            <dd>v{{ version.version }}{{ version.commit ? ' · ' + version.commit : '' }} · {{ i18n.formatDate(version.builtAt, { dateStyle: 'medium', timeStyle: 'short' }) }}</dd>
+          <div class="panel-head"><h2>{{ 'admin.dashboard.versions' | t }}</h2></div>
+          <ul class="health">
+            <li><span>{{ 'admin.dashboard.frontend' | t }}</span><span class="mono">v{{ version.version }}{{ version.commit ? ' · ' + version.commit : '' }}</span></li>
             @if (info(); as inf) {
-              <dt>{{ 'admin.dashboard.backend' | t }}</dt>
-              <dd>v{{ inf.backend.version }}{{ inf.backend.gitSha ? ' · ' + inf.backend.gitSha : '' }}@if (inf.backend.buildTime) { · {{ i18n.formatDate(inf.backend.buildTime, { dateStyle: 'medium', timeStyle: 'short' }) }}}</dd>
-              <dt>{{ 'admin.dashboard.springBoot' | t }}</dt>
-              <dd>{{ inf.backend.springBootVersion }}</dd>
-              <dt>{{ 'admin.dashboard.java' | t }}</dt>
-              <dd>{{ inf.backend.javaVersion }}</dd>
-              <dt>{{ 'admin.dashboard.uptime' | t }}</dt>
-              <dd>{{ uptime(inf.backend.uptimeSeconds) }}</dd>
-              <dt>{{ 'admin.dashboard.database' | t }}</dt>
-              <dd><span class="status-pill" [attr.data-status]="inf.database.status === 'ok' ? 'PUBLISHED' : 'DRAFT'">{{ inf.database.status }}</span> {{ inf.database.version }}</dd>
-              <dt>{{ 'admin.dashboard.storage' | t }}</dt>
-              <dd><span class="status-pill" [attr.data-status]="inf.storage.status === 'ok' ? 'PUBLISHED' : 'DRAFT'">{{ inf.storage.status }}</span> {{ inf.storage.description }}</dd>
-              <dt>{{ 'admin.dashboard.memory' | t }}</dt>
-              <dd>{{ inf.system.memoryUsedMb }} / {{ inf.system.memoryMaxMb }} MB · {{ inf.system.processors }} CPU · {{ inf.system.os }}</dd>
+              <li><span>{{ 'admin.dashboard.backend' | t }}</span><span class="mono">v{{ inf.backend.version }}{{ inf.backend.gitSha ? ' · ' + inf.backend.gitSha : '' }}</span></li>
+              <li><span>{{ 'admin.dashboard.database' | t }}</span><span><span class="status-pill" [attr.data-status]="inf.database.status === 'ok' ? 'PUBLISHED' : 'DRAFT'">{{ inf.database.status }}</span> <span class="mono small faint">{{ inf.database.version }}</span></span></li>
+              <li><span>{{ 'admin.dashboard.storage' | t }}</span><span><span class="status-pill" [attr.data-status]="inf.storage.status === 'ok' ? 'PUBLISHED' : 'DRAFT'">{{ inf.storage.status }}</span></span></li>
+              <li><span>{{ 'admin.dashboard.springBoot' | t }} · {{ 'admin.dashboard.java' | t }}</span><span class="mono">{{ inf.backend.springBootVersion }} · {{ inf.backend.javaVersion }}</span></li>
+              <li><span>{{ 'admin.dashboard.uptime' | t }}</span><span class="mono">{{ uptime(inf.backend.uptimeSeconds) }}</span></li>
             }
-          </dl>
+          </ul>
         </div>
-      </div>
+      </section>
     } @else if (error()) {
       <p class="field-error">{{ error() }}</p>
     } @else {
-      <p class="muted">{{ 'admin.common.loading' | t }}</p>
+      <section class="kpis">
+        @for (i of [1, 2, 3, 4, 5]; track i) {
+          <div class="kpi loading-shimmer" style="min-height: 130px"></div>
+        }
+      </section>
     }
 
     <ng-template #bars let-rows>
       @if (!rows?.length) {
-        <p class="muted small">{{ 'admin.dashboard.noData' | t }}</p>
+        <div class="empty small"><p>{{ 'admin.dashboard.noData' | t }}</p></div>
       } @else {
         <div class="bars">
           @for (r of rows; track r.key) {
@@ -226,23 +252,187 @@ const PAD = { top: 16, right: 16, bottom: 28, left: 36 };
         </div>
       }
     </ng-template>
+
+    <ng-template #share let-rows let-title="title">
+      <div class="share">
+        <span class="share-title small">{{ title }}</span>
+        @if (!rows?.length) {
+          <span class="faint small">{{ 'admin.dashboard.noData' | t }}</span>
+        } @else {
+          <div class="stack-bar" role="img" [attr.aria-label]="title">
+            @for (r of rows.slice(0, 5); track r.key; let i = $index) {
+              <i [style.flex-grow]="r.count" [attr.data-i]="i"></i>
+            }
+          </div>
+          <div class="share-legend">
+            @for (r of rows.slice(0, 5); track r.key; let i = $index) {
+              <span><i class="dot" [attr.data-i]="i"></i>{{ r.key }} <b class="num">{{ pct(r, rows, true) }} %</b></span>
+            }
+          </div>
+        }
+      </div>
+    </ng-template>
+
+    <ng-template #gauge let-v="v" let-label="label" let-sub="sub">
+      <div class="gauge" [class.warn]="v >= 75" [class.crit]="v >= 90">
+        <svg viewBox="0 0 64 64" aria-hidden="true">
+          <circle class="track" cx="32" cy="32" r="27" />
+          <circle class="value" cx="32" cy="32" r="27" [attr.stroke-dasharray]="(v / 100) * 169.6 + ' 169.6'" />
+        </svg>
+        <span class="g-value num">{{ v }}<small>%</small></span>
+        <span class="g-label small">{{ label }}</span>
+        @if (sub) {
+          <span class="g-sub faint">{{ sub }}</span>
+        }
+      </div>
+    </ng-template>
   `,
   styles: `
-    .two {
+    .period {
+      display: inline-flex;
+      padding: 3px;
+      gap: 2px;
+      border-radius: 10px;
+      background: var(--bg-3);
+    }
+    .period button {
+      min-height: 32px;
+      padding: 0 0.85rem;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--fg-2);
+    }
+    .period button[aria-checked='true'] {
+      background: var(--bg-2);
+      color: var(--fg);
+      box-shadow: var(--shadow-1);
+    }
+    .kpis {
       display: grid;
-      gap: var(--space-5);
-      margin-top: var(--space-5);
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.25rem;
+    }
+    .kpi {
+      position: relative;
+      display: grid;
+      align-content: start;
+      gap: 0.45rem;
+      padding: 1.1rem 1.25rem 1.2rem;
+      border-radius: var(--admin-radius);
+      background: var(--bg-2);
+      border: 1px solid var(--line);
+      overflow: hidden;
+      min-height: 150px;
+      padding-bottom: 3.2rem;
+    }
+    .kpi.main {
+      background: var(--fg);
+      color: var(--bg);
+      border-color: var(--fg);
+    }
+    .kpi.main .k-label,
+    .kpi.main .faint {
+      color: color-mix(in srgb, var(--bg) 65%, transparent);
+    }
+    .kpi.link {
+      transition: border-color var(--dur-1), transform var(--dur-2) var(--ease-out);
+    }
+    .kpi.link:hover {
+      border-color: var(--fg);
+      transform: translateY(-2px);
+    }
+    .k-label {
+      font-size: 0.8rem;
+      color: var(--fg-2);
+    }
+    .k-value {
+      font-family: var(--font-display);
+      font-size: clamp(2rem, 3vw, 2.6rem);
+      font-weight: var(--weight-display);
+      letter-spacing: -0.045em;
+      line-height: 1;
+    }
+    .k-foot .trend {
+      white-space: nowrap;
+    }
+    .k-foot {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.74rem;
+      position: relative;
+      z-index: 1;
+    }
+    .k-foot .go {
+      margin-left: auto;
+      color: var(--fg-3);
+    }
+    .spark {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      width: 100%;
+      height: 2.6rem;
+      pointer-events: none;
+    }
+    .spark-line {
+      fill: none;
+      stroke: var(--chart-1);
+      stroke-width: 1.6;
+      vector-effect: non-scaling-stroke;
+    }
+    .spark-area {
+      fill: var(--chart-1);
+      opacity: 0.14;
+    }
+    .kpi.main .spark-line {
+      stroke: color-mix(in srgb, var(--bg) 80%, var(--accent));
+    }
+    .kpi.main .spark-area {
+      fill: var(--bg);
+      opacity: 0.1;
+    }
+    .spark.s2 .spark-line {
+      stroke: var(--chart-2);
+    }
+    .spark.s2 .spark-area {
+      fill: var(--chart-2);
+    }
+    .grid {
+      display: grid;
+      gap: 1.25rem;
+      margin-bottom: 1.25rem;
+    }
+    .grid .panel + .panel {
+      margin-top: 0;
     }
     @media (min-width: 1100px) {
-      .two {
-        grid-template-columns: 1fr 1fr;
+      .main-grid {
+        grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
       }
-      .two .panel + .panel {
-        margin-top: 0;
+      .three {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+      .two {
+        grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
       }
     }
-    .tiles {
-      margin-bottom: var(--space-5);
+    .empty {
+      display: grid;
+      place-items: center;
+      gap: 0.5rem;
+      padding: 2rem 1rem;
+      border-radius: 12px;
+      background: var(--bg-3);
+      color: var(--fg-3);
+      text-align: center;
+    }
+    .empty.small {
+      padding: 1rem;
     }
     .legend {
       display: inline-flex;
@@ -272,13 +462,19 @@ const PAD = { top: 16, right: 16, bottom: 28, left: 36 };
     .chart-wrap {
       position: relative;
     }
+    .chart .axis {
+      stroke: var(--line);
+      stroke-dasharray: 2 4;
+    }
     .chart .line {
+      fill: none;
       stroke: var(--c);
-      stroke-width: 2;
+      stroke-linejoin: round;
+      stroke-width: 2.2;
     }
     .chart .area {
-      fill: var(--chart-1);
-      opacity: 0.1;
+      fill: url(#dash-area);
+      opacity: 1;
     }
     .chart .crosshair {
       stroke: var(--fg-3);
@@ -287,7 +483,7 @@ const PAD = { top: 16, right: 16, bottom: 28, left: 36 };
     .chart .dot {
       fill: var(--c);
       stroke: var(--bg-2);
-      stroke-width: 2;
+      stroke-width: 2.5;
     }
     .tooltip-box {
       position: absolute;
@@ -295,19 +491,208 @@ const PAD = { top: 16, right: 16, bottom: 28, left: 36 };
       transform: translateX(-50%);
       display: grid;
       gap: 2px;
-      padding: 0.5rem 0.7rem;
-      border-radius: var(--radius-xs);
-      background: var(--bg-2);
-      border: 1px solid var(--line-strong);
-      box-shadow: var(--shadow-1);
+      padding: 0.55rem 0.75rem;
+      border-radius: 10px;
+      background: var(--fg);
+      color: var(--bg);
       font-size: var(--fs-micro);
-      pointer-events: none;
       white-space: nowrap;
+      pointer-events: none;
+      box-shadow: var(--shadow-2);
     }
     .tooltip-box span {
       display: inline-flex;
       align-items: center;
-      gap: 0.4rem;
+      gap: 0.35rem;
+    }
+    .table-scroll {
+      max-height: 300px;
+      overflow: auto;
+    }
+    .ranking {
+      display: grid;
+      gap: 0.9rem;
+    }
+    .ranking li {
+      display: grid;
+      grid-template-columns: 28px 1fr;
+      gap: 0.6rem;
+      align-items: start;
+    }
+    .rank {
+      display: grid;
+      place-items: center;
+      width: 26px;
+      height: 26px;
+      border-radius: 8px;
+      background: var(--bg-3);
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+    .ranking li:first-child .rank {
+      background: var(--fg);
+      color: var(--bg);
+    }
+    .r-body {
+      display: grid;
+      gap: 0.3rem;
+      min-width: 0;
+    }
+    .r-line {
+      display: flex;
+      justify-content: space-between;
+      gap: 0.5rem;
+      font-size: 0.88rem;
+    }
+    .r-line strong {
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .r-bar {
+      height: 6px;
+      border-radius: 99px;
+      background: var(--bg-3);
+      overflow: hidden;
+    }
+    .r-bar i {
+      display: block;
+      height: 100%;
+      width: var(--w);
+      border-radius: inherit;
+      background: var(--chart-1);
+    }
+    .shares {
+      display: grid;
+      align-content: start;
+      gap: 1.1rem;
+    }
+    .share {
+      display: grid;
+      gap: 0.45rem;
+    }
+    .share-title {
+      font-weight: 600;
+      color: var(--fg-2);
+    }
+    .stack-bar {
+      display: flex;
+      gap: 3px;
+      height: 10px;
+    }
+    .stack-bar i,
+    .dot {
+      border-radius: 99px;
+      background: var(--fg-3);
+    }
+    .stack-bar i {
+      flex-basis: 0;
+      min-width: 4px;
+    }
+    .stack-bar i[data-i='0'], .dot[data-i='0'] { background: var(--chart-1); }
+    .stack-bar i[data-i='1'], .dot[data-i='1'] { background: var(--chart-2); }
+    .stack-bar i[data-i='2'], .dot[data-i='2'] { background: var(--fg-2); }
+    .stack-bar i[data-i='3'], .dot[data-i='3'] { background: var(--accent); }
+    .stack-bar i[data-i='4'], .dot[data-i='4'] { background: var(--line-strong); }
+    .share-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.3rem 0.9rem;
+      font-size: 0.78rem;
+      color: var(--fg-2);
+    }
+    .share-legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+    .share-legend b {
+      color: var(--fg);
+      font-weight: 600;
+    }
+    .dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+    }
+    .gauges {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 1rem;
+    }
+    .gauge {
+      position: relative;
+      display: grid;
+      justify-items: center;
+      gap: 0.2rem;
+      text-align: center;
+      --g: var(--chart-1);
+    }
+    .gauge.warn {
+      --g: var(--warning);
+    }
+    .gauge.crit {
+      --g: var(--danger);
+    }
+    .gauge svg {
+      width: 86px;
+      height: 86px;
+      transform: rotate(-90deg);
+    }
+    .gauge circle {
+      fill: none;
+      stroke-width: 6;
+    }
+    .gauge .track {
+      stroke: var(--bg-3);
+    }
+    .gauge .value {
+      stroke: var(--g);
+      stroke-linecap: round;
+      transition: stroke-dasharray 0.6s var(--ease-out);
+    }
+    .g-value {
+      position: absolute;
+      top: 28px;
+      left: 0;
+      right: 0;
+      font-family: var(--font-display);
+      font-size: 1.35rem;
+      font-weight: 600;
+      letter-spacing: -0.03em;
+    }
+    .g-value small {
+      font-size: 0.6em;
+      margin-left: 1px;
+      color: var(--fg-3);
+    }
+    .g-label {
+      font-weight: 600;
+    }
+    .g-sub {
+      font-size: 0.72rem;
+    }
+    .health {
+      display: grid;
+    }
+    .health li {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      padding: 0.7rem 0;
+      border-bottom: 1px solid var(--line);
+      font-size: 0.86rem;
+    }
+    .health li:last-child {
+      border-bottom: 0;
+    }
+    .health li > span:first-child {
+      color: var(--fg-2);
+    }
+    .health .mono {
+      font-size: 0.8rem;
     }
   `,
 })
@@ -327,10 +712,26 @@ export class DashboardPage {
   readonly table = signal(false);
   readonly hovered = signal<ChartPoint | null>(null);
 
-  readonly maxY = computed(() => Math.max(1, ...(this.overview()?.daily ?? []).map((d) => Math.max(d.views, d.visitors))));
+  /** the whole period day by day (the API only returns days with events), empty days at zero */
+  readonly series = computed(() => {
+    const daily = this.overview()?.daily ?? [];
+    if (!daily.length) return [];
+    const byDate = new Map(daily.map((d) => [d.date, d]));
+    const now = new Date();
+    const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    const last = daily[daily.length - 1].date > today ? daily[daily.length - 1].date : today;
+    const end = Date.parse(last + 'T00:00:00Z');
+    const day = 86_400_000;
+    return Array.from({ length: this.days() }, (_, i) => {
+      const date = new Date(end - (this.days() - 1 - i) * day).toISOString().slice(0, 10);
+      return byDate.get(date) ?? { date, views: 0, visitors: 0 };
+    });
+  });
+
+  readonly maxY = computed(() => Math.max(1, ...this.series().map((d) => Math.max(d.views, d.visitors))));
 
   readonly points = computed<ChartPoint[]>(() => {
-    const daily = this.overview()?.daily ?? [];
+    const daily = this.series();
     if (!daily.length) return [];
     const innerW = W - PAD.left - PAD.right;
     const innerH = H - PAD.top - PAD.bottom;
@@ -359,12 +760,40 @@ export class DashboardPage {
   });
 
   readonly system = signal<SystemInfo | null>(null);
+  readonly unread = signal(0);
+  private readonly auth = inject(AuthService);
+  readonly today = new Intl.DateTimeFormat(this.i18n.locale(), { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date());
+  readonly firstName = computed(() => {
+    const me = this.auth.me();
+    const n = me?.name && me.name !== me.email ? me.name : 'Maxence';
+    return n.split(' ')[0];
+  });
+
+  /** sparkline of the daily series, 120 × 36 */
+  spark(key: 'views' | 'visitors', area: boolean): string {
+    const d = this.series();
+    if (!d.length) return '';
+    const max = Math.max(1, ...d.map((x) => x[key]));
+    const pts = d.map((x, i) => [d.length === 1 ? 60 : (i / (d.length - 1)) * 120, 34 - (x[key] / max) * 30]);
+    if (pts.length === 1) pts.splice(0, 1, [0, pts[0][1]], [120, pts[0][1]]);
+    const line = pts.map((p, i) => (i ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join(' ');
+    return area ? line + ' L120 36 L0 36 Z' : line;
+  }
+
+  barShare(v: number, max: number): number {
+    return max ? Math.max(3, Math.round((v / max) * 100)) : 0;
+  }
+
+  perVisitor(views: number, visitors: number): string {
+    return new Intl.NumberFormat(this.i18n.locale(), { maximumFractionDigits: 1 }).format(visitors ? views / visitors : 0);
+  }
 
   constructor() {
     const destroyRef = inject(DestroyRef);
     afterNextRender(() => {
       void this.load();
       this.api.adminInfo().then((i) => this.info.set(i)).catch(() => undefined);
+      this.api.unreadCount().then((r) => this.unread.set(r.unread)).catch(() => undefined);
       const sample = (): void => {
         this.api.systemInfo().then((s) => this.system.set(s)).catch(() => undefined);
       };
@@ -437,9 +866,10 @@ export class DashboardPage {
     return `${pct >= 0 ? '+' : ''}${pct} %`;
   }
 
-  pct(row: KeyCount, rows: KeyCount[]): number {
-    const max = Math.max(1, ...rows.map((r) => r.count));
-    return Math.round((row.count / max) * 100);
+  /** share of the largest row (bars), or of the total (ofTotal) */
+  pct(row: KeyCount, rows: KeyCount[], ofTotal = false): number {
+    const base = ofTotal ? rows.reduce((n, r) => n + r.count, 0) : Math.max(...rows.map((r) => r.count));
+    return Math.round((row.count / Math.max(1, base)) * 100);
   }
 
   uptime(seconds: number): string {

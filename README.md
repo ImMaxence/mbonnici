@@ -43,9 +43,9 @@ to publish projects, pictures and career updates without touching the code.
   a single ultramarine accent, in light and dark (circular reveal when switching).
 - **Intro sheet** on the first visit, **one-sheet page transitions**, masked word-by-word reveals.
 - **The real product on every card**: the landing page in a browser frame with the phone version
-  on top, from the back office or by default from the screenshots of each GitHub README
-  (`frontend/scripts/project-shots.mjs`). The project page can load the live site in the frame,
-  has a swipe / drag / keyboard **gallery slider** and an **iPhone Pro simulator** in pure CSS.
+  on top, from the pictures chosen in the back office (desktop + phone, phone only or desktop
+  only). The project page can load the live site in the frame and has a swipe / drag / keyboard
+  **gallery slider**.
 - **Native JavaScript physics**: magnetic cursor, springs, frame-rate-independent damping.
 - **Text navigation** in a top bar that hides while reading; a full-screen menu on phones and tablets.
 
@@ -70,7 +70,9 @@ to publish projects, pictures and career updates without touching the code.
   link **Google Drive** (same account, `drive.file` scope only) for one-click and daily backups
   with retention. **Restoring compares the archive with the live site row by row**: pick what to
   bring back (a project comes with its images) or replace everything.
-- **Contact notifications** by e-mail (any SMTP) and/or push (ntfy, Discord, Slack); unread badge.
+- **Contact inbox** in the back office with an unread badge (no e-mail, no third-party relay).
+- **Images**: PNG / JPEG only, magic bytes + extension checked, converted to WebP (`cwebp`), metadata
+  stripped. Per project: desktop + phone, phone only or desktop only presentation.
 - **Server panel**: CPU, memory, Java heap, disk space left, database and media sizes, live.
 - **Releases page** rendering this repository's changelog with the running version highlighted.
 
@@ -99,7 +101,7 @@ to publish projects, pictures and career updates without touching the code.
 | Backend | Spring Boot 4.1, Java 25, Spring Security (OAuth2 client), Spring Data JPA, Flyway, Bean Validation |
 | Data | PostgreSQL 18, SeaweedFS (S3 API) for images — swappable for MinIO, Garage or Cloudflare R2 |
 | Tests | 37 backend integration tests (Testcontainers), Playwright e2e on desktop and phone with axe-core |
-| Ops | Docker Compose on [Coolify](https://coolify.io), Cloudflare in front, GitHub Actions CI |
+| Ops | Docker Compose on [Coolify](https://coolify.io), Cloudflare in front |
 
 ## Repository
 
@@ -127,8 +129,11 @@ cd backend && ./mvnw spring-boot:run                        # http://localhost:8
 cd frontend && npm install && npm start                     # http://localhost:4200
 ```
 
-The first start runs the migrations and seeds the projects, experience and skills; open
-`/admin` to edit them (Google client needed, see [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)).
+The first start runs the migrations and leaves the site **empty** (only the owner name, legal
+identity and contact e-mail). Fill it from `/admin`, or import the original content with its
+pictures: **Sauvegardes → Restaurer depuis un fichier → `seed/mbonnici-starter.zip`**, then tick
+what to keep (see [seed/README.md](seed/README.md)). Signing in needs a Google client, see
+[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md), or the local sign-in below.
 
 **Everything in Docker, nothing to install but Docker** (builds frontend and backend):
 

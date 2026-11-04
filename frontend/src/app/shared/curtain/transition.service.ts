@@ -7,6 +7,10 @@ export type CurtainState = 'idle' | 'covering' | 'covered' | 'revealing';
 
 const COVER_MS = 760;
 const REVEAL_MS = 820;
+/** phones use a short fade instead of the sliding sheet (see CurtainComponent) */
+const COVER_MS_PHONE = 320;
+const REVEAL_MS_PHONE = 420;
+const phone = (): boolean => matchMedia('(max-width: 719px)').matches;
 
 const wait = (ms: number): Promise<void> => new Promise((r) => setTimeout(r, ms));
 const frames = (n: number): Promise<void> =>
@@ -46,7 +50,7 @@ export class TransitionService {
     this.ours = true;
     this.label.set(label);
     this.state.set('covering');
-    await wait(COVER_MS);
+    await wait(phone() ? COVER_MS_PHONE : COVER_MS);
     this.state.set('covered');
     window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
     try {
@@ -54,7 +58,7 @@ export class TransitionService {
     } finally {
       await frames(2);
       this.state.set('revealing');
-      await wait(REVEAL_MS);
+      await wait(phone() ? REVEAL_MS_PHONE : REVEAL_MS);
       this.state.set('idle');
       this.ours = false;
     }
@@ -72,7 +76,7 @@ export class TransitionService {
     this.state.set('covered');
     frames(2).then(() => {
       this.state.set('revealing');
-      wait(REVEAL_MS).then(() => this.state.set('idle'));
+      wait(phone() ? REVEAL_MS_PHONE : REVEAL_MS).then(() => this.state.set('idle'));
     });
   }
 }

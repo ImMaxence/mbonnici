@@ -9,6 +9,7 @@ import {
   type ApiError,
   type MediaDto,
   type MediaKind,
+  DISPLAY_MODES,
   PROJECT_CATEGORIES,
   type ProjectUpsert,
 } from '../../core/api/models';
@@ -18,6 +19,8 @@ import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { ShowcaseComponent } from '../../shared/ui/showcase.component';
 import { IconComponent } from '../../shared/ui/icon.component';
 import { MediaPickerComponent } from './media-picker.component';
+import { TooltipDirective } from '../../shared/ui/tooltip.directive';
+import { SortMove, SortableDirective, moveItem } from '../../shared/ui/sortable.directive';
 
 interface MediaRow {
   media: MediaDto;
@@ -36,6 +39,7 @@ function emptyForm(): ProjectUpsert {
     year: new Date().getFullYear(),
     category: 'WEB',
     sceneType: 'ORBIT',
+    displayMode: 'BOTH',
     accentColor: '#5b9dff',
     repoUrl: '',
     liveUrl: '',
@@ -49,7 +53,7 @@ function emptyForm(): ProjectUpsert {
 
 @Component({
   selector: 'app-admin-project-edit',
-  imports: [FormsModule, RouterLink, TranslatePipe, UpperCasePipe, IconComponent, ShowcaseComponent, MediaPickerComponent],
+  imports: [FormsModule, RouterLink, TranslatePipe, UpperCasePipe, IconComponent, ShowcaseComponent, MediaPickerComponent, TooltipDirective, SortableDirective],
   template: `
     <div class="admin-head">
       <div>
@@ -168,6 +172,13 @@ function emptyForm(): ProjectUpsert {
       <div class="panel">
         <h2 class="panel-title">{{ 'admin.projectForm.preview' | t }}</h2>
         <p class="small faint" style="margin-bottom: 1rem; max-width: 70ch">{{ 'admin.projectForm.previewHint' | t }}</p>
+        <div class="seg-modes" role="radiogroup" [attr.aria-label]="'admin.projectForm.display' | t" style="margin-bottom: 1rem">
+          @for (m of displayModes; track m) {
+            <button type="button" role="radio" class="chip" [class.is-active]="form.displayMode === m" [attr.aria-checked]="form.displayMode === m" (click)="form.displayMode = m; bump()">
+              <app-icon [name]="m === 'MOBILE' ? 'phone' : m === 'DESKTOP' ? 'monitor' : 'layers'" [size]="14" /> {{ 'admin.projectForm.displayModes.' + m | t }}
+            </button>
+          }
+        </div>
         <div style="max-width: 640px">
           <app-showcase
             [slug]="form.slug || ''"
@@ -175,6 +186,8 @@ function emptyForm(): ProjectUpsert {
             [accent]="form.accentColor"
             [cover]="cover()"
             [mobileMedia]="firstMobile()"
+            [mode]="form.displayMode"
+            [mobileList]="mobiles()"
             [site]="form.liveUrl || null"
           />
         </div>
@@ -195,12 +208,13 @@ function emptyForm(): ProjectUpsert {
           </div>
           <div class="field">
             <span class="field-label">{{ 'admin.projectForm.gallery' | t }} / {{ 'admin.projectForm.mobile' | t }}</span>
-            <div class="media-grid">
+            <div class="media-grid" appSortable (sortMove)="moveRow($event)">
               @for (row of rows(); track row.media.id) {
-                <div class="media-item">
+                <div class="media-item" data-sort-item>
+                  <button type="button" class="icon-btn grip" data-sort-handle [appTip]="'admin.projects.dragTip' | t"><app-icon name="drag" [size]="14" /></button>
                   <img [src]="row.media.url" [alt]="row.media.alt.fr" />
                   <button type="button" class="chip kind" (click)="toggleKind(row)">{{ row.kind === 'MOBILE' ? 'MOBILE' : 'GALLERY' }}</button>
-                  <button type="button" class="chip remove" (click)="removeRow(row)"><app-icon name="close" [size]="10" /></button>
+                  <button type="button" class="icon-btn remove" (click)="removeRow(row)" [appTip]="'admin.projectForm.removeMedia' | t"><app-icon name="close" [size]="14" /></button>
                 </div>
               }
             </div>
@@ -222,6 +236,19 @@ function emptyForm(): ProjectUpsert {
       border: 0;
       border-radius: 10px;
       background: none;
+    }
+    .media-item .grip {
+      position: absolute;
+      top: 6px;
+      left: 6px;
+      width: 28px;
+      height: 28px;
+      background: var(--bg-2);
+      cursor: grab;
+      touch-action: none;
+    }
+    .media-item.is-dragging {
+      opacity: 0.5;
     }
     .media-item .remove {
       position: absolute;
@@ -247,6 +274,8 @@ export class ProjectEditPage {
   readonly rows = signal<MediaRow[]>([]);
   private readonly tick = signal(0);
   private coverMedia = signal<MediaDto | null>(null);
+  readonly displayModes = DISPLAY_MODES;
+  readonly mobiles = computed(() => this.rows().filter((r) => r.kind === 'MOBILE').map((r) => r.media));
   readonly firstMobile = computed(() => this.rows().find((r) => r.kind === 'MOBILE')?.media ?? null);
   readonly cover = computed(() => {
     this.tick();
@@ -264,6 +293,10 @@ export class ProjectEditPage {
       // keep form in sync with route changes new → edit
       this.id();
     });
+  }
+
+  moveRow(m: SortMove): void {
+    this.rows.update((rows) => moveItem(rows, m.from, m.to));
   }
 
   bump(): void {
@@ -288,6 +321,7 @@ export class ProjectEditPage {
         year: p.year,
         category: p.category,
         sceneType: p.sceneType,
+        displayMode: p.displayMode ?? 'BOTH',
         accentColor: p.accentColor,
         repoUrl: p.repoUrl ?? '',
         liveUrl: p.liveUrl ?? '',

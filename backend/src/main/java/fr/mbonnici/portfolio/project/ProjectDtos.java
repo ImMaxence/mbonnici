@@ -23,6 +23,7 @@ public final class ProjectDtos {
             Localized tagline,
             Project.Category category,
             Project.SceneType sceneType,
+            Project.DisplayMode displayMode,
             String accentColor,
             Integer year,
             List<String> stack,
@@ -41,8 +42,9 @@ public final class ProjectDtos {
                     .map(pm -> MediaDto.from(pm.getMedia()))
                     .orElse(null);
             return new Card(p.getId(), p.getSlug(), p.getTitle().filled(), p.getTagline().filled(), p.getCategory(),
-                    p.getSceneType(), p.getAccentColor(), p.getYear(), List.copyOf(p.getStack()), List.copyOf(p.getTags()),
-                    p.isFeatured(), MediaDto.from(p.getCoverMedia()), mobile, p.getLiveUrl(), p.getRepoUrl());
+                    p.getSceneType(), p.getDisplayMode(), p.getAccentColor(), p.getYear(), List.copyOf(p.getStack()),
+                    List.copyOf(p.getTags()), p.isFeatured(), MediaDto.from(p.getCoverMedia()), mobile, p.getLiveUrl(),
+                    p.getRepoUrl());
         }
     }
 
@@ -55,6 +57,7 @@ public final class ProjectDtos {
             Localized description,
             Project.Category category,
             Project.SceneType sceneType,
+            Project.DisplayMode displayMode,
             String accentColor,
             Integer year,
             List<String> stack,
@@ -86,6 +89,7 @@ public final class ProjectDtos {
             Integer year,
             Project.Category category,
             Project.SceneType sceneType,
+            Project.DisplayMode displayMode,
             String accentColor,
             UUID coverMediaId,
             MediaDto cover,
@@ -111,7 +115,8 @@ public final class ProjectDtos {
             Integer sortOrder,
             @Min(1990) @Max(2100) Integer year,
             @NotNull Project.Category category,
-            @NotNull Project.SceneType sceneType,
+            Project.SceneType sceneType,
+            Project.DisplayMode displayMode,
             @Pattern(regexp = "^#[0-9a-fA-F]{6}$", message = "accentColor must be a #rrggbb colour") String accentColor,
             @Size(max = 300) String repoUrl,
             @Size(max = 300) String liveUrl,

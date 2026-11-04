@@ -7,58 +7,59 @@ import {
   computed,
   inject,
   input,
-  signal,
   viewChild,
 } from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
-import type { MediaDto } from '../../core/api/models';
+import type { DisplayMode, MediaDto } from '../../core/api/models';
 import { I18nService } from '../../core/i18n/i18n.service';
-import { Visual, fromMedia, fromShot, shotsFor } from './shots';
+import { PhoneComponent } from './phone.component';
+import { Visual, fromMedia } from './shots';
+
+const PLACEHOLDER: Visual = { src: '/img/project-placeholder.svg', w: 1600, h: 1000, alt: '' };
+const PLACEHOLDER_MOBILE: Visual = { src: '/img/project-placeholder-mobile.svg', w: 390, h: 844, alt: '' };
 
 /**
- * The real product, staged: the landing page in a minimal browser window, the phone version in
- * a phone overlapping its corner. Images come from the back office (cover / first mobile capture)
- * or, by default, from the screenshots published in the project's README. On the project page the
- * browser can also load the live site (scaled 1440 px viewport) when the project allows framing.
+ * The real product, staged: the landing page in a macOS-style browser window and/or the phone
+ * version in an iPhone. Images come from the back office (cover, mobile captures); a neutral
+ * illustration fills in when a project has none. Modes: BOTH (browser + phone), MOBILE (phones only), DESKTOP (browser only).
+ * On the project page the browser can load the live site (scaled 1440 px viewport).
  */
 @Component({
   selector: 'app-showcase',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [PhoneComponent],
   template: `
-    <div class="stage" [class.has-phone]="!!mobile() && !poster()" [class.is-poster]="poster()" [style.--accent]="accent()">
-      @if (poster() && desktop(); as d) {
-        <img class="poster-img" [src]="d.src" [alt]="d.alt" [width]="d.w" [height]="d.h" [attr.loading]="priority() ? 'eager' : 'lazy'" [attr.fetchpriority]="priority() ? 'high' : null" decoding="async" />
-      } @else {
-        <figure class="browser">
-          <div class="chrome" aria-hidden="true">
-            <i></i><i></i><i></i>
-            <span class="url">{{ host() }}</span>
-          </div>
-          <div class="screen" #screen>
-            @if (liveUrl(); as url) {
-              <iframe
-                class="live"
-                [src]="url"
-                [title]="title()"
-                loading="lazy"
-                sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox"
-                referrerpolicy="no-referrer"
-              ></iframe>
-            } @else if (desktop(); as d) {
-              <img [src]="d.src" [alt]="d.alt" [width]="d.w" [height]="d.h" [attr.loading]="priority() ? 'eager' : 'lazy'" [attr.fetchpriority]="priority() ? 'high' : null" decoding="async" />
-            } @else {
-              <div class="blank"><span>{{ title() }}</span></div>
-            }
-          </div>
-        </figure>
-        @if (mobile(); as m) {
-          <figure class="phone" aria-hidden="true">
-            <div class="phone-screen">
-              <img [src]="m.src" alt="" [width]="m.w" [height]="m.h" loading="lazy" decoding="async" />
+    <div class="stage" [attr.data-mode]="effectiveMode()" [class.has-phone]="phones().length > 0" [style.--accent]="accent()">
+        @if (effectiveMode() !== 'MOBILE') {
+          <figure class="browser">
+            <div class="chrome" aria-hidden="true">
+              <span class="lights"><i class="r"></i><i class="y"></i><i class="g"></i></span>
+              <span class="url">{{ host() }}</span>
+            </div>
+            <div class="screen" #screen>
+              @if (liveUrl(); as url) {
+                <iframe
+                  class="live"
+                  [src]="url"
+                  [title]="title()"
+                  loading="lazy"
+                  sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox"
+                  referrerpolicy="no-referrer"
+                ></iframe>
+              } @else {
+                @let d = desktop();
+                <img [src]="d.src" [alt]="d.alt" [width]="d.w" [height]="d.h" [attr.loading]="priority() ? 'eager' : 'lazy'" [attr.fetchpriority]="priority() ? 'high' : null" decoding="async" />
+              }
             </div>
           </figure>
         }
-      }
+        @if (phones().length) {
+          <div class="phones" [attr.data-count]="phones().length">
+            @for (m of phones(); track m.src; let i = $index) {
+              <app-phone class="phone" [shot]="m" [alt]="labelled() && i === 0 ? m.alt : ''" [eager]="priority() && i === 0" />
+            }
+          </div>
+        }
     </div>
   `,
   styles: `
@@ -76,51 +77,68 @@ import { Visual, fromMedia, fromShot, shotsFor } from './shots';
       overflow: hidden;
       isolation: isolate;
     }
-    .stage.has-phone {
+    .stage[data-mode='BOTH'].has-phone {
       padding-right: 16%;
     }
-    .stage.is-poster {
-      padding: 0;
+    .stage[data-mode='MOBILE'] {
       aspect-ratio: 16 / 10;
+      padding: 7% 6% 0;
     }
     .poster-img {
+      display: block;
+      position: absolute;
+      inset: 0;
       width: 100%;
       height: 100%;
       object-fit: cover;
     }
+    .stage:has(.poster-img) {
+      aspect-ratio: 16 / 11;
+    }
+
+    /* ── browser window (macOS) ── */
     .browser {
       position: relative;
-      border-radius: 8px;
+      margin: 0;
+      border-radius: 10px;
       overflow: hidden;
       background: var(--bg-2);
       box-shadow:
-        0 0 0 1px color-mix(in srgb, var(--fg) 10%, transparent),
+        0 0 0 1px color-mix(in srgb, var(--fg) 12%, transparent),
         var(--shadow-3);
-      transform: translateZ(0);
       transition: transform 1s var(--ease-out);
     }
     .chrome {
+      position: relative;
       display: flex;
       align-items: center;
-      gap: 5px;
-      height: clamp(18px, 4cqi, 28px);
-      padding: 0 10px;
+      height: clamp(20px, 4.2cqi, 32px);
+      padding: 0 clamp(8px, 1.6cqi, 14px);
       background: var(--bg-3);
       border-bottom: 1px solid var(--line);
     }
-    .chrome i {
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      background: color-mix(in srgb, var(--fg) 22%, transparent);
+    .lights {
+      display: flex;
+      gap: clamp(4px, 0.9cqi, 8px);
     }
+    .lights i {
+      width: clamp(7px, 1.25cqi, 12px);
+      aspect-ratio: 1;
+      border-radius: 50%;
+      box-shadow: inset 0 0 0 0.5px rgba(0, 0, 0, 0.18);
+    }
+    .lights .r { background: #ff5f57; }
+    .lights .y { background: #febc2e; }
+    .lights .g { background: #28c840; }
     .url {
-      flex: 1;
-      margin: 0 8% 0 6%;
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 46%;
       padding: 2px 8px;
-      border-radius: 99px;
+      border-radius: 6px;
       background: var(--bg-2);
-      font: 500 clamp(9px, 1.6cqi, 11px) / 1.3 var(--font-mono);
+      font: 500 clamp(9px, 1.5cqi, 12px) / 1.4 var(--font-body);
       color: var(--fg-2);
       text-align: center;
       white-space: nowrap;
@@ -151,48 +169,57 @@ import { Visual, fromMedia, fromShot, shotsFor } from './shots';
       transform-origin: 0 0;
       background: #fff;
     }
-    .blank {
-      display: grid;
-      place-items: center;
-      height: 100%;
-      font-family: var(--font-display);
-      font-size: clamp(1.4rem, 7cqi, 4rem);
-      letter-spacing: -0.04em;
-      color: var(--fg-3);
-    }
-    .phone {
+
+    /* ── phones: the stage crops their lower part, only the top shows ── */
+    .phones {
       position: absolute;
       right: 5%;
-      bottom: 6%;
-      width: 22%;
-      padding: 1.2%;
-      border-radius: 18% / 8.5%;
-      background: var(--device);
-      box-shadow:
-        0 0 0 1px rgba(255, 255, 255, 0.08) inset,
-        var(--shadow-3);
-      transition: transform 1s var(--ease-out);
+      bottom: -16%;
+      width: 23%;
     }
-    .phone-screen {
-      aspect-ratio: 9 / 19.5;
-      border-radius: 15% / 7%;
-      overflow: hidden;
-      background: #000;
-    }
-    .phone-screen img {
+    .stage[data-mode='MOBILE'] .phones {
+      position: relative;
+      right: auto;
+      bottom: auto;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      gap: 3%;
       width: 100%;
       height: 100%;
-      object-fit: cover;
-      object-position: top center;
     }
+    .phone {
+      width: 100%;
+      transition: transform 1s var(--ease-out);
+    }
+    .stage[data-mode='MOBILE'] .phone {
+      flex: none;
+      width: 40%;
+    }
+    .stage[data-mode='MOBILE'] .phones[data-count='2'] .phone {
+      width: 34%;
+    }
+    .stage[data-mode='MOBILE'] .phones[data-count='3'] .phone {
+      width: 29%;
+    }
+    .stage[data-mode='MOBILE'] .phones[data-count='3'] .phone:not(:nth-child(2)) {
+      transform: translateY(12%);
+    }
+
     :host-context(.is-hover) .browser {
       transform: translate3d(0, -2%, 0);
     }
     :host-context(.is-hover) .screen img {
       transform: scale(1.03);
     }
-    :host-context(.is-hover) .phone {
+    :host-context(.is-hover) .stage[data-mode='BOTH'] .phone {
       transform: translate3d(0, -7%, 0) rotate(-2deg);
+    }
+    :host-context(.is-hover) .stage[data-mode='MOBILE'] .phones {
+      transform: translate3d(0, -4%, 0);
+    }
+    .stage[data-mode='MOBILE'] .phones {
+      transition: transform 1s var(--ease-out);
     }
   `,
 })
@@ -200,8 +227,11 @@ export class ShowcaseComponent {
   readonly slug = input.required<string>();
   readonly title = input('');
   readonly accent = input('#2b3bea');
+  readonly mode = input<DisplayMode | null | undefined>('BOTH');
   readonly cover = input<MediaDto | null | undefined>(null);
   readonly mobileMedia = input<MediaDto | null | undefined>(null);
+  /** every portrait capture (project page): up to three phones in MOBILE mode */
+  readonly mobileList = input<MediaDto[]>([]);
   readonly site = input<string | null>(null);
   /** load the real site inside the browser frame (project page, when framing is allowed) */
   readonly live = input(false);
@@ -211,11 +241,32 @@ export class ShowcaseComponent {
   private readonly sanitizer = inject(DomSanitizer);
   private readonly screen = viewChild<ElementRef<HTMLElement>>('screen');
 
-  private readonly shots = computed(() => shotsFor(this.slug()));
   private readonly alt = computed(() => this.i18n.t('project.shotAlt', { title: this.title() }));
-  readonly desktop = computed<Visual | null>(() => fromMedia(this.cover(), this.alt()) ?? fromShot(this.shots().desktop, this.alt()));
-  readonly mobile = computed<Visual | null>(() => fromMedia(this.mobileMedia(), '') ?? fromShot(this.shots().mobile, ''));
-  readonly poster = computed(() => !this.cover() && !!this.shots().poster);
+  readonly effectiveMode = computed<DisplayMode>(() => this.mode() ?? 'BOTH');
+  /** the first phone carries the description only when there is no browser image */
+  readonly labelled = computed(() => this.effectiveMode() === 'MOBILE');
+
+  readonly desktop = computed<Visual>(
+    () => fromMedia(this.cover(), this.alt()) ?? { ...PLACEHOLDER, alt: this.alt() },
+  );
+
+  readonly phones = computed<Visual[]>(() => {
+    const mode = this.effectiveMode();
+    if (mode === 'DESKTOP') return [];
+    const alt = this.alt();
+    const first =
+      fromMedia(this.mobileMedia(), alt) ??
+      fromMedia(this.mobileList()[0], alt) ??
+      (mode === 'MOBILE' ? { ...PLACEHOLDER_MOBILE, alt } : null);
+    if (!first) return [];
+    if (mode !== 'MOBILE') return [first];
+    const extra = this.mobileList()
+      .map((m) => fromMedia(m, alt)!)
+      .filter((v) => v.src !== first.src)
+      .slice(0, 2);
+    return extra.length === 2 ? [extra[0], first, extra[1]] : [first, ...extra];
+  });
+
   readonly host = computed(() => {
     const url = this.site();
     if (!url) return this.slug() + '.app';
@@ -229,8 +280,6 @@ export class ShowcaseComponent {
     const url = this.site();
     return this.live() && url && /^https:\/\//.test(url) ? this.sanitizer.bypassSecurityTrustResourceUrl(url) : null;
   });
-
-  readonly scale = signal(0.5);
 
   constructor() {
     const destroyRef = inject(DestroyRef);

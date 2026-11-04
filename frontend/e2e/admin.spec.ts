@@ -28,6 +28,17 @@ test.describe('back office access', () => {
     await expect(review.getByText(/0 élément\(s\) sélectionné\(s\)/)).toBeVisible();
     await review.getByRole('button', { name: /Annuler/ }).click();
     await expect(review).toBeHidden();
+
+    // settings form renders, delete asks through a dialog (no window.confirm)
+    await page.goto('/admin/settings');
+    await expect(page.locator('input[name=ownerName]')).toHaveValue(/Maxence/);
+    await page.goto('/admin/projects');
+    await page.locator('.icon-btn.danger').first().click();
+    const dialog = page.getByRole('dialog');
+    await expect(dialog).toBeVisible();
+    await expect(dialog.getByRole('button', { name: 'Annuler' })).toBeFocused();
+    await dialog.getByRole('button', { name: 'Annuler' }).click();
+    await expect(dialog).toBeHidden();
   });
 
   test('admin API is closed without a session', async ({ request }) => {

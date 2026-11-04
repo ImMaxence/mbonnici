@@ -161,7 +161,10 @@ public class ProjectService {
         p.setSortOrder(in.sortOrder() == null ? 0 : in.sortOrder());
         p.setYear(in.year());
         p.setCategory(in.category());
-        p.setSceneType(in.sceneType());
+        if (in.sceneType() != null) {
+            p.setSceneType(in.sceneType());
+        }
+        p.setDisplayMode(in.displayMode() == null ? Project.DisplayMode.BOTH : in.displayMode());
         p.setAccentColor(in.accentColor() == null || in.accentColor().isBlank() ? "#0a84ff" : in.accentColor().toLowerCase());
         p.setRepoUrl(checkedUrl(in.repoUrl(), "repoUrl"));
         p.setLiveUrl(checkedUrl(in.liveUrl(), "liveUrl"));
@@ -220,7 +223,7 @@ public class ProjectService {
             (pm.getKind() == ProjectMedia.Kind.MOBILE ? mobile : gallery).add(MediaDto.from(pm.getMedia()));
         }
         return new Detail(p.getId(), p.getSlug(), p.getTitle().filled(), p.getTagline().filled(),
-                p.getDescription().filled(), p.getCategory(), p.getSceneType(), p.getAccentColor(), p.getYear(),
+                p.getDescription().filled(), p.getCategory(), p.getSceneType(), p.getDisplayMode(), p.getAccentColor(), p.getYear(),
                 List.copyOf(p.getStack()), List.copyOf(p.getTags()), p.isFeatured(), MediaDto.from(p.getCoverMedia()),
                 p.getLiveUrl(), p.getRepoUrl(), p.isAllowIframe(), gallery, mobile, p.getPublishedAt(), p.getUpdatedAt(),
                 previous, next);
@@ -232,7 +235,7 @@ public class ProjectService {
                 .toList();
         Media cover = p.getCoverMedia();
         return new Admin(p.getId(), p.getSlug(), p.getTitle(), p.getTagline(), p.getDescription(), p.getStatus(),
-                p.isFeatured(), p.getSortOrder(), p.getYear(), p.getCategory(), p.getSceneType(), p.getAccentColor(),
+                p.isFeatured(), p.getSortOrder(), p.getYear(), p.getCategory(), p.getSceneType(), p.getDisplayMode(), p.getAccentColor(),
                 cover == null ? null : cover.getId(), MediaDto.from(cover), p.getRepoUrl(), p.getLiveUrl(),
                 p.isAllowIframe(), List.copyOf(p.getStack()), List.copyOf(p.getTags()), items, p.getCreatedAt(),
                 p.getUpdatedAt(), p.getPublishedAt());

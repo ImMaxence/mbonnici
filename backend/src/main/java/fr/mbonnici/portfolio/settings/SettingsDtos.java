@@ -24,6 +24,7 @@ public final class SettingsDtos {
             Localized seoTitle,
             Localized seoDescription,
             Legal legal,
+            fr.mbonnici.portfolio.media.MediaDto avatar,
             Instant updatedAt) {
 
         public static PublicSettings from(SiteSettings s) {
@@ -32,7 +33,7 @@ public final class SettingsDtos {
                     s.getSeoTitle() == null ? Localized.EMPTY : s.getSeoTitle().filled(),
                     s.getSeoDescription() == null ? Localized.EMPTY : s.getSeoDescription().filled(),
                     new Legal(s.getLegalName(), s.getLegalAddress(), s.getLegalHost(), s.getLegalContactEmail()),
-                    s.getUpdatedAt());
+                    fr.mbonnici.portfolio.media.MediaDto.from(s.getAvatar()), s.getUpdatedAt());
         }
     }
 
@@ -53,5 +54,6 @@ public final class SettingsDtos {
             @Size(max = 200) String legalName,
             @Size(max = 500) String legalAddress,
             @Size(max = 500) String legalHost,
-            @Email @Size(max = 200) String legalContactEmail) {}
+            @Email @Size(max = 200) String legalContactEmail,
+            java.util.UUID avatarMediaId) {}
 }

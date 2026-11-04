@@ -28,6 +28,7 @@ test.describe('home', () => {
     await expect(page.locator('html')).not.toHaveClass(/intro-play/, { timeout: 6000 });
     await expect(page.locator('h1')).toContainText('expériences web');
     await expect(page.locator('app-header .links').getByRole('link', { name: /Projets/ })).toBeVisible();
+    await expect(page.locator('app-header .links').getByRole('link', { name: /Accueil/ })).toBeVisible();
     await expect(page.locator('app-project-card app-showcase img').first()).toBeVisible();
     // no curtain on the first page load
     await expect(page.locator('.curtain')).toHaveAttribute('data-state', 'idle');
@@ -42,10 +43,16 @@ test.describe('home', () => {
     const html = page.locator('html');
     expect(await html.getAttribute('data-style')).toBeNull();
     const before = await html.getAttribute('data-theme');
-    await page.locator('app-header').getByRole('button', { name: /thème/i }).click();
+    const themes = page.locator('app-header').getByRole('radiogroup', { name: 'Apparence' });
+    await themes.getByRole('radio', { name: before === 'dark' ? 'Clair' : 'Sombre' }).click();
     await expect(html).toHaveAttribute('data-theme', before === 'dark' ? 'light' : 'dark');
     await page.reload();
     await expect(html).toHaveAttribute('data-theme', before === 'dark' ? 'light' : 'dark');
+    // "Auto" follows the system again
+    await page.emulateMedia({ colorScheme: 'dark' });
+    await themes.getByRole('radio', { name: 'Auto' }).click();
+    await expect(html).toHaveAttribute('data-theme', 'dark');
+    await expect(themes.getByRole('radio', { name: 'Auto' })).toHaveAttribute('aria-checked', 'true');
   });
 
   test('switches language and keeps the page', async ({ page }) => {

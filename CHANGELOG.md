@@ -7,6 +7,70 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [1.3.0] — 2026-11-04
+
+### Added
+- **Project presentation** chosen in the back office: desktop + phone, phone only (up to three
+  phones from the mobile captures) or desktop only (`project.display_mode`, migration V5).
+- **Header picture**: pick any image of the media library in Settings, shown in a circle next to
+  the name (`site_settings.avatar_media_id`); the initial is used otherwise.
+- Default illustrations (`/img/project-placeholder*.svg`) for projects without any picture.
+- Light / dark / **Auto** switch in the header.
+- **Drag and drop ordering** in the back office: experience, education, skills (within their
+  family) and the pictures of a project, with the mouse, touch or the arrow keys on the handle
+  (`PUT /api/admin/profile/experiences/reorder`, `…/education/reorder`).
+- **Dashboard**: greeting, KPI tiles with sparklines (views, visitors, project views per visitor,
+  outbound clicks, unread messages), traffic chart with a table view, top projects ranking,
+  pages / sources / audience shares, system gauges and health; the chart covers every day of
+  the period, days without visits at zero.
+- **Starter archive** `seed/mbonnici-starter.zip`: the original content with the README and
+  live-site captures as real media, importable from Backups (`seed/build-starter.mjs`,
+  `seed/capture-shots.mjs`).
+
+### Changed
+- **Uploads**: PNG and JPEG only (`.png`, `.jpg`, `.jpeg`), magic bytes and extension must agree,
+  dimensions read from the header before decoding (40 MP max), then **converted to WebP**
+  (quality 82, metadata stripped, 2560 px wide at most) with `cwebp` (libwebp-tools, now in the
+  backend image). SVG, GIF, WebP and AVIF uploads are refused.
+- **Fresh deployments start empty**: migration V2 only creates the settings row (owner name,
+  legal identity, contact e-mail) and V4 no longer rewrites content; the original content moved
+  to the starter archive and, for the tests, to `src/test/resources/db/testdata`. Home and About
+  hide their sections until they have content. The static README captures
+  (`frontend/public/shots`, `shots.generated.ts`) are gone: every picture comes from the media
+  library.
+- **One phone everywhere** (cards, project page, back-office preview): a realistic black frame
+  (thin border, aluminium band, Dynamic Island with its lens, side buttons) drawn as an original
+  SVG, laid over the capture and cropped at the bottom by the stage; the old iPhone simulator
+  component is gone. Captures without a status bar get one. Browser windows have macOS traffic
+  lights.
+- **Intro** styles are inlined in `index.html`: on a first visit the sheet covers the page from
+  the first paint (the hero no longer shows for half a second before the intro).
+- Count badges (unread messages) are centred, with tabular figures.
+- Privacy policy: the only cookie of the public site (`XSRF-TOKEN`, anti-CSRF, session, strictly
+  necessary) and the back-office session cookie are named; still no consent banner needed.
+- Empty headline (fresh deployment): no stray dot or dash in the hero, About and footer.
+- **Back office redesign**: ink sidebar grouped by Overview / Content / Site with the header
+  picture, sticky page headers, calmer panels, compact controls, icon buttons with **tooltips**,
+  **confirmation dialogs** instead of the browser's confirm() (focus on Cancel for destructive
+  actions), message cards with avatar and status, media tiles with inline actions and a missing
+  alt-text marker, drawer navigation on small screens; new split-screen **sign-in page**.
+- Project filters animate with FLIP on the Web Animations API: clicks are never blocked, filters
+  can be switched as fast as you like (the View Transition swallowed clicks).
+- The custom cursor blends with `difference`, visible on the ink footer and in both themes.
+- Word masks are wider: italic overhangs and tight tracking are no longer clipped in titles.
+- Hover on "Discutons" and on previous / next projects: letters roll from the grotesk to the
+  serif italic instead of switching at once.
+- Header: Home link, availability pill centred with the buttons, Menu button centred with the name;
+  the phone menu no longer replays its opening animation when closed.
+- Phones: page transitions are a short fade through the page colour.
+- Legal pages always name `mbonnici.fr`, even when rendered by a local server.
+- `/api/auth/me` and `/api/auth/providers` are no longer counted in the sign-in rate limit.
+
+### Removed
+- The GitHub Actions workflow.
+- Contact notifications (e-mail, WhatsApp, webhooks) and the mail dependency: messages are only
+  read in the back office.
+
 ## [1.2.0] — 2026-11-04
 
 ### Changed

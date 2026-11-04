@@ -6,18 +6,19 @@
 mbonnici/
 ├── frontend/                 Angular 22 (zoneless, signals, SSR) + Express server
 │   ├── src/app/core/         i18n, theme, motion (physics, rAF, pointer, scroll), api, seo, analytics, auth
-│   ├── src/app/shared/       cursor, curtain, header, iphone, ui (showcase, slider, toolbox…)
+│   ├── src/app/shared/       cursor, curtain, header, ui (showcase, phone, slider, toolbox, tooltip, confirm dialog…)
 │   ├── src/app/features/     home, projects, about, contact, legal, not-found, admin
 │   ├── src/styles/           reset, tokens (one style × 2 schemes), typography, layout, components, motion (intro), admin
 │   ├── src/server.ts         SSR, CSP nonce, API proxy, language redirect, security headers
 │   ├── e2e/                  Playwright specs (desktop + mobile, axe accessibility)
-│   └── scripts/              version.mjs (build stamp), assets.mjs (OG/icons), screenshots.mjs (README), project-shots.mjs (default project captures)
+│   └── scripts/              version.mjs (build stamp), assets.mjs (OG/icons), screenshots.mjs (README), device-svg.mjs (phone frame)
 ├── backend/                  Spring Boot 4.1 / Java 25
 │   └── src/main/java/fr/mbonnici/portfolio/
 │       ├── config/           SecurityConfig, RateLimitFilter, AppProperties, StorageConfig
 │       ├── auth/             Google OIDC user service (e-mail allow-list), /api/auth/me, local dev sign-in
 │       ├── project/ media/ profile/ settings/ contact/ analytics/ seo/ admin/
 │       └── storage/          StorageService (S3 via AWS SDK v2)
+├── seed/                     starter archive (original content + captures) and the scripts that build it
 ├── docker-compose.yml        production (Coolify)
 ├── docker-compose.dev.yml    local PostgreSQL + SeaweedFS
 ├── docker-compose.local.yml  full stack built from source (DEV_LOGIN on)
@@ -58,9 +59,10 @@ View Transition (circular reveal from the button, cross-fade fallback).
   paints with the first frame. `RevealDirective` delays the entrance of the content it covers.
 - Page transitions: `TransitionService` + `CurtainComponent`, one sheet; the first navigation
   (the server-rendered page) is never covered.
-- Project visuals: `ShowcaseComponent` (browser frame + phone) reads the cover / first mobile
-  media of the project, else `shots.generated.ts` written by `scripts/project-shots.mjs` from the
-  README screenshots (files in `public/shots/<slug>/`).
+- Project visuals: `ShowcaseComponent` (browser frame + phones, per `display_mode`) reads the
+  cover and the mobile media of the project, else `/img/project-placeholder*.svg`. `PhoneComponent`
+  lays `/img/devices/phone.svg` (an original drawing, `scripts/device-svg.mjs`) over the capture;
+  another frame only needs the image and the screen rectangle.
 - Copy never ends with a full stop outside `legal.*` (`NoDotPipe`, also applied to Markdown).
 
 ## Motion system
@@ -80,7 +82,10 @@ View Transition (circular reveal from the button, cross-fade fallback).
 tags[]) · `media` (object key, dimensions, blur placeholder, alt texts) · `project_media`
 (gallery / mobile ordering) · `experience` · `education` · `skill` · `contact_message` ·
 `analytics_event` (type, path, project, locale, theme, style (legacy, unused), device, referrer host, daily
-visitor hash). Migrations: `backend/src/main/resources/db/migration` (Flyway, plain SQL).
+visitor hash). Migrations: `backend/src/main/resources/db/migration` (Flyway, plain SQL); they
+create the schema and a single settings row, no content, so a deployment starts empty. The tests
+add `src/test/resources/db/testdata/R__test_content.sql` (repeatable migration, test profile only)
+with the original texts.
 
 ## Backups and selective restore
 
@@ -93,11 +98,19 @@ selection: `ArchiveMerger` copies the chosen rows into temporary tables and upse
 (`INSERT … ON CONFLICT (id) DO UPDATE`) in one transaction; a project brings its gallery links and
 missing images, analytics events can be added without touching existing ones.
 
-## Contact notifications
+## Media pipeline
 
-Every message is stored (`contact_message`) and listed in the back office with an unread badge.
-`ContactNotifier` can also, off the request thread, e-mail it (any SMTP server, Reply-To set to the
-visitor) and/or post it to a webhook (ntfy, Discord, Slack or generic JSON).
+`MediaService` accepts PNG and JPEG only: the type comes from the magic bytes (`ImageSniffer`), the
+file extension must agree, the dimensions are read from the header before any decoding (40 MP
+max), then the picture is decoded (blur placeholder) and re-encoded to WebP by `WebpEncoder`
+(`cwebp`, libwebp-tools in the backend image; no shell, temp files, 30 s timeout, metadata
+stripped, 2560 px max). Without `cwebp` the original is kept. Objects are served with a sandbox
+CSP and immutable caching. Projects without pictures fall back to `/img/project-placeholder*.svg`.
+
+## Contact messages
+
+Every message is stored (`contact_message`) and only read in the back office (Messages, unread
+badge in the sidebar). Nothing is forwarded by e-mail or to a third party.
 
 ## Security model
 

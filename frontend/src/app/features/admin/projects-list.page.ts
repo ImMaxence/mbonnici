@@ -5,10 +5,12 @@ import type { AdminProject } from '../../core/api/models';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { LocalizedPipe, TranslatePipe } from '../../core/i18n/translate.pipe';
 import { IconComponent } from '../../shared/ui/icon.component';
+import { ConfirmService } from '../../shared/ui/confirm.service';
+import { TooltipDirective } from '../../shared/ui/tooltip.directive';
 
 @Component({
   selector: 'app-admin-projects',
-  imports: [RouterLink, TranslatePipe, LocalizedPipe, IconComponent],
+  imports: [RouterLink, TranslatePipe, LocalizedPipe, IconComponent, TooltipDirective],
   template: `
     <div class="admin-head">
       <div>
@@ -29,7 +31,7 @@ import { IconComponent } from '../../shared/ui/icon.component';
       <div class="rows" (pointermove)="dragMove($event)" (pointerup)="dragEnd()" (pointercancel)="dragEnd()">
         @for (p of projects(); track p.id; let i = $index) {
           <div class="list-row" [class.is-dragging]="dragIndex() === i" [attr.data-index]="i">
-            <button type="button" class="drag-handle" (pointerdown)="dragStart($event, i)" aria-label="Drag"><app-icon name="drag" [size]="18" /></button>
+            <button type="button" class="drag-handle" (pointerdown)="dragStart($event, i)" [appTip]="'admin.projects.dragTip' | t"><app-icon name="drag" [size]="18" /></button>
             <div class="row" style="gap: 1rem; min-width: 0">
               <span class="swatch" [style.background]="p.accentColor"></span>
               <div style="min-width: 0">
@@ -48,7 +50,7 @@ import { IconComponent } from '../../shared/ui/icon.component';
                 {{ (p.status === 'PUBLISHED' ? 'admin.projects.unpublish' : 'admin.projects.publish') | t }}
               </button>
               <a class="chip" [routerLink]="['/admin/projects', p.id]"><app-icon name="edit" [size]="12" /> {{ 'admin.projects.edit' | t }}</a>
-              <button type="button" class="chip" (click)="remove(p)"><app-icon name="trash" [size]="12" /></button>
+              <button type="button" class="icon-btn danger" (click)="remove(p)" [appTip]="'admin.projects.delete' | t"><app-icon name="trash" [size]="15" /></button>
             </div>
           </div>
         }
@@ -70,6 +72,7 @@ import { IconComponent } from '../../shared/ui/icon.component';
 export class ProjectsListPage {
   private readonly api = inject(ApiService);
   private readonly i18n = inject(I18nService);
+  private readonly confirmDialog = inject(ConfirmService);
 
   readonly projects = signal<AdminProject[]>([]);
   readonly loading = signal(true);
@@ -98,7 +101,13 @@ export class ProjectsListPage {
   }
 
   async remove(p: AdminProject): Promise<void> {
-    if (!confirm(this.i18n.t('admin.projects.confirmDelete', { title: this.i18n.l(p.title) }))) return;
+    const ok = await this.confirmDialog.ask({
+      title: this.i18n.t('admin.projects.confirmDelete', { title: this.i18n.l(p.title) }),
+      message: this.i18n.t('admin.common.irreversible'),
+      confirm: this.i18n.t('admin.projects.delete'),
+      danger: true,
+    });
+    if (!ok) return;
     await this.api.deleteProject(p.id);
     this.projects.update((list) => list.filter((x) => x.id !== p.id));
   }

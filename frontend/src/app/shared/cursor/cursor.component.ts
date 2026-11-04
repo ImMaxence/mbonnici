@@ -28,6 +28,10 @@ import { CursorService } from './cursor.service';
       z-index: 1000;
       pointer-events: none;
       contain: strict;
+      /* white + difference = always the inverse of what is underneath: visible on the paper
+         background, on the ink footer and on photos, in both themes */
+      mix-blend-mode: difference;
+      --c: #fff;
     }
     .dot,
     .ring {
@@ -41,8 +45,7 @@ import { CursorService } from './cursor.service';
       height: 8px;
       margin: -4px 0 0 -4px;
       border-radius: 50%;
-      background: var(--fg);
-      mix-blend-mode: difference;
+      background: var(--c);
       transition: opacity 0.2s, transform 0.2s var(--ease-out);
     }
     .ring {
@@ -50,8 +53,8 @@ import { CursorService } from './cursor.service';
       height: 40px;
       margin: -20px 0 0 -20px;
       border-radius: 999px;
-      border: 1.5px solid var(--fg);
-      opacity: 0.55;
+      border: 1.5px solid var(--c);
+      opacity: 0.7;
       display: grid;
       place-items: center;
       transition:
@@ -67,7 +70,7 @@ import { CursorService } from './cursor.service';
       font: 600 11px/1 var(--font-body);
       letter-spacing: 0.08em;
       text-transform: uppercase;
-      color: var(--bg);
+      color: #000;
       opacity: 0;
       transform: scale(0.6);
       transition: opacity 0.2s, transform 0.3s var(--ease-spring);
@@ -82,7 +85,7 @@ import { CursorService } from './cursor.service';
       height: 56px;
       margin: -28px 0 0 -28px;
       opacity: 0.9;
-      background: color-mix(in srgb, var(--fg) 8%, transparent);
+      background: rgba(255, 255, 255, 0.1);
     }
     :host([data-mode='text']) .dot {
       transform: scaleX(0.3) scaleY(2.6);
@@ -95,8 +98,8 @@ import { CursorService } from './cursor.service';
       width: 84px;
       height: 84px;
       margin: -42px 0 0 -42px;
-      background: var(--fg);
-      border-color: var(--fg);
+      background: var(--c);
+      border-color: var(--c);
       opacity: 1;
     }
     :host([data-mode='label']) .label,
@@ -112,7 +115,7 @@ import { CursorService } from './cursor.service';
       transition: none;
       border-radius: var(--magnet-radius, 14px);
       opacity: 0.9;
-      background: color-mix(in srgb, var(--fg) 6%, transparent);
+      background: rgba(255, 255, 255, 0.08);
     }
     :host(.is-down) .ring {
       transform: scale(0.85);

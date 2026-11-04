@@ -56,12 +56,6 @@ services:
       COOKIE_SECURE: "false"
       TRUST_PROXY: "false"
       DEV_LOGIN: "true"
-      # optional: try the contact notifications locally
-      NOTIFY_EMAIL: ${NOTIFY_EMAIL:-}
-      NOTIFY_WEBHOOK_URL: ${NOTIFY_WEBHOOK_URL:-}
-      SMTP_HOST: ${SMTP_HOST:-}
-      SMTP_USERNAME: ${SMTP_USERNAME:-}
-      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
     depends_on:
       db:
         condition: service_healthy

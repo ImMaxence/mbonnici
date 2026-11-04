@@ -30,6 +30,7 @@ import { stripDot } from './text';
         [slug]="project().slug"
         [title]="title()"
         [accent]="project().accentColor"
+        [mode]="project().displayMode"
         [cover]="project().cover"
         [mobileMedia]="project().mobileCover"
         [site]="project().liveUrl"

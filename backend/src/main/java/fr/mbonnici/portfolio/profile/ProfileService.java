@@ -149,6 +149,24 @@ public class ProfileService {
 
     @CacheEvict(value = CACHE, allEntries = true)
     @Transactional
+    public void reorderExperiences(List<UUID> ids) {
+        int i = 0;
+        for (UUID id : ids) {
+            experiences.findById(id).orElseThrow(() -> new NotFoundException("Experience")).setSortOrder(i++);
+        }
+    }
+
+    @CacheEvict(value = CACHE, allEntries = true)
+    @Transactional
+    public void reorderEducation(List<UUID> ids) {
+        int i = 0;
+        for (UUID id : ids) {
+            education.findById(id).orElseThrow(() -> new NotFoundException("Education")).setSortOrder(i++);
+        }
+    }
+
+    @CacheEvict(value = CACHE, allEntries = true)
+    @Transactional
     public void reorderSkills(List<UUID> ids) {
         int i = 0;
         for (UUID id : ids) {

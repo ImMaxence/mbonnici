@@ -51,6 +51,7 @@ class PublicApiTest extends AbstractIntegrationTest {
                 .andExpect(jsonPath("$.description.en").value(containsString("ATS")))
                 // the live site forbids framing (frame-ancestors), so the live preview is off (migration V4)
                 .andExpect(jsonPath("$.allowIframe").value(false))
+                .andExpect(jsonPath("$.displayMode").value("BOTH"))
                 .andExpect(jsonPath("$.tagline.fr").value(not(endsWith("."))))
                 .andExpect(jsonPath("$.previous").doesNotExist())
                 .andExpect(jsonPath("$.next.slug").value("localcutvideo"))

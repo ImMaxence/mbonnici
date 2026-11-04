@@ -20,7 +20,7 @@ import { IconComponent } from './icon.component';
             @if (settings()?.publicEmail; as mail) {
               <a class="mail" [href]="'mailto:' + mail">{{ mail }}</a>
             }
-            <p class="small faint">{{ settings()?.headline | l }}@if (settings()?.location; as loc) { · {{ loc }}}</p>
+            <p class="small faint">@if (settings()?.headline | l; as h) { {{ h }}@if (settings()?.location) { · } }{{ settings()?.location }}</p>
           </div>
           <nav class="col links" [attr.aria-label]="'footer.nav' | t">
             <span class="eyebrow plain">{{ 'footer.pages' | t }}</span>

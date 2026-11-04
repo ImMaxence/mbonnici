@@ -81,7 +81,7 @@ export class SeoService {
         '@type': 'Person',
         '@id': `${origin}/#person`,
         name: owner,
-        jobTitle: headline,
+        ...(headline ? { jobTitle: headline } : {}),
         url: origin,
         sameAs: sameAs.filter(Boolean),
         address: { '@type': 'PostalAddress', addressLocality: 'Aix-en-Provence', addressCountry: 'FR' },

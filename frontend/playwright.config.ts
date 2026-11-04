@@ -9,6 +9,8 @@ const baseURL = process.env['E2E_BASE_URL'] ?? 'http://localhost:4000';
 
 export default defineConfig({
   testDir: './e2e',
+  // a fresh site is empty: the starter archive is imported first (see e2e/global-setup.ts)
+  globalSetup: './e2e/global-setup.ts',
   timeout: 60_000,
   expect: { timeout: 10_000 },
   fullyParallel: true,

@@ -10,6 +10,7 @@ import { FooterComponent } from '../../shared/ui/footer.component';
 import { IconComponent } from '../../shared/ui/icon.component';
 import { ProjectCardComponent } from '../../shared/ui/project-card.component';
 import { RevealDirective } from '../../shared/ui/reveal.directive';
+import { RollTextComponent } from '../../shared/ui/roll-text.component';
 import { NoDotPipe } from '../../shared/ui/text';
 import { ToolboxComponent } from '../../shared/ui/toolbox.component';
 
@@ -26,13 +27,15 @@ import { ToolboxComponent } from '../../shared/ui/toolbox.component';
     ProjectCardComponent,
     RevealDirective,
     ToolboxComponent,
+    RollTextComponent,
   ],
   template: `
     <main id="main" class="page home">
       <!-- ── Hero ───────────────────────────────────────────────────────── -->
       <section class="hero container">
         <div class="hero-top" appReveal>
-          <span class="eyebrow">{{ settings()?.headline | l }}</span>
+          <!-- empty until the headline is filled in the back office (fresh deployment) -->
+          <span class="eyebrow" [class.hidden]="!(settings()?.headline | l)">{{ settings()?.headline | l }}</span>
           <span class="mono small faint clock">
             {{ settings()?.location ?? 'Aix-en-Provence' }} · <time>{{ time() }}</time>
           </span>
@@ -53,14 +56,15 @@ import { ToolboxComponent } from '../../shared/ui/toolbox.component';
             <a class="btn btn-ghost btn-lg" [appLink]="i18n.path('contact')" [linkLabel]="'nav.contact' | t" appMagnetic>
               {{ 'home.ctaContact' | t }}
             </a>
+            @if (settings()?.availability; as state) {
+              <span class="availability" [attr.data-state]="state"><i class="dot"></i>{{ 'availability.' + state | t }}</span>
+            }
           </div>
-          @if (settings()?.availability; as state) {
-            <span class="availability" [attr.data-state]="state" appReveal [revealDelay]="540"><i class="dot"></i>{{ 'availability.' + state | t }}</span>
-          }
         </div>
       </section>
 
       <!-- ── Selected work ──────────────────────────────────────────────── -->
+      @if (featured().length) {
       <section class="section container" id="work">
         <div class="section-title">
           <span class="eyebrow" appReveal>(01) {{ 'home.selected' | t }}</span>
@@ -79,7 +83,9 @@ import { ToolboxComponent } from '../../shared/ui/toolbox.component';
           }
         </div>
       </section>
+      }
 
+      @if (profile()?.skills?.length) {
       <!-- ── Toolbox ────────────────────────────────────────────────────── -->
       <section class="section container">
         <div class="section-title">
@@ -88,7 +94,9 @@ import { ToolboxComponent } from '../../shared/ui/toolbox.component';
         </div>
         <app-toolbox [skills]="profile()?.skills ?? []" />
       </section>
+      }
 
+      @if (experiences().length) {
       <!-- ── Experience ─────────────────────────────────────────────────── -->
       <section class="section container">
         <div class="section-title">
@@ -113,12 +121,13 @@ import { ToolboxComponent } from '../../shared/ui/toolbox.component';
           }
         </ol>
       </section>
+      }
 
       <!-- ── CTA ────────────────────────────────────────────────────────── -->
       <section class="section container cta-big">
         <span class="eyebrow" appReveal>(04) {{ 'nav.contact' | t }}</span>
-        <a class="big-link" [appLink]="i18n.path('contact')" [linkLabel]="'nav.contact' | t" appReveal>
-          <span class="mega">{{ 'home.letsTalkBig' | t }}</span>
+        <a class="big-link roll-trigger" [appLink]="i18n.path('contact')" [linkLabel]="'nav.contact' | t" appReveal>
+          <app-roll-text class="mega" [text]="'home.letsTalkBig' | t" />
           <span class="circle" aria-hidden="true"><app-icon name="arrow-up-right" [size]="40" /></span>
         </a>
         <p class="lead" appReveal>{{ 'home.letsTalk' | t }} {{ 'home.letsTalkSub' | t | noDot }}</p>
@@ -134,6 +143,9 @@ import { ToolboxComponent } from '../../shared/ui/toolbox.component';
       grid-template-rows: auto 1fr auto;
       gap: var(--space-6);
       padding: var(--space-6) 0 var(--space-7);
+    }
+    .hero-top .eyebrow.hidden {
+      visibility: hidden;
     }
     .hero-top {
       display: flex;
@@ -158,7 +170,7 @@ import { ToolboxComponent } from '../../shared/ui/toolbox.component';
     }
     @media (min-width: 1000px) {
       .hero-foot {
-        grid-template-columns: minmax(0, 1.3fr) auto auto;
+        grid-template-columns: minmax(0, 1.2fr) auto;
       }
     }
     .hero-foot .lead strong {
@@ -168,10 +180,11 @@ import { ToolboxComponent } from '../../shared/ui/toolbox.component';
     .cta {
       display: flex;
       flex-wrap: wrap;
+      align-items: center;
       gap: var(--space-3);
     }
-    .availability {
-      justify-self: start;
+    .cta .availability {
+      margin-left: var(--space-2);
     }
     .title-row {
       display: grid;
@@ -239,16 +252,7 @@ import { ToolboxComponent } from '../../shared/ui/toolbox.component';
       justify-content: space-between;
       gap: var(--space-5);
     }
-    .big-link .mega {
-      transition: letter-spacing 0.8s var(--ease-out);
-    }
-    .big-link:hover .mega {
-      font-family: var(--font-serif);
-      font-style: italic;
-      font-weight: 400;
-      letter-spacing: -0.02em;
-      color: var(--accent);
-    }
+
     .circle {
       flex: none;
       display: grid;

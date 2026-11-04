@@ -445,7 +445,7 @@ public class BackupService {
     public String schemaVersion() {
         try {
             List<String> v = jdbc.queryForList(
-                    "select version from flyway_schema_history where success order by installed_rank desc limit 1", String.class);
+                    "select version from flyway_schema_history where success and version is not null order by installed_rank desc limit 1", String.class);
             return v.isEmpty() ? null : v.get(0);
         } catch (RuntimeException e) {
             return null;

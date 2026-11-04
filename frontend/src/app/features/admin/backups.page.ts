@@ -8,10 +8,12 @@ import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { IconComponent } from '../../shared/ui/icon.component';
 import { RestoreReviewComponent } from './restore-review.component';
+import { ConfirmService } from '../../shared/ui/confirm.service';
+import { TooltipDirective } from '../../shared/ui/tooltip.directive';
 
 @Component({
   selector: 'app-admin-backups',
-  imports: [FormsModule, TranslatePipe, IconComponent, RestoreReviewComponent],
+  imports: [FormsModule, TranslatePipe, IconComponent, RestoreReviewComponent, TooltipDirective],
   template: `
     <div class="admin-head">
       <div>
@@ -133,7 +135,7 @@ import { RestoreReviewComponent } from './restore-review.component';
                   <td class="num" style="white-space: nowrap">
                     <button type="button" class="chip" (click)="restore(f)" [disabled]="overview()?.running || staging()"><app-icon name="refresh" [size]="12" /> {{ 'admin.backups.files.restore' | t }}</button>
                     <a class="chip" [href]="api.backupDownloadUrl(f.id)"><app-icon name="arrow-down" [size]="12" /> {{ 'admin.backups.files.download' | t }}</a>
-                    <button type="button" class="chip" (click)="remove(f)"><app-icon name="trash" [size]="12" /></button>
+                    <button type="button" class="icon-btn danger" (click)="remove(f)" [appTip]="'admin.backups.files.delete' | t"><app-icon name="trash" [size]="15" /></button>
                   </td>
                 </tr>
               }
@@ -196,6 +198,7 @@ import { RestoreReviewComponent } from './restore-review.component';
 export class BackupsPage {
   readonly api = inject(ApiService);
   readonly i18n = inject(I18nService);
+  private readonly confirmDialog = inject(ConfirmService);
   private readonly route = inject(ActivatedRoute);
 
   readonly overview = signal<BackupOverview | null>(null);
@@ -278,7 +281,13 @@ export class BackupsPage {
   }
 
   async remove(f: DriveFile): Promise<void> {
-    if (!confirm(this.i18n.t('admin.backups.files.deleteConfirm', { name: f.name }))) return;
+    const ok = await this.confirmDialog.ask({
+      title: this.i18n.t('admin.backups.files.deleteConfirm', { name: f.name }),
+      message: this.i18n.t('admin.common.irreversible'),
+      confirm: this.i18n.t('admin.backups.files.delete'),
+      danger: true,
+    });
+    if (!ok) return;
     try {
       await this.api.deleteBackupFile(f.id);
       await this.load(true);
@@ -305,7 +314,13 @@ export class BackupsPage {
   }
 
   async disconnect(): Promise<void> {
-    if (!confirm(this.i18n.t('admin.backups.drive.disconnectConfirm'))) return;
+    const ok = await this.confirmDialog.ask({
+      title: this.i18n.t('admin.backups.drive.disconnect'),
+      message: this.i18n.t('admin.backups.drive.disconnectConfirm'),
+      confirm: this.i18n.t('admin.backups.drive.disconnect'),
+      danger: true,
+    });
+    if (!ok) return;
     try {
       await this.api.disconnectDrive();
       await this.load();

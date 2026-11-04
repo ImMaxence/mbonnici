@@ -1,4 +1,4 @@
-import { ApplicationRef, Component, computed, effect, inject, input, signal } from '@angular/core';
+import { ApplicationRef, Component, ElementRef, computed, effect, inject, input, signal, viewChild } from '@angular/core';
 import type { ProjectCard, ProjectCategory, Settings } from '../../core/api/models';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
@@ -8,7 +8,6 @@ import { FooterComponent } from '../../shared/ui/footer.component';
 import { ProjectCardComponent } from '../../shared/ui/project-card.component';
 import { RevealDirective } from '../../shared/ui/reveal.directive';
 
-type ViewTransitionDocument = Document & { startViewTransition?: (update: () => void) => unknown };
 
 @Component({
   selector: 'app-projects',
@@ -43,20 +42,13 @@ type ViewTransitionDocument = Document & { startViewTransition?: (update: () => 
         </p>
 
         @if (visible().length) {
-          @for (g of [generation()]; track g) {
-            <div class="grid-projects">
-              @for (p of visible(); track p.id; let i = $index) {
-                <div
-                  class="cell"
-                  [class.enter]="animate()"
-                  [style.--i]="i"
-                  [style.view-transition-name]="'p-' + p.id"
-                >
-                  <app-project-card [project]="p" headingLevel="h2" [priority]="i < 2" />
-                </div>
-              }
-            </div>
-          }
+          <div class="grid-projects" #grid>
+            @for (p of visible(); track p.id; let i = $index) {
+              <div class="cell" [attr.data-id]="p.id">
+                <app-project-card [project]="p" headingLevel="h2" [priority]="i < 2" />
+              </div>
+            }
+          </div>
         } @else {
           <p class="muted">{{ 'projects.empty' | t }}</p>
         }
@@ -139,9 +131,7 @@ export class ProjectsPage {
   readonly projects = input<ProjectCard[]>();
   readonly settings = input<Settings>();
   readonly filter = signal<ProjectCategory | null>(null);
-  /** bumped on every filter change when the cards are re-created (fallback animation) */
-  readonly generation = signal(0);
-  readonly animate = signal(false);
+  private readonly grid = viewChild<ElementRef<HTMLElement>>('grid');
 
   readonly all = computed(() => this.projects() ?? []);
   readonly categories = computed(() => {
@@ -183,25 +173,49 @@ export class ProjectsPage {
     });
   }
 
-  /** Cards that stay glide to their new place, the others fade in (View Transitions), or the grid re-enters in cascade. */
+  /**
+   * FLIP: cards that stay glide from their old slot to the new one, new cards rise in cascade.
+   * Pure Web Animations on transforms — the page stays clickable, so filters can be changed as
+   * fast as you like (a new click simply restarts from wherever the cards are).
+   */
   choose(category: ProjectCategory | null): void {
     if (category === this.filter()) return;
-    const doc = document as ViewTransitionDocument;
-    if (this.motion.reduced()) {
+    const grid = this.grid()?.nativeElement;
+    if (!grid || this.motion.reduced()) {
       this.filter.set(category);
       return;
     }
-    if (doc.startViewTransition) {
-      this.animate.set(false);
-      doc.startViewTransition(() => {
-        this.filter.set(category);
-        // zoneless: render now, the transition snapshots the DOM right after this callback
-        this.appRef.tick();
-      });
-      return;
+    const before = new Map<string, DOMRect>();
+    for (const el of Array.from(grid.querySelectorAll<HTMLElement>('.cell'))) {
+      before.set(el.dataset['id']!, el.getBoundingClientRect());
+      el.getAnimations().forEach((a) => a.cancel());
     }
-    this.animate.set(true);
     this.filter.set(category);
-    this.generation.update((g) => g + 1);
+    // zoneless: render the new list now so it can be measured in the same frame
+    this.appRef.tick();
+    const cells = Array.from((this.grid()?.nativeElement ?? grid).querySelectorAll<HTMLElement>('.cell'));
+    let fresh = 0;
+    for (const el of cells) {
+      const old = before.get(el.dataset['id']!);
+      const now = el.getBoundingClientRect();
+      if (old) {
+        const dx = old.left - now.left;
+        const dy = old.top - now.top;
+        if (Math.abs(dx) > 1 || Math.abs(dy) > 1) {
+          el.animate([{ transform: `translate(${dx}px, ${dy}px)` }, { transform: 'none' }], {
+            duration: 700,
+            easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
+          });
+        }
+      } else {
+        el.animate(
+          [
+            { opacity: 0, transform: 'translate3d(0, 40px, 0) scale(0.97)' },
+            { opacity: 1, transform: 'none' },
+          ],
+          { duration: 700, delay: Math.min(fresh++, 6) * 70, easing: 'cubic-bezier(0.16, 1, 0.3, 1)', fill: 'backwards' },
+        );
+      }
+    }
   }
 }

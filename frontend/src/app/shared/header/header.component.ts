@@ -3,6 +3,7 @@ import { isPlatformBrowser } from '@angular/common';
 import { NavigationEnd, Router } from '@angular/router';
 import { filter } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { SiteStore } from '../../core/api/site.store';
 import { AuthService } from '../../core/auth/auth.service';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { PageKey } from '../../core/i18n/routes';
@@ -32,8 +33,14 @@ interface NavItem {
     <header class="bar" [class.is-scrolled]="scroll.scrolled()" [class.is-hidden]="scroll.headerHidden() && !open()">
       <div class="inner">
         <a class="brand" [href]="i18n.path('home')" (click)="go($event, home())">
-          <span class="mark" aria-hidden="true">M</span>
-          <span class="name">Maxence Bonnici</span>
+          <span class="mark" aria-hidden="true">
+            @if (avatar(); as a) {
+              <img [src]="a.url" alt="" width="34" height="34" />
+            } @else {
+              {{ (store.settings()?.ownerName ?? 'M').charAt(0) }}
+            }
+          </span>
+          <span class="name">{{ store.settings()?.ownerName ?? 'Maxence Bonnici' }}</span>
         </a>
 
         <nav class="links" [attr.aria-label]="'nav.menu' | t">
@@ -49,15 +56,24 @@ interface NavItem {
             <span [class.on]="i18n.lang() === 'fr'">FR</span><i>/</i><span [class.on]="i18n.lang() === 'en'">EN</span>
             <span class="visually-hidden"> · {{ 'nav.switchLanguage' | t }}</span>
           </button>
-          <button
-            type="button"
-            class="round"
-            (click)="toggleTheme($event)"
-            [attr.aria-label]="(theme.isDark() ? 'dock.toLight' : 'dock.toDark') | t"
-            [attr.title]="(theme.isDark() ? 'dock.toLight' : 'dock.toDark') | t"
-          >
-            <app-icon [name]="theme.isDark() ? 'sun' : 'moon'" [size]="18" />
-          </button>
+          <div class="theme" role="radiogroup" [attr.aria-label]="'dock.modeLabel' | t">
+            @for (m of modes; track m.id) {
+              <button
+                type="button"
+                role="radio"
+                [attr.aria-checked]="theme.mode() === m.id"
+                [attr.aria-label]="'dock.' + m.id | t"
+                [attr.title]="'dock.' + m.id | t"
+                (click)="setMode(m.id, $event)"
+              >
+                @if (m.id === 'system') {
+                  <span class="auto" aria-hidden="true">A</span>
+                } @else {
+                  <app-icon [name]="m.icon" [size]="15" />
+                }
+              </button>
+            }
+          </div>
           @if (auth.isAdmin()) {
             <a class="round" href="/admin" [attr.aria-label]="'nav.admin' | t" [attr.title]="'nav.admin' | t"><app-icon name="settings" [size]="18" /></a>
           }
@@ -135,6 +151,8 @@ interface NavItem {
       display: inline-flex;
       align-items: center;
       gap: 0.7rem;
+      height: 42px;
+      line-height: 1;
       justify-self: start;
       font-family: var(--font-display);
       font-weight: 600;
@@ -144,8 +162,10 @@ interface NavItem {
     .mark {
       display: grid;
       place-items: center;
-      width: 30px;
-      height: 30px;
+      flex: none;
+      overflow: hidden;
+      width: 34px;
+      height: 34px;
       border-radius: 50%;
       background: var(--fg);
       color: var(--bg);
@@ -153,6 +173,11 @@ interface NavItem {
       font-weight: 700;
       letter-spacing: 0;
       transition: transform 0.6s var(--ease-spring);
+    }
+    .mark img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
     }
     .brand:hover .mark {
       transform: rotate(-12deg) scale(1.08);
@@ -233,6 +258,34 @@ interface NavItem {
       font-style: normal;
       opacity: 0.5;
     }
+    .theme {
+      display: inline-flex;
+      padding: 3px;
+      gap: 2px;
+      border-radius: var(--radius-pill);
+      border: 1px solid var(--line-strong);
+    }
+    .theme button {
+      display: grid;
+      place-items: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      color: var(--fg-2);
+      transition:
+        background-color var(--dur-2),
+        color var(--dur-2);
+    }
+    .theme button:hover {
+      color: var(--fg);
+    }
+    .theme button[aria-checked='true'] {
+      background: var(--fg);
+      color: var(--bg);
+    }
+    .auto {
+      font: 700 12px/1 var(--font-mono);
+    }
     .round {
       display: grid;
       place-items: center;
@@ -254,7 +307,8 @@ interface NavItem {
       display: none;
       align-items: center;
       gap: 0.7rem;
-      height: 40px;
+      height: 42px;
+      line-height: 1;
       padding: 0 0.6rem 0 1rem;
       border-radius: var(--radius-pill);
       background: var(--fg);
@@ -289,6 +343,7 @@ interface NavItem {
       }
       .links,
       .tools .lang,
+      .tools .theme,
       .tools .round {
         display: none;
       }
@@ -311,10 +366,7 @@ interface NavItem {
       background: var(--bg);
       color: var(--fg);
       clip-path: inset(0 0 0 0);
-      transition:
-        clip-path 0.7s var(--ease-curtain),
-        display 0.7s allow-discrete,
-        overlay 0.7s allow-discrete;
+      transition: clip-path 0.65s var(--ease-curtain);
     }
     .menu::backdrop {
       background: transparent;
@@ -326,6 +378,12 @@ interface NavItem {
     }
     .menu.is-closing {
       clip-path: inset(0 0 100% 0);
+    }
+    .menu.is-closing .menu-links .t {
+      transform: translate3d(0, -40%, 0);
+      opacity: 0;
+      transition-duration: 0.4s;
+      transition-delay: 0s;
     }
     .menu-inner {
       min-height: 100%;
@@ -339,6 +397,7 @@ interface NavItem {
       display: flex;
       align-items: center;
       justify-content: space-between;
+      height: var(--header-h);
     }
     .menu-top .menu-btn {
       display: inline-flex;
@@ -417,6 +476,8 @@ export class HeaderComponent {
   readonly theme = inject(ThemeService);
   readonly auth = inject(AuthService);
   readonly scroll = inject(ScrollService);
+  readonly store = inject(SiteStore);
+  readonly avatar = computed(() => this.store.settings()?.avatar ?? null);
   private readonly router = inject(Router);
   private readonly transition = inject(TransitionService);
   private readonly browser = isPlatformBrowser(inject(PLATFORM_ID));
@@ -448,7 +509,7 @@ export class HeaderComponent {
       return { ...n, n: String(i).padStart(2, '0'), path, active };
     });
   });
-  readonly items = computed(() => this.allItems().slice(1));
+  readonly items = computed(() => this.allItems());
   readonly home = computed(() => this.allItems()[0]);
 
   constructor() {
@@ -481,10 +542,6 @@ export class HeaderComponent {
     void this.transition.navigate(target, this.i18n.other() === 'fr' ? 'Français' : 'English');
   }
 
-  toggleTheme(event: MouseEvent): void {
-    this.theme.toggleMode(event.currentTarget as Element);
-  }
-
   setMode(mode: ThemeMode, event: MouseEvent): void {
     this.theme.setMode(mode, event.currentTarget as Element);
   }
@@ -500,16 +557,19 @@ export class HeaderComponent {
   closeMenu(instant = false): void {
     const dialog = this.menu().nativeElement;
     if (instant || matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      this.closing.set(true);
       dialog.close();
       this.open.set(false);
       return;
     }
+    if (this.closing()) return;
     this.closing.set(true);
+    // .is-closing stays on until the next opening: removing it right after close() would play the
+    // opening transition again while the dialog fades out
     setTimeout(() => {
       dialog.close();
-      this.closing.set(false);
       this.open.set(false);
-    }, 700);
+    }, 650);
   }
 
   onBackdrop(event: MouseEvent): void {

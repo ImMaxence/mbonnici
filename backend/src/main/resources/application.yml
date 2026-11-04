@@ -88,16 +88,6 @@ app:
   git-sha: ${GIT_SHA:}
   # local only (refused unless app.url is localhost): /api/auth/dev-login opens an admin session without Google
   dev-login: ${DEV_LOGIN:false}
-  # contact form notifications, each one is off until configured (see .env.example)
-  notifications:
-    email: ${NOTIFY_EMAIL:}
-    from: ${NOTIFY_FROM:}
-    webhook-url: ${NOTIFY_WEBHOOK_URL:}
-    smtp-host: ${SMTP_HOST:}
-    smtp-port: ${SMTP_PORT:587}
-    smtp-username: ${SMTP_USERNAME:}
-    smtp-password: ${SMTP_PASSWORD:}
-    smtp-starttls: ${SMTP_STARTTLS:true}
   analytics:
     salt-secret: ${ANALYTICS_SALT_SECRET:dev-only-salt-change-me}
     retention-days: 400

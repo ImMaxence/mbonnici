@@ -31,6 +31,10 @@ export interface MediaDto {
   createdAt: string;
 }
 
+/** How a project is staged: browser + phone, phone only, browser only */
+export type DisplayMode = 'BOTH' | 'MOBILE' | 'DESKTOP';
+export const DISPLAY_MODES: DisplayMode[] = ['BOTH', 'MOBILE', 'DESKTOP'];
+
 export interface ProjectCard {
   id: string;
   slug: string;
@@ -38,6 +42,7 @@ export interface ProjectCard {
   tagline: Localized;
   category: ProjectCategory;
   sceneType: SceneType;
+  displayMode?: DisplayMode;
   accentColor: string;
   year: number | null;
   stack: string[];
@@ -79,6 +84,7 @@ export interface AdminProject {
   year: number | null;
   category: ProjectCategory;
   sceneType: SceneType;
+  displayMode?: DisplayMode;
   accentColor: string;
   coverMediaId: string | null;
   cover: MediaDto | null;
@@ -104,6 +110,7 @@ export interface ProjectUpsert {
   year: number | null;
   category: ProjectCategory;
   sceneType: SceneType;
+  displayMode: DisplayMode;
   accentColor: string;
   repoUrl: string | null;
   liveUrl: string | null;
@@ -133,6 +140,8 @@ export interface Settings {
   seoTitle: Localized;
   seoDescription: Localized;
   legal: Legal;
+  /** picture next to the name in the header */
+  avatar: MediaDto | null;
   updatedAt: string;
 }
 
@@ -151,6 +160,7 @@ export interface SettingsUpdate {
   legalAddress: string | null;
   legalHost: string | null;
   legalContactEmail: string | null;
+  avatarMediaId: string | null;
 }
 
 export interface Experience {

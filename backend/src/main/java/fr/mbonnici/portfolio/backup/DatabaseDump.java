@@ -24,7 +24,7 @@ public class DatabaseDump {
 
     /** FK-safe order (parents first). Tokens, backup history and settings are deliberately excluded. */
     public static final List<String> TABLES = List.of(
-            "site_settings", "media", "project", "project_media", "experience", "education", "skill",
+            "media", "site_settings", "project", "project_media", "experience", "education", "skill",
             "contact_message", "analytics_event");
 
     private final DataSource dataSource;

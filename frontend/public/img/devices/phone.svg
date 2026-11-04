@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1350 2760" width="1350" height="2760">
+  <defs>
+    <linearGradient id="band" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#9a9aa0"/>
+      <stop offset="0.012" stop-color="#4a4a4f"/>
+      <stop offset="0.03" stop-color="#232326"/>
+      <stop offset="0.5" stop-color="#2c2c30"/>
+      <stop offset="0.97" stop-color="#232326"/>
+      <stop offset="0.988" stop-color="#4a4a4f"/>
+      <stop offset="1" stop-color="#9a9aa0"/>
+    </linearGradient>
+    <linearGradient id="sheen" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fff" stop-opacity="0.22"/>
+      <stop offset="0.04" stop-color="#fff" stop-opacity="0"/>
+      <stop offset="0.96" stop-color="#fff" stop-opacity="0"/>
+      <stop offset="1" stop-color="#fff" stop-opacity="0.12"/>
+    </linearGradient>
+    <linearGradient id="btn-l" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#5c5c61"/>
+      <stop offset="0.5" stop-color="#2e2e32"/>
+      <stop offset="1" stop-color="#1b1b1e"/>
+    </linearGradient>
+    <linearGradient id="btn-r" x1="1" y1="0" x2="0" y2="0">
+      <stop offset="0" stop-color="#5c5c61"/>
+      <stop offset="0.5" stop-color="#2e2e32"/>
+      <stop offset="1" stop-color="#1b1b1e"/>
+    </linearGradient>
+    <radialGradient id="lens" cx="0.38" cy="0.36" r="0.7">
+      <stop offset="0" stop-color="#3b4a72"/>
+      <stop offset="0.35" stop-color="#121a2e"/>
+      <stop offset="0.75" stop-color="#05070c"/>
+      <stop offset="1" stop-color="#000"/>
+    </radialGradient>
+  </defs>
+  <!-- side buttons: action, volume up / down, side button -->
+  <rect x="4" y="580" width="22" height="124" rx="11" fill="url(#btn-l)"/>
+  <rect x="4" y="796" width="22" height="200" rx="11" fill="url(#btn-l)"/>
+  <rect x="4" y="1054" width="22" height="200" rx="11" fill="url(#btn-l)"/>
+  <rect x="1324" y="866" width="22" height="322" rx="11" fill="url(#btn-r)"/>
+  <!-- aluminium band, with the screen cut out -->
+  <path fill-rule="evenodd" fill="url(#band)" d="M250 10 H1100 C1246.32 10 1336 99.68 1336 246 V2514 C1336 2660.32 1246.32 2750 1100 2750 H250 C103.68 2750 14 2660.32 14 2514 V246 C14 99.68 103.68 10 250 10 Z M244 69 H1106 C1212.64 69 1278 134.36 1278 241 V2519 C1278 2625.64 1212.64 2691 1106 2691 H244 C137.36 2691 72 2625.64 72 2519 V241 C72 134.36 137.36 69 244 69 Z"/>
+  <path fill-rule="evenodd" fill="url(#sheen)" d="M250 10 H1100 C1246.32 10 1336 99.68 1336 246 V2514 C1336 2660.32 1246.32 2750 1100 2750 H250 C103.68 2750 14 2660.32 14 2514 V246 C14 99.68 103.68 10 250 10 Z M244 69 H1106 C1212.64 69 1278 134.36 1278 241 V2519 C1278 2625.64 1212.64 2691 1106 2691 H244 C137.36 2691 72 2625.64 72 2519 V241 C72 134.36 137.36 69 244 69 Z"/>
+  <path fill="none" stroke="#000" stroke-opacity="0.55" stroke-width="3" d="M252 20 H1098 C1239.36 20 1326 106.64 1326 248 V2512 C1326 2653.36 1239.36 2740 1098 2740 H252 C110.64 2740 24 2653.36 24 2512 V248 C24 106.64 110.64 20 252 20 Z"/>
+  <path fill="none" stroke="#fff" stroke-opacity="0.12" stroke-width="2" d="M250 10 H1100 C1246.32 10 1336 99.68 1336 246 V2514 C1336 2660.32 1246.32 2750 1100 2750 H250 C103.68 2750 14 2660.32 14 2514 V246 C14 99.68 103.68 10 250 10 Z"/>
+  <!-- black border around the glass -->
+  <path fill-rule="evenodd" fill="#050506" d="M250 32 H1100 C1232.68 32 1314 113.32000000000001 1314 246 V2514 C1314 2646.68 1232.68 2728 1100 2728 H250 C117.32000000000001 2728 36 2646.68 36 2514 V246 C36 113.32000000000001 117.32000000000001 32 250 32 Z M244 69 H1106 C1212.64 69 1278 134.36 1278 241 V2519 C1278 2625.64 1212.64 2691 1106 2691 H244 C137.36 2691 72 2625.64 72 2519 V241 C72 134.36 137.36 69 244 69 Z"/>
+  <path fill="none" stroke="#fff" stroke-opacity="0.05" stroke-width="2" d="M250 32 H1100 C1232.68 32 1314 113.32000000000001 1314 246 V2514 C1314 2646.68 1232.68 2728 1100 2728 H250 C117.32000000000001 2728 36 2646.68 36 2514 V246 C36 113.32000000000001 117.32000000000001 32 250 32 Z"/>
+  <!-- island and front camera -->
+  <rect x="535" y="112" width="280" height="104" rx="52" fill="#000"/>
+  <circle cx="761" cy="164" r="21" fill="url(#lens)"/>
+  <circle cx="754" cy="157" r="5" fill="#8aa0d8" fill-opacity="0.35"/>
+</svg>

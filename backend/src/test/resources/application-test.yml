@@ -1,3 +1,8 @@
+spring:
+  flyway:
+    # the original portfolio content, as fixtures (production starts empty)
+    locations: classpath:db/migration,classpath:db/testdata
+
 app:
   url: http://localhost:4200
   admin-emails: admin@example.com

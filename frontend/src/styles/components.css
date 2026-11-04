@@ -405,17 +405,20 @@ dialog.lightbox img {
 }
 
 .badge {
-  display: inline-grid;
-  place-items: center;
-  min-width: 1.4em;
-  height: 1.4em;
-  padding: 0 0.4em;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
   border-radius: var(--radius-pill);
   background: var(--accent);
   color: var(--accent-fg);
-  font-size: var(--fs-micro);
-  font-weight: 700;
-  line-height: 1;
+  font: 700 11px/1 var(--font-body);
+  /* tabular figures: the proportional "1" of Inter sits off-centre */
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum', 'case';
+  letter-spacing: 0;
 }
 
 .img-frame {

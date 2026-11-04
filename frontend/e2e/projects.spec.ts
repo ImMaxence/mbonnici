@@ -17,6 +17,17 @@ test.describe('projects', () => {
     await expect.poll(() => cards.count()).toBeGreaterThanOrEqual(10);
   });
 
+  test('filters can be switched quickly without moving the mouse away', async ({ page }) => {
+    await page.goto('/fr/projets');
+    const tool = page.getByRole('button', { name: /^Outil/ });
+    const all = page.getByRole('button', { name: /^Tous/ });
+    await tool.click();
+    await all.click({ delay: 0 });
+    await tool.click({ delay: 0 });
+    await expect(page.locator('app-project-card')).toHaveCount(2);
+    await expect(tool).toHaveAttribute('aria-pressed', 'true');
+  });
+
   test('opens a project through the curtain transition', async ({ page }) => {
     await page.goto('/fr/projets');
     await page.locator('app-project-card a').first().click();
@@ -55,9 +66,11 @@ test.describe('projects', () => {
     await expect(slider.locator('.count')).toContainText('02');
   });
 
-  test('mobile version is shown in the iPhone simulator', async ({ page }) => {
+  test('mobile version is shown in the phone mock-up', async ({ page }) => {
     await page.goto('/fr/projets/meowtrix');
-    await expect(page.locator('app-iphone .phone')).toBeVisible();
-    await expect(page.locator('app-iphone .island')).toBeVisible();
+    const phone = page.locator('section.mobile app-phone').first();
+    await phone.scrollIntoViewIfNeeded();
+    await expect(phone.locator('img.shot')).toBeVisible();
+    await expect(phone.locator('.bezel')).toBeAttached();
   });
 });

@@ -71,7 +71,8 @@ import { TransitionService } from './transition.service';
       font-weight: var(--weight-display);
       letter-spacing: -0.05em;
       line-height: 0.95;
-      padding-bottom: 0.06em;
+      padding: 0 0.1em 0.08em;
+      margin: 0 -0.1em;
     }
     .title > span {
       display: inline-block;
@@ -81,6 +82,32 @@ import { TransitionService } from './transition.service';
     .curtain[data-state='covered'] .title > span {
       transform: none;
       transition: transform 0.8s var(--ease-out) 0.28s;
+    }
+    /* phones: a short fade through the page colour, no sliding sheet, no oversized title */
+    @media (max-width: 719px) {
+      .sheet,
+      .curtain[data-state] .sheet {
+        transform: none;
+        background: var(--bg);
+      }
+      .sheet {
+        opacity: 0;
+      }
+      .curtain[data-state='covering'] .sheet {
+        opacity: 1;
+        transition: opacity 0.3s var(--ease-in-out);
+      }
+      .curtain[data-state='covered'] .sheet {
+        opacity: 1;
+        transition: none;
+      }
+      .curtain[data-state='revealing'] .sheet {
+        opacity: 0;
+        transition: opacity 0.4s var(--ease-out);
+      }
+      .label {
+        display: none;
+      }
     }
     .curtain[data-state='revealing'] .title > span {
       transform: translate3d(0, -40%, 0);

@@ -3,25 +3,26 @@ import { ApiService } from '../../core/api/api.service';
 import type { MediaDto } from '../../core/api/models';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { IconComponent } from '../../shared/ui/icon.component';
+import { TooltipDirective } from '../../shared/ui/tooltip.directive';
 
 /** Modal grid of the media library with multi-select and inline upload. */
 @Component({
   selector: 'app-media-picker',
-  imports: [TranslatePipe, IconComponent],
+  imports: [TranslatePipe, IconComponent, TooltipDirective],
   template: `
     <div class="overlay" (click)="closed.emit()"></div>
     <div class="dialog panel" role="dialog" [attr.aria-label]="'admin.media.title' | t">
-      <div class="admin-head" style="margin-bottom: 1rem">
+      <div class="panel-head">
         <h2 class="h3">{{ 'admin.media.title' | t }}</h2>
         <div class="row">
           <label class="btn btn-ghost">
             <app-icon name="upload" [size]="16" /> {{ 'admin.media.select' | t }}
-            <input type="file" accept="image/*" multiple hidden (change)="upload($event)" />
+            <input type="file" accept=".png,.jpg,.jpeg,image/png,image/jpeg" multiple hidden (change)="upload($event)" />
           </label>
           <button type="button" class="btn btn-accent" (click)="confirm()" [disabled]="!selected().size">
             {{ 'admin.media.done' | t }} ({{ selected().size }})
           </button>
-          <button type="button" class="btn btn-ghost btn-icon" (click)="closed.emit()" [attr.aria-label]="'common.close' | t"><app-icon name="close" [size]="16" /></button>
+          <button type="button" class="icon-btn" (click)="closed.emit()" [appTip]="'common.close' | t"><app-icon name="close" [size]="16" /></button>
         </div>
       </div>
       @if (uploading()) {

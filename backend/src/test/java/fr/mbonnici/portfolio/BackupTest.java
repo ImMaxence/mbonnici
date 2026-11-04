@@ -51,7 +51,7 @@ class BackupTest extends AbstractIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.drive.connected").value(false))
                 .andExpect(jsonPath("$.settings.keepCount").value(14))
-                .andExpect(jsonPath("$.schemaVersion").value("4"))
+                .andExpect(jsonPath("$.schemaVersion").value("5"))
                 .andExpect(jsonPath("$.running").value(false));
 
         mvc.perform(put("/api/admin/backups/settings").with(csrf()).contentType(MediaType.APPLICATION_JSON)

@@ -1,16 +1,22 @@
 import { HttpClient } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { ActivatedRouteSnapshot, RedirectCommand, ResolveFn, Router } from '@angular/router';
-import { catchError, map, of } from 'rxjs';
+import { catchError, map, of, tap } from 'rxjs';
 import { I18nService } from '../i18n/i18n.service';
 import type { Profile, ProjectCard, ProjectDetail, Settings } from './models';
+import { SiteStore } from './site.store';
 
 /**
  * Route resolvers for the public pages. Data is fetched before a page renders, on the server
  * and again on the client where the HTTP transfer cache answers instantly: the first client
  * render is identical to the server HTML, so hydration never flashes a loading state.
  */
-export const settingsResolver: ResolveFn<Settings> = () => inject(HttpClient).get<Settings>('/api/settings');
+export const settingsResolver: ResolveFn<Settings> = () => {
+  const store = inject(SiteStore);
+  return inject(HttpClient)
+    .get<Settings>('/api/settings')
+    .pipe(tap((s) => store.settings.set(s)));
+};
 
 export const projectsResolver: ResolveFn<ProjectCard[]> = () => inject(HttpClient).get<ProjectCard[]>('/api/projects');
 

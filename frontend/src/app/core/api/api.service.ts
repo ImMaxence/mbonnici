@@ -96,6 +96,10 @@ export class ApiService {
     return firstValueFrom(this.http.delete<void>(`/api/admin/projects/${id}`));
   }
 
+  reorderProfile(section: 'experiences' | 'education' | 'skills', ids: string[]): Promise<void> {
+    return firstValueFrom(this.http.put<void>(`/api/admin/profile/${section}/reorder`, { ids }));
+  }
+
   reorderProjects(ids: string[]): Promise<void> {
     return firstValueFrom(this.http.put<void>('/api/admin/projects/reorder', { ids }));
   }

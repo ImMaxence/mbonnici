@@ -91,7 +91,7 @@ readable by the authenticated owner.
 | # | Item | Rationale |
 |---|---|---|
 | A1 | `style-src-attr 'unsafe-inline'` in the CSP | Angular style bindings (`[style.--i]`) need inline style *attributes*. Scripts remain nonce-only; inline style attributes cannot exfiltrate data without script execution. |
-| A2 | `frame-src https:` | The iPhone simulator embeds the owner's own sub-projects; the list is admin-controlled and limited to `https://` URLs validated server-side. |
+| A2 | `frame-src https:` | The "Live" view of a project page embeds the owner's own sub-projects; the list is admin-controlled and limited to `https://` URLs validated server-side. |
 | A3 | Iframe `sandbox="allow-scripts allow-same-origin …"` | Both flags are required for a cross-origin site to work; they do not grant access to *this* origin. |
 | A4 | In-memory rate limiting and caches | Single-instance deployment. Scaling out would need a shared store (Redis), documented in the code. |
 | A5 | No CSRF on `POST /api/analytics/events` | Anonymous endpoint with no session side effects; abuse is bounded by the per-IP bucket (60/min) and the 20-event batch cap. |
@@ -133,6 +133,13 @@ readable by the authenticated owner.
   media keys are validated against the storage pattern before anything is read, table and column
   names come from a fixed allow-list / `information_schema` (never from the archive), and the merge
   runs in one transaction. Endpoints are under `/api/admin/**` (admin session + CSRF).
-- **Contact notifications**: outbound only, off the request thread, short timeouts; the visitor's
-  name is stripped of line breaks before reaching the e-mail subject (header injection), the
-  message body is plain text.
+
+## v1.3.0 additions
+
+- **Uploads narrowed to PNG / JPEG**: SVG (scriptable), GIF, WebP and AVIF are refused; the magic
+  bytes and the file extension must agree; dimensions are checked from the header before decoding
+  (decompression bombs); the stored file is re-encoded to WebP by `cwebp` without metadata (no EXIF
+  / GPS leak), run without a shell on private temp files with a 30 s timeout.
+- **Contact notifications removed**: messages never leave the server (no SMTP, no webhook).
+- `/api/auth/me` and `/api/auth/providers` (read-only) moved from the sign-in bucket (20/min) to the
+  general API bucket, so normal browsing never trips the sign-in limit.

@@ -5,14 +5,18 @@ import type { MediaDto } from '../../core/api/models';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { IconComponent } from '../../shared/ui/icon.component';
+import { ConfirmService } from '../../shared/ui/confirm.service';
+import { TooltipDirective } from '../../shared/ui/tooltip.directive';
 
 @Component({
   selector: 'app-admin-media',
-  imports: [FormsModule, TranslatePipe, IconComponent],
+  imports: [FormsModule, TranslatePipe, IconComponent, TooltipDirective],
   template: `
     <div class="admin-head">
-      <h1>{{ 'admin.media.title' | t }}</h1>
-      <span class="muted small">{{ total() }} · {{ 'admin.media.formats' | t }}</span>
+      <div>
+        <h1>{{ 'admin.media.title' | t }}</h1>
+        <p class="muted small">{{ 'admin.media.count' | t: { n: total() } }}</p>
+      </div>
     </div>
 
     <label
@@ -25,7 +29,7 @@ import { IconComponent } from '../../shared/ui/icon.component';
       <app-icon name="upload" [size]="28" />
       <strong>{{ 'admin.media.drop' | t }}</strong>
       <span class="small faint">{{ 'admin.media.formats' | t }}</span>
-      <input type="file" accept="image/*" multiple hidden (change)="onFiles($event)" />
+      <input type="file" accept=".png,.jpg,.jpeg,image/png,image/jpeg" multiple hidden (change)="onFiles($event)" />
     </label>
     @if (uploading()) {
       <p class="small muted" style="margin-top:.5rem">{{ 'admin.media.uploading' | t: { n: uploading() } }}</p>
@@ -40,20 +44,26 @@ import { IconComponent } from '../../shared/ui/icon.component';
       }
       <div class="library">
         @for (m of items(); track m.id) {
-          <div class="entry">
+          <div class="entry" [class.is-editing]="editing() === m.id">
             <div class="media-item" [class.is-selected]="editing() === m.id" (click)="editing.set(editing() === m.id ? null : m.id)">
               <img [src]="m.url" [alt]="m.alt.fr || ''" loading="lazy" />
+              @if (!m.alt.fr && !m.alt.en) {
+                <span class="no-alt" [appTip]="'admin.media.noAlt' | t" [tipLabel]="false">ALT</span>
+              }
             </div>
-            <div class="small faint mono">{{ m.width ?? '?' }}×{{ m.height ?? '?' }} · {{ kb(m.sizeBytes) }} ko</div>
+            <div class="entry-foot">
+              <span class="small faint mono">{{ m.width ?? '?' }}×{{ m.height ?? '?' }} · {{ kb(m.sizeBytes) }} ko · {{ m.contentType.replace('image/', '') }}</span>
+              <span class="entry-actions">
+                <button type="button" class="icon-btn" (click)="editing.set(editing() === m.id ? null : m.id)" [appTip]="'admin.media.alt' | t"><app-icon name="edit" [size]="14" /></button>
+                <button type="button" class="icon-btn" (click)="copy(m)" [appTip]="'admin.media.copyUrl' | t"><app-icon name="copy" [size]="14" /></button>
+                <button type="button" class="icon-btn danger" (click)="remove(m)" [appTip]="'admin.media.delete' | t"><app-icon name="trash" [size]="14" /></button>
+              </span>
+            </div>
             @if (editing() === m.id) {
               <div class="stack" style="gap:.4rem">
                 <input class="input" [placeholder]="'admin.media.altFr' | t" [(ngModel)]="m.alt.fr" name="altFr-{{ m.id }}" />
                 <input class="input" [placeholder]="'admin.media.altEn' | t" [(ngModel)]="m.alt.en" name="altEn-{{ m.id }}" />
-                <div class="row" style="gap:.4rem">
-                  <button type="button" class="chip" (click)="saveAlt(m)"><app-icon name="check" [size]="12" /> {{ 'admin.profile.save' | t }}</button>
-                  <button type="button" class="chip" (click)="copy(m)"><app-icon name="copy" [size]="12" /> {{ 'admin.media.copyUrl' | t }}</button>
-                  <button type="button" class="chip" (click)="remove(m)"><app-icon name="trash" [size]="12" /> {{ 'admin.media.delete' | t }}</button>
-                </div>
+                <button type="button" class="btn" (click)="saveAlt(m)"><app-icon name="check" [size]="14" /> {{ 'admin.profile.save' | t }}</button>
               </div>
             }
           </div>
@@ -69,14 +79,39 @@ import { IconComponent } from '../../shared/ui/icon.component';
     }
     .entry {
       display: grid;
-      gap: 0.4rem;
+      gap: 0.5rem;
       align-content: start;
+    }
+    .entry-foot {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+    }
+    .entry-actions {
+      display: flex;
+      gap: 0.25rem;
+    }
+    .entry-actions .icon-btn {
+      width: 30px;
+      height: 30px;
+    }
+    .no-alt {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      padding: 0.2em 0.5em;
+      border-radius: 6px;
+      background: var(--warning);
+      color: #000;
+      font: 700 0.62rem/1.2 var(--font-mono);
     }
   `,
 })
 export class MediaPage {
   private readonly api = inject(ApiService);
   private readonly i18n = inject(I18nService);
+  private readonly confirmDialog = inject(ConfirmService);
 
   readonly items = signal<MediaDto[]>([]);
   readonly total = signal(0);
@@ -134,7 +169,13 @@ export class MediaPage {
   }
 
   async remove(m: MediaDto): Promise<void> {
-    if (!confirm(this.i18n.t('admin.media.confirmDelete'))) return;
+    const ok = await this.confirmDialog.ask({
+      title: this.i18n.t('admin.media.deleteTitle'),
+      message: this.i18n.t('admin.media.confirmDelete'),
+      confirm: this.i18n.t('admin.media.delete'),
+      danger: true,
+    });
+    if (!ok) return;
     await this.api.deleteMedia(m.id);
     this.items.update((list) => list.filter((x) => x.id !== m.id));
     this.total.update((t) => t - 1);

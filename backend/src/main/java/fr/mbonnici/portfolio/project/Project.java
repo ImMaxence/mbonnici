@@ -33,6 +33,9 @@ public class Project {
     /** Which interactive 3D scene the frontend renders for this project. */
     public enum SceneType { ORBIT, TERRAIN, HELIX, STACK, DEVICE }
 
+    /** How the project is staged on the site: browser + phone, phone only, or browser only. */
+    public enum DisplayMode { BOTH, MOBILE, DESKTOP }
+
     @Id
     @GeneratedValue
     private UUID id;
@@ -74,6 +77,10 @@ public class Project {
     @Enumerated(EnumType.STRING)
     @Column(name = "scene_type", nullable = false)
     private SceneType sceneType = SceneType.ORBIT;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "display_mode", nullable = false)
+    private DisplayMode displayMode = DisplayMode.BOTH;
 
     @Column(name = "accent_color", nullable = false)
     private String accentColor = "#0a84ff";
@@ -140,6 +147,8 @@ public class Project {
     public void setCategory(Category category) { this.category = category; }
     public SceneType getSceneType() { return sceneType; }
     public void setSceneType(SceneType sceneType) { this.sceneType = sceneType; }
+    public DisplayMode getDisplayMode() { return displayMode; }
+    public void setDisplayMode(DisplayMode displayMode) { this.displayMode = displayMode; }
     public String getAccentColor() { return accentColor; }
     public void setAccentColor(String accentColor) { this.accentColor = accentColor; }
     public Media getCoverMedia() { return coverMedia; }

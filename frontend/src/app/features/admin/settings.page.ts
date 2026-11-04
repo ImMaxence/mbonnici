@@ -1,14 +1,16 @@
 import { Component, afterNextRender, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../core/api/api.service';
-import type { Settings, SettingsUpdate } from '../../core/api/models';
+import type { MediaDto, Settings, SettingsUpdate } from '../../core/api/models';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { Lang } from '../../core/i18n/routes';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
+import { IconComponent } from '../../shared/ui/icon.component';
+import { MediaPickerComponent } from './media-picker.component';
 
 @Component({
   selector: 'app-admin-settings',
-  imports: [FormsModule, TranslatePipe],
+  imports: [FormsModule, TranslatePipe, IconComponent, MediaPickerComponent],
   template: `
     <div class="admin-head">
       <h1>{{ 'admin.settings.title' | t }}</h1>
@@ -27,10 +29,29 @@ import { TranslatePipe } from '../../core/i18n/translate.pipe';
       <p class="field-error">{{ error() }}</p>
     }
 
-    @if (form; as f) {
+    @if (ready() && form; as f) {
       <form (ngSubmit)="save()" novalidate>
         <div class="panel">
           <h2 class="panel-title">{{ 'admin.settings.identity' | t }}</h2>
+          <div class="avatar-row">
+            <span class="avatar-preview" aria-hidden="true">
+              @if (avatar(); as a) {
+                <img [src]="a.url" alt="" />
+              } @else {
+                {{ (f.ownerName || 'M').charAt(0) }}
+              }
+            </span>
+            <div class="stack" style="gap: .4rem">
+              <span class="field-label">{{ 'admin.settings.avatar' | t }}</span>
+              <span class="small faint">{{ 'admin.settings.avatarHint' | t }}</span>
+              <div class="row" style="gap: .4rem">
+                <button type="button" class="btn btn-ghost" (click)="picking.set(true)"><app-icon name="image" [size]="16" /> {{ 'admin.projectForm.pickMedia' | t }}</button>
+                @if (avatar()) {
+                  <button type="button" class="chip" (click)="setAvatar(null)">{{ 'admin.projectForm.removeMedia' | t }}</button>
+                }
+              </div>
+            </div>
+          </div>
           <div class="form-grid cols-2">
             <div class="field"><label>{{ 'admin.settings.ownerName' | t }}</label><input class="input" name="ownerName" [(ngModel)]="f.ownerName" required /></div>
             <div class="field"><label>{{ 'admin.settings.location' | t }}</label><input class="input" name="location" [(ngModel)]="f.location" /></div>
@@ -67,6 +88,34 @@ import { TranslatePipe } from '../../core/i18n/translate.pipe';
         </div>
       </form>
     }
+    @if (picking()) {
+      <app-media-picker [multiple]="false" (picked)="setAvatar($event[0] ?? null); picking.set(false)" (closed)="picking.set(false)" />
+    }
+  `,
+  styles: `
+    .avatar-row {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1.25rem;
+    }
+    .avatar-preview {
+      display: grid;
+      place-items: center;
+      flex: none;
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      overflow: hidden;
+      background: var(--fg);
+      color: var(--bg);
+      font: 700 1.4rem/1 var(--font-display);
+    }
+    .avatar-preview img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
   `,
 })
 export class AdminSettingsPage {
@@ -78,6 +127,10 @@ export class AdminSettingsPage {
   readonly toast = signal('');
   readonly error = signal('');
   form: SettingsUpdate | null = null;
+  readonly avatar = signal<MediaDto | null>(null);
+  readonly picking = signal(false);
+  /** zoneless: the plain form object is rendered once this flips */
+  readonly ready = signal(false);
 
   constructor() {
     afterNextRender(() => this.load());
@@ -100,7 +153,15 @@ export class AdminSettingsPage {
       legalAddress: s.legal.address,
       legalHost: s.legal.host,
       legalContactEmail: s.legal.contactEmail,
+      avatarMediaId: s.avatar?.id ?? null,
     };
+    this.avatar.set(s.avatar ?? null);
+    this.ready.set(true);
+  }
+
+  setAvatar(m: MediaDto | null): void {
+    this.avatar.set(m);
+    if (this.form) this.form.avatarMediaId = m?.id ?? null;
   }
 
   async save(): Promise<void> {

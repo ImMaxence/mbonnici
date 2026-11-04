@@ -380,6 +380,12 @@ public class RestoreStagingService {
                 needed.add(projects.get(p, "cover_media_id"));
             }
         }
+        PgCsv.Table settingsTable = s.tables().get("site_settings");
+        for (List<String> r : settingsTable.rows()) {
+            if (ids.get("site_settings").contains(settingsTable.get(r, "id")) && settingsTable.get(r, "avatar_media_id") != null) {
+                needed.add(settingsTable.get(r, "avatar_media_id"));
+            }
+        }
         for (List<String> l : links.rows()) {
             if (ids.get("project").contains(links.get(l, "project_id"))) {
                 needed.add(links.get(l, "media_id"));

@@ -6,6 +6,7 @@ import type { BackupRun, RowDiff, RowStatus, StagedPreview, TableDiff } from '..
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { IconComponent } from '../../shared/ui/icon.component';
+import { ConfirmService } from '../../shared/ui/confirm.service';
 
 /**
  * Second step of a restore: what the archive contains compared with the live site, row by row.
@@ -280,6 +281,7 @@ export class RestoreReviewComponent {
 
   private readonly api = inject(ApiService);
   readonly i18n = inject(I18nService);
+  private readonly confirmDialog = inject(ConfirmService);
 
   readonly mode = signal<'MERGE' | 'REPLACE'>('MERGE');
   readonly showSame = signal(false);
@@ -337,7 +339,16 @@ export class RestoreReviewComponent {
 
   async apply(): Promise<void> {
     const replace = this.mode() === 'REPLACE';
-    if (replace && !confirm(this.i18n.t('admin.backups.files.restoreConfirm', { name: this.preview().source }))) return;
+    if (
+      replace &&
+      !(await this.confirmDialog.ask({
+        title: this.i18n.t('admin.backups.review.applyReplace'),
+        message: this.i18n.t('admin.backups.files.restoreConfirm', { name: this.preview().source }),
+        confirm: this.i18n.t('admin.backups.review.applyReplace'),
+        danger: true,
+      }))
+    )
+      return;
     this.busy.set(true);
     this.error.set('');
     try {

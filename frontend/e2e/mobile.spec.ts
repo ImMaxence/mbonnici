@@ -6,6 +6,10 @@ test.describe('phone layout', () => {
     await expect(page.locator('h1')).toBeVisible();
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
     expect(overflow).toBeLessThanOrEqual(1);
+    // the Menu button is vertically centred with the name
+    const brand = await page.locator('app-header .brand').boundingBox();
+    const btn = await page.getByRole('button', { name: 'Menu' }).boundingBox();
+    expect(Math.abs(brand!.y + brand!.height / 2 - (btn!.y + btn!.height / 2))).toBeLessThan(2);
     // no custom cursor on touch devices
     await expect(page.locator('app-cursor')).toHaveCount(0);
   });
@@ -18,6 +22,13 @@ test.describe('phone layout', () => {
     for (const label of ['Accueil', 'Projets', 'À propos', 'Contact']) {
       await expect(menu.getByRole('link', { name: new RegExp(label) })).toBeVisible();
     }
+    // closing really closes (it used to replay the opening animation)
+    await menu.getByRole('button', { name: /Fermer/ }).tap();
+    await expect(menu).toBeHidden();
+    await page.waitForTimeout(900);
+    await expect(menu).toBeHidden();
+    await page.getByRole('button', { name: 'Menu' }).tap();
+    await expect(menu).toBeVisible();
     await menu.getByRole('link', { name: /À propos/ }).tap();
     await page.waitForURL('**/fr/a-propos');
     await expect(menu).toBeHidden();

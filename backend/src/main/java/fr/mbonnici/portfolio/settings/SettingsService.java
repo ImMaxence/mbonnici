@@ -15,9 +15,11 @@ public class SettingsService {
     public static final String CACHE = "settings";
 
     private final SettingsRepository repository;
+    private final fr.mbonnici.portfolio.media.MediaRepository media;
 
-    public SettingsService(SettingsRepository repository) {
+    public SettingsService(SettingsRepository repository, fr.mbonnici.portfolio.media.MediaRepository media) {
         this.repository = repository;
+        this.media = media;
     }
 
     @Cacheable(CACHE)
@@ -47,6 +49,9 @@ public class SettingsService {
         s.setLegalAddress(blankToNull(in.legalAddress()));
         s.setLegalHost(blankToNull(in.legalHost()));
         s.setLegalContactEmail(blankToNull(in.legalContactEmail()));
+        s.setAvatar(in.avatarMediaId() == null ? null
+                : media.findById(in.avatarMediaId())
+                        .orElseThrow(() -> new fr.mbonnici.portfolio.common.NotFoundException("Avatar media")));
         s.touch();
         return PublicSettings.from(repository.save(s));
     }

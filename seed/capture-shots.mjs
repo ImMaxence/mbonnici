@@ -1,41 +1,45 @@
-// Builds the default project visuals (desktop + phone screenshots) from the images published in
-// each GitHub README, or from the live site when the README has none. The result is shipped as
-// static WebP files (public/shots/<slug>/…) and a typed manifest; a cover or mobile capture chosen
-// in the back office always takes precedence.
-//   node scripts/project-shots.mjs [slug…]
-import { chromium, devices } from '@playwright/test';
+// Captures the project visuals (desktop + phone screenshots) from the images published in each
+// GitHub README, or from the live site, into seed/shots/<slug>/… with a manifest.json. They are
+// not served by the site: seed/build-starter.mjs uploads them as media into the starter archive.
+//   node seed/capture-shots.mjs [slug…]
+import { chromium, devices } from '../frontend/node_modules/@playwright/test/index.mjs';
 import { mkdirSync, writeFileSync, readFileSync, existsSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const root = join(dirname(fileURLToPath(import.meta.url)), '..');
-const outDir = join(root, 'public', 'shots');
-const manifestFile = join(root, 'src', 'app', 'shared', 'ui', 'shots.generated.ts');
+const outDir = join(dirname(fileURLToPath(import.meta.url)), 'shots');
+const manifestFile = join(outDir, 'manifest.json');
 const raw = (repo, path) => `https://raw.githubusercontent.com/ImMaxence/${repo}/main/${path}`;
 
-/** desktop / mobile: README images (first one that loads wins), live: fallback capture */
+/** desktop / mobile: README images (first one that loads wins), mobileLive: phone capture of the
+ *  live site at the real iPhone ratio (preferred), live: fallback capture for both */
 const PROJECTS = {
   localatscv: {
+    mobileLive: 'https://localatscv.mbonnici.fr/',
     desktop: [raw('LocalATSCV', 'docs/screenshots/landing-light.png')],
     mobile: [raw('LocalATSCV', 'docs/screenshots/mobile-light.png')],
     gallery: ['editor-light', 'templates-showcase', 'job-match', 'ats-robot-view'].map((n) => raw('LocalATSCV', `docs/screenshots/${n}.png`)),
   },
   localcutvideo: {
+    mobileLive: 'https://localcutvideo.mbonnici.fr/',
     desktop: [raw('LocalCutVideo', 'docs/screenshots/landing-light.png'), raw('LocalCutVideo', 'docs/screenshots/landing-dark.png')],
     mobile: [raw('LocalCutVideo', 'docs/screenshots/mobile-editor.png')],
     gallery: ['editor', 'auto-edit', 'editor-cuts', 'thumbnail'].map((n) => raw('LocalCutVideo', `docs/screenshots/${n}.png`)),
   },
   meowtrix: {
+    mobileLive: 'https://meowtrix.mbonnici.fr/',
     desktop: [raw('meowtrix', 'docs/screenshots/terre.png')],
     live: 'https://meowtrix.mbonnici.fr/',
     gallery: ['eau', 'ciel', 'menu-animaux', 'noel'].map((n) => raw('meowtrix', `docs/screenshots/${n}.png`)),
   },
   'a2e-environnement': {
+    mobileLive: 'https://a2e.mbonnici.fr/',
     desktop: [raw('a2e', 'docs/screenshots/accueil-clair.png'), raw('a2e', 'docs/screenshots/accueil.png')],
     mobile: [raw('a2e', 'docs/screenshots/mobile.png')],
     gallery: ['accueil', 'prestations', 'references', 'contact'].map((n) => raw('a2e', `docs/screenshots/${n}.png`)),
   },
   'les-creations-de-yona': {
+    mobileLive: 'https://les-creations-de-yona.fr/',
     desktop: [raw('les-creations-de-yona', 'docs/captures/pc-accueil.png')],
     mobile: [raw('les-creations-de-yona', 'docs/captures/telephone-recette.png')],
     gallery: ['pc-recette', 'pc-recettes', 'pc-administration'].map((n) => raw('les-creations-de-yona', `docs/captures/${n}.png`)),
@@ -72,7 +76,7 @@ const PROJECTS = {
 };
 
 const only = process.argv.slice(2);
-const manifest = existsSync(manifestFile) ? parseManifest(readFileSync(manifestFile, 'utf8')) : {};
+const manifest = existsSync(manifestFile) ? JSON.parse(readFileSync(manifestFile, 'utf8')) : {};
 
 const browser = await chromium.launch();
 const encoder = await (await browser.newContext()).newPage();
@@ -110,7 +114,10 @@ async function encode(bytes, type, maxWidth) {
 
 async function capture(url, mobile) {
   const ctx = await browser.newContext(
-    mobile ? { ...devices['iPhone 15 Pro'], deviceScaleFactor: 2 } : { viewport: { width: 1440, height: 900 }, deviceScaleFactor: 1 },
+    // iPhone 16 screen: 393 × 852 pt, the exact ratio of the phone mock-up
+    mobile
+      ? { ...devices['iPhone 15 Pro'], viewport: { width: 393, height: 852 }, deviceScaleFactor: 2 }
+      : { viewport: { width: 1440, height: 900 }, deviceScaleFactor: 1 },
   );
   const page = await ctx.newPage();
   try {
@@ -137,7 +144,7 @@ async function firstOf(urls, max) {
 function save(slug, name, img) {
   mkdirSync(join(outDir, slug), { recursive: true });
   writeFileSync(join(outDir, slug, `${name}.webp`), img.bytes);
-  return { src: `/shots/${slug}/${name}.webp`, w: img.w, h: img.h };
+  return { src: `${slug}/${name}.webp`, w: img.w, h: img.h };
 }
 
 for (const [slug, cfg] of Object.entries(PROJECTS)) {
@@ -146,7 +153,15 @@ for (const [slug, cfg] of Object.entries(PROJECTS)) {
   const entry = { gallery: [] };
   if (cfg.poster) entry.poster = true;
   let desktop = await firstOf(cfg.desktop, 1600);
-  let mobile = await firstOf(cfg.mobile, 640);
+  let mobile = null;
+  if (cfg.mobileLive) {
+    try {
+      mobile = { ...(await capture(cfg.mobileLive, true)), bare: true };
+    } catch (e) {
+      console.warn('  live mobile capture failed', cfg.mobileLive, e.message);
+    }
+  }
+  mobile ??= await firstOf(cfg.mobile, 640);
   const extra = [];
   for (const u of cfg.auto ?? []) {
     try {
@@ -168,7 +183,9 @@ for (const [slug, cfg] of Object.entries(PROJECTS)) {
     }
   }
   if (desktop) entry.desktop = save(slug, 'desktop', desktop);
-  if (mobile) entry.mobile = save(slug, 'mobile', mobile);
+  // README and live phone captures come from a browser viewport, without a status bar: the starter
+  // archive bakes one in (see build-starter.mjs)
+  if (mobile) entry.mobile = { ...save(slug, 'mobile', mobile), bare: true };
   let n = 1;
   for (const u of cfg.gallery ?? []) {
     try {
@@ -183,17 +200,6 @@ for (const [slug, cfg] of Object.entries(PROJECTS)) {
 
 await browser.close();
 
-writeFileSync(
-  manifestFile,
-  `// Generated by scripts/project-shots.mjs — do not edit by hand.
-import type { ProjectShots } from './shots';
-
-export const SHOTS: Record<string, ProjectShots> = ${JSON.stringify(manifest, null, 2)};
-`,
-);
+writeFileSync(manifestFile, JSON.stringify(manifest, null, 2));
 console.log('manifest written', manifestFile);
 
-function parseManifest(src) {
-  const m = src.match(/= (\{[\s\S]*\});/);
-  return m ? JSON.parse(m[1]) : {};
-}

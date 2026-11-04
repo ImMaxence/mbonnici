@@ -71,6 +71,11 @@ public class SiteSettings {
     @Column(name = "legal_contact_email")
     private String legalContactEmail;
 
+    /** picture shown next to the name in the site header (initial letter when empty) */
+    @jakarta.persistence.ManyToOne(fetch = jakarta.persistence.FetchType.LAZY)
+    @jakarta.persistence.JoinColumn(name = "avatar_media_id")
+    private fr.mbonnici.portfolio.media.Media avatar;
+
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt = Instant.now();
 
@@ -105,6 +110,8 @@ public class SiteSettings {
     public void setLegalHost(String legalHost) { this.legalHost = legalHost; }
     public String getLegalContactEmail() { return legalContactEmail; }
     public void setLegalContactEmail(String legalContactEmail) { this.legalContactEmail = legalContactEmail; }
+    public fr.mbonnici.portfolio.media.Media getAvatar() { return avatar; }
+    public void setAvatar(fr.mbonnici.portfolio.media.Media avatar) { this.avatar = avatar; }
     public Instant getUpdatedAt() { return updatedAt; }
     public void touch() { this.updatedAt = Instant.now(); }
 }

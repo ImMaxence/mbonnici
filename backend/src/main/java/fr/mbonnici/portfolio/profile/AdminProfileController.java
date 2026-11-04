@@ -87,6 +87,18 @@ public class AdminProfileController {
         service.deleteSkill(id);
     }
 
+    @PutMapping("/experiences/reorder")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void reorderExperiences(@Valid @RequestBody ReorderInput in) {
+        service.reorderExperiences(in.ids());
+    }
+
+    @PutMapping("/education/reorder")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void reorderEducation(@Valid @RequestBody ReorderInput in) {
+        service.reorderEducation(in.ids());
+    }
+
     @PutMapping("/skills/reorder")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void reorderSkills(@Valid @RequestBody ReorderInput in) {
