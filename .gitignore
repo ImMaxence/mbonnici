@@ -1,0 +1,32 @@
+# OS / editors
+.DS_Store
+Thumbs.db
+.idea/
+*.iml
+.vscode/*
+!.vscode/extensions.json
+
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Node / Angular
+node_modules/
+frontend/dist/
+frontend/.angular/
+frontend/test-results/
+frontend/playwright-report/
+frontend/blob-report/
+frontend/coverage/
+frontend/src/environments/version.ts
+frontend/public/changelog.md
+npm-debug.log*
+
+# Java / Maven
+backend/target/
+backend/.mvn/wrapper/maven-wrapper.jar
+*.log
+
+# Docker volumes (local)
+.data/

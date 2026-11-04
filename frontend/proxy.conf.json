@@ -1,0 +1,12 @@
+{
+  "/api": {
+    "target": "http://localhost:8081",
+    "secure": false,
+    "changeOrigin": false,
+    "xfwd": true
+  },
+  "/sitemap.xml": { "target": "http://localhost:8081", "secure": false },
+  "/robots.txt": { "target": "http://localhost:8081", "secure": false },
+  "/llms.txt": { "target": "http://localhost:8081", "secure": false },
+  "/llms-full.txt": { "target": "http://localhost:8081", "secure": false }
+}

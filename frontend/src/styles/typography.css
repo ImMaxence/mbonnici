@@ -1,0 +1,218 @@
+/* ─── Typography ─────────────────────────────────────────────────────────── */
+body {
+  font-family: var(--font-body);
+  font-size: var(--fs-body);
+  letter-spacing: var(--track-body);
+  color: var(--fg);
+  background: var(--bg);
+  font-feature-settings: 'ss01', 'cv11', 'calt';
+  font-variation-settings: 'opsz' 32;
+}
+
+h1,
+h2,
+h3,
+.display,
+.h1,
+.h2,
+.h3 {
+  font-family: var(--font-display);
+  font-weight: var(--weight-display);
+  letter-spacing: var(--track-display);
+  line-height: 1.02;
+  text-transform: var(--display-case);
+  font-style: var(--display-style);
+}
+
+.display {
+  font-size: var(--fs-hero);
+  line-height: 0.96;
+}
+
+h1,
+.h1 {
+  font-size: var(--fs-h1);
+}
+
+h2,
+.h2 {
+  font-size: var(--fs-h2);
+  line-height: 1.05;
+}
+
+h3,
+.h3 {
+  font-size: var(--fs-h3);
+  line-height: 1.2;
+  letter-spacing: -0.015em;
+}
+
+.lead {
+  font-size: var(--fs-lead);
+  line-height: 1.5;
+  color: var(--fg-2);
+  max-width: 60ch;
+}
+
+.small {
+  font-size: var(--fs-small);
+}
+
+.muted {
+  color: var(--fg-2);
+}
+
+.faint {
+  color: var(--fg-3);
+}
+
+strong,
+b {
+  font-weight: var(--weight-strong);
+}
+
+/* mono micro labels with a leading dot — the signature "eyebrow" of the design */
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6em;
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--fg-2);
+}
+
+.eyebrow::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 4px var(--accent-soft);
+}
+
+.mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.num {
+  font-variant-numeric: tabular-nums;
+}
+
+/* gradient text for a few hero words */
+.gradient-text {
+  background: var(--gradient-accent);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  padding-bottom: 0.06em;
+}
+
+/* split-word reveals wrap each word in spans: they must carry the gradient themselves
+   (background is not inherited, and the mask in between has none) */
+.gradient-text .w > span {
+  background: var(--gradient-accent);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+:root[data-style='editorial'] .gradient-text .w > span {
+  background: none;
+}
+
+/* once split, the wrapper has no text of its own: drop its background (avoids a stray sliver) */
+.split .gradient-text {
+  background: none;
+  padding-bottom: 0;
+}
+
+/* editorial style turns these into serif italics */
+.accent-word {
+  color: var(--accent);
+}
+
+:root[data-style='editorial'] .accent-word {
+  font-style: italic;
+  font-weight: 400;
+}
+
+:root[data-style='editorial'] .gradient-text {
+  background: none;
+  color: var(--accent);
+  font-style: italic;
+}
+
+/* prose (project descriptions, legal pages) */
+.prose {
+  max-width: 68ch;
+  font-size: calc(var(--fs-body) * 1.06);
+  line-height: 1.72;
+  color: var(--fg-2);
+}
+
+.prose > * + * {
+  margin-top: 1.1em;
+}
+
+.prose h2,
+.prose h3 {
+  color: var(--fg);
+  margin-top: 2em;
+}
+
+.prose strong {
+  color: var(--fg);
+}
+
+.prose ul {
+  padding-left: 1.2em;
+  list-style: disc;
+}
+
+.prose ol {
+  padding-left: 1.2em;
+  list-style: decimal;
+}
+
+.prose li + li {
+  margin-top: 0.4em;
+}
+
+.prose a,
+.link {
+  color: var(--fg);
+  background-image: linear-gradient(currentColor, currentColor);
+  background-size: 100% 1px;
+  background-repeat: no-repeat;
+  background-position: 0 100%;
+  transition: background-size var(--dur-2) var(--ease-out), color var(--dur-1);
+}
+
+.prose a:hover,
+.link:hover {
+  color: var(--accent);
+  background-size: 0 1px;
+  background-position: 100% 100%;
+}
+
+.prose code {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  background: var(--bg-3);
+  padding: 0.1em 0.4em;
+  border-radius: var(--radius-xs);
+}
+
+.visually-hidden {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

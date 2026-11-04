@@ -1,0 +1,61 @@
+# Local development: only the stateful services. Run the backend with ./mvnw spring-boot:run
+# and the frontend with npm start (defaults in application.yml match these credentials).
+#
+#   docker compose -f docker-compose.dev.yml up -d --wait
+#
+# Host ports are offset (5433, 8334, 9334) so they never clash with other projects running
+# on the usual 5432 / 8333. Object storage is SeaweedFS (S3-compatible, Apache-2.0): MinIO's
+# public images were withdrawn in 2025; any S3 endpoint works through S3_* variables.
+# Own project name so these containers coexist with the full stack (docker-compose.yml).
+name: mbonnici-dev
+
+services:
+  db:
+    image: postgres:18-alpine
+    ports:
+      - "127.0.0.1:5433:5432"
+    environment:
+      POSTGRES_DB: portfolio
+      POSTGRES_USER: portfolio
+      POSTGRES_PASSWORD: portfolio
+    volumes:
+      - dev-db:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U portfolio -d portfolio"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  seaweed:
+    image: chrislusf/seaweedfs:4.48
+    command: server -dir=/data -s3 -s3.port=8333 -s3.config=/etc/seaweedfs/s3.json -ip=seaweed -ip.bind=0.0.0.0 -master.volumeSizeLimitMB=512 -volume.max=0
+    ports:
+      - "127.0.0.1:8334:8333"
+      - "127.0.0.1:9334:9333"
+    configs:
+      - source: s3-identities
+        target: /etc/seaweedfs/s3.json
+    volumes:
+      - dev-seaweed:/data
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:9333/cluster/status >/dev/null"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+configs:
+  s3-identities:
+    content: |
+      {
+        "identities": [
+          {
+            "name": "portfolio",
+            "credentials": [{ "accessKey": "portfolio", "secretKey": "portfolio-secret" }],
+            "actions": ["Admin", "Read", "Write", "List", "Tagging"]
+          }
+        ]
+      }
+
+volumes:
+  dev-db:
+  dev-seaweed:

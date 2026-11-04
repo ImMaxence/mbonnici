@@ -1,0 +1,23 @@
+app:
+  url: http://localhost:4200
+  admin-emails: admin@example.com
+  trust-proxy: false
+  analytics:
+    salt-secret: test-salt
+  storage:
+    endpoint: http://localhost:9
+    bucket: test-bucket
+    access-key: test
+    secret-key: test
+  rate-limit:
+    enabled: true
+    api-per-minute: 1000
+    contact-per-hour: 10
+    analytics-per-minute: 200
+    upload-per-minute: 50
+    auth-per-minute: 50
+
+logging:
+  level:
+    org.testcontainers: warn
+    com.github.dockerjava: warn

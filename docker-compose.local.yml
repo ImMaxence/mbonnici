@@ -1,0 +1,18 @@
+# Full production-like stack on your machine (builds both images):
+#
+#   cp .env.example .env   # fill the secrets
+#   docker compose -f docker-compose.yml -f docker-compose.local.yml up --build
+#   open http://localhost:4000
+#
+services:
+  frontend:
+    ports:
+      - "4000:4000"
+    environment:
+      APP_URL: http://localhost:4000
+
+  backend:
+    environment:
+      APP_URL: http://localhost:4000
+      COOKIE_SECURE: "false"
+      TRUST_PROXY: "true"

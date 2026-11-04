@@ -1,0 +1,194 @@
+/* ─── Keyframes ──────────────────────────────────────────────────────────── */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 1.2em, 0) rotate(0.4deg);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) rotate(0);
+  }
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes rise-word {
+  from {
+    transform: translate3d(0, 110%, 0) rotate(2deg);
+    opacity: 0;
+  }
+  to {
+    transform: translate3d(0, 0, 0) rotate(0);
+    opacity: 1;
+  }
+}
+
+@keyframes marquee {
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--success) 60%, transparent);
+  }
+  70% {
+    box-shadow: 0 0 0 10px transparent;
+  }
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(0, -10px, 0);
+  }
+}
+
+@keyframes shimmer {
+  to {
+    background-position: 200% 0;
+  }
+}
+
+/* ─── Scroll reveal ──────────────────────────────────────────────────────────
+   Elements are only hidden when JS is running (.js on <html>), so crawlers and
+   no-JS visitors always get fully visible content. */
+.js [data-reveal]:not(.is-in) {
+  opacity: 0;
+  transform: translate3d(0, 28px, 0);
+}
+
+[data-reveal] {
+  transition: opacity var(--dur-4) var(--ease-out), transform var(--dur-4) var(--ease-out);
+  transition-delay: var(--reveal-delay, 0ms);
+  will-change: opacity, transform;
+}
+
+[data-reveal].is-in {
+  opacity: 1;
+  transform: none;
+}
+
+/* split text: each word sits in an overflow-hidden mask and rises into place */
+.split {
+  --stagger: 36ms;
+}
+
+.split .w {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: top;
+  padding-bottom: 0.08em;
+  margin-bottom: -0.08em;
+}
+
+.split .w > span {
+  display: inline-block;
+  will-change: transform;
+}
+
+.js .split:not(.is-in) .w > span {
+  transform: translate3d(0, 110%, 0) rotate(2deg);
+  opacity: 0;
+}
+
+.split.is-in .w > span {
+  animation: rise-word var(--dur-4) var(--ease-out) both;
+  animation-delay: calc(var(--i, 0) * var(--stagger) + var(--reveal-delay, 0ms));
+}
+
+/* gradient words: the mask moves, the inner span (background-clip: text) never gets composited */
+.split .w.w-mask-anim {
+  overflow: visible;
+}
+
+.split .w.w-mask-anim > span {
+  will-change: auto;
+}
+
+.js .split:not(.is-in) .w.w-mask-anim {
+  opacity: 0;
+  transform: translate(0, 0.6em);
+}
+
+.js .split:not(.is-in) .w.w-mask-anim > span {
+  transform: none;
+  opacity: 1;
+}
+
+.split.is-in .w.w-mask-anim {
+  animation: rise var(--dur-4) var(--ease-out) both;
+  animation-delay: calc(var(--i, 0) * var(--stagger) + var(--reveal-delay, 0ms));
+}
+
+.split.is-in .w.w-mask-anim > span {
+  animation: none;
+  transform: none;
+  opacity: 1;
+}
+
+/* already visible at hydration on a slow device: shown as-is, no entrance choreography */
+.no-anim,
+.no-anim .w,
+.no-anim .w > span {
+  animation: none !important;
+  transition: none !important;
+  opacity: 1 !important;
+  transform: none !important;
+}
+
+.loading-shimmer {
+  background: linear-gradient(90deg, var(--bg-3) 25%, var(--bg-4) 50%, var(--bg-3) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s linear infinite;
+}
+
+/* ─── Reduced motion: everything settles instantly ─────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .js [data-reveal]:not(.is-in),
+  .js .split:not(.is-in) .w > span {
+    opacity: 1;
+    transform: none;
+  }
+
+  .marquee-track {
+    animation: none;
+    flex-wrap: wrap;
+    width: auto;
+  }
+}

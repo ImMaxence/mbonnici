@@ -1,0 +1,151 @@
+/* ─── Layout ─────────────────────────────────────────────────────────────── */
+.container {
+  width: min(100% - 2 * var(--gutter), var(--container));
+  margin-inline: auto;
+}
+
+.container-narrow {
+  width: min(100% - 2 * var(--gutter), var(--container-narrow));
+  margin-inline: auto;
+}
+
+.page {
+  min-height: 100dvh;
+  padding-bottom: var(--dock-gap);
+  position: relative;
+  z-index: 1;
+}
+
+.section {
+  padding-block: var(--section);
+}
+
+.section-tight {
+  padding-block: calc(var(--section) * 0.55);
+}
+
+.section-head {
+  display: grid;
+  gap: var(--space-4);
+  margin-bottom: clamp(2rem, 5vw, 4rem);
+}
+
+@media (min-width: 900px) {
+  .section-head {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+  }
+}
+
+.grid {
+  display: grid;
+  gap: var(--gutter);
+}
+
+.grid-2 {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr));
+}
+
+.grid-3 {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+}
+
+.stack {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: center;
+}
+
+.between {
+  justify-content: space-between;
+}
+
+.flow > * + * {
+  margin-top: var(--space-5);
+}
+
+.rule {
+  height: 1px;
+  background: var(--line);
+}
+
+/* full-bleed strip that escapes the container */
+.bleed {
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+}
+
+/* skip link */
+.skip-link {
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  z-index: 200;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-pill);
+  background: var(--fg);
+  color: var(--bg);
+  font-weight: var(--weight-strong);
+  transform: translateY(-200%);
+  transition: transform var(--dur-2) var(--ease-out);
+}
+
+.skip-link:focus-visible {
+  transform: translateY(0);
+}
+
+/* ambient layers */
+.noise {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  pointer-events: none;
+  opacity: var(--grain);
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 1 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 220px 220px;
+}
+
+.ambient {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: var(--hero-glow);
+  opacity: 0.9;
+}
+
+:root[data-style='editorial'] .ambient {
+  opacity: 0.5;
+}
+
+/* native cursor is hidden while the custom one is alive (fine pointer only) */
+html.has-cursor,
+html.has-cursor a,
+html.has-cursor button,
+html.has-cursor [role='button'],
+html.has-cursor label,
+html.has-cursor input,
+html.has-cursor textarea,
+html.has-cursor select {
+  cursor: none;
+}
+
+/* responsive helpers */
+@media (max-width: 719px) {
+  .hide-mobile {
+    display: none !important;
+  }
+}
+
+@media (min-width: 720px) {
+  .hide-desktop {
+    display: none !important;
+  }
+}

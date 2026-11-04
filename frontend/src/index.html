@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="fr" data-theme="dark" data-style="obsidian">
+<head>
+  <meta charset="utf-8">
+  <title>Maxence Bonnici</title>
+  <base href="/">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="dark light">
+  <meta name="theme-color" content="#0a0a0c">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="favicon.ico" sizes="32x32">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <script nonce="__CSP_NONCE__">
+    (function () {
+      try {
+        var d = document.documentElement;
+        var style = localStorage.getItem('mb.style');
+        var mode = localStorage.getItem('mb.mode');
+        if (style === 'obsidian' || style === 'editorial' || style === 'aurora') d.setAttribute('data-style', style);
+        var dark = mode === 'dark' || ((!mode || mode === 'system') && matchMedia('(prefers-color-scheme: dark)').matches);
+        d.setAttribute('data-theme', dark ? 'dark' : 'light');
+        // the "js" class (which arms the scroll reveals) is added by the app once hydrated,
+        // so server-rendered content is visible immediately on slow devices
+      } catch (e) {}
+    })();
+  </script>
+</head>
+<body>
+  <app-root ngCspNonce="__CSP_NONCE__"></app-root>
+</body>
+</html>

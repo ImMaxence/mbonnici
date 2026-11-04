@@ -1,0 +1,5 @@
+# Activate with: SPRING_PROFILES_ACTIVE=dev ./mvnw spring-boot:run
+logging:
+  level:
+    fr.mbonnici: debug
+    org.springframework.security: info

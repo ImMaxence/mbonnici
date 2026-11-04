@@ -1,0 +1,112 @@
+spring:
+  application:
+    name: portfolio
+  datasource:
+    # local defaults match docker-compose.dev.yml (host ports are offset to avoid clashes)
+    url: ${DB_URL:jdbc:postgresql://localhost:5433/portfolio}
+    username: ${DB_USER:portfolio}
+    password: ${DB_PASSWORD:portfolio}
+    hikari:
+      maximum-pool-size: 8
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate:
+        jdbc.time_zone: UTC
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+  servlet:
+    multipart:
+      # backup archives can be large; media uploads enforce their own 10 MB limit in MediaService
+      max-file-size: 2GB
+      max-request-size: 2GB
+  jackson:
+    default-property-inclusion: non_null
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID:not-configured}
+            client-secret: ${GOOGLE_CLIENT_SECRET:not-configured}
+            scope: openid, profile, email
+            redirect-uri: "{baseUrl}/api/auth/oauth2/code/google"
+          # Same Google client, extra consent for Drive (files created by this app only).
+          # Uses the login callback URL so only one redirect URI is registered in the Google console.
+          google-drive:
+            provider: google
+            client-id: ${GOOGLE_CLIENT_ID:not-configured}
+            client-secret: ${GOOGLE_CLIENT_SECRET:not-configured}
+            scope: openid, profile, email, https://www.googleapis.com/auth/drive.file
+            redirect-uri: "{baseUrl}/api/auth/oauth2/code/google"
+  cache:
+    type: simple
+
+server:
+  # 8081 locally (8080 is usually taken by another project); the Docker image sets PORT=8080
+  port: ${PORT:8081}
+  # "framework" only behind a trusted reverse proxy (set together with TRUST_PROXY=true); otherwise a
+  # client could spoof X-Forwarded-For and escape per-IP rate limiting.
+  forward-headers-strategy: ${FORWARD_HEADERS_STRATEGY:none}
+  compression:
+    enabled: true
+  error:
+    include-message: never
+    include-stacktrace: never
+    whitelabel:
+      enabled: false
+  servlet:
+    session:
+      timeout: 8h
+      cookie:
+        name: PSESSION
+        http-only: true
+        same-site: lax
+        secure: ${COOKIE_SECURE:false}
+
+management:
+  endpoints:
+    web:
+      base-path: /api/actuator
+      exposure:
+        include: health, info
+  endpoint:
+    health:
+      show-details: when-authorized
+      roles: ADMIN
+  info:
+    build:
+      enabled: true
+
+app:
+  url: ${APP_URL:http://localhost:4200}
+  admin-emails: ${ADMIN_EMAIL:maxence.bonnici2002@gmail.com}
+  trust-proxy: ${TRUST_PROXY:false}
+  git-sha: ${GIT_SHA:}
+  analytics:
+    salt-secret: ${ANALYTICS_SALT_SECRET:dev-only-salt-change-me}
+    retention-days: 400
+  storage:
+    # any S3-compatible endpoint (SeaweedFS in docker-compose, MinIO, Garage, Cloudflare R2…)
+    endpoint: ${S3_ENDPOINT:http://localhost:8334}
+    region: ${S3_REGION:us-east-1}
+    bucket: ${S3_BUCKET:portfolio-media}
+    access-key: ${S3_ACCESS_KEY:portfolio}
+    secret-key: ${S3_SECRET_KEY:portfolio-secret}
+    path-style: true
+  rate-limit:
+    enabled: true
+    # a page load issues ~4 calls; 600/min per IP still stops floods but never a human (or a test run)
+    api-per-minute: ${RATE_LIMIT_API_PER_MINUTE:600}
+    contact-per-hour: 5
+    analytics-per-minute: 60
+    upload-per-minute: 30
+    auth-per-minute: 20
+
+logging:
+  level:
+    root: info
+    fr.mbonnici: info
