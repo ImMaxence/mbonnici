@@ -31,7 +31,7 @@ import { TooltipDirective } from '../../shared/ui/tooltip.directive';
       <div class="media-grid scroll">
         @for (m of items(); track m.id) {
           <button type="button" class="media-item" [class.is-selected]="selected().has(m.id)" (click)="toggle(m)">
-            <img [src]="m.url" [alt]="m.alt.fr || m.originalFilename || ''" loading="lazy" />
+            <img [src]="m.url" [attr.srcset]="m.srcset || null" sizes="220px" [alt]="m.alt.fr || m.originalFilename || ''" loading="lazy" />
           </button>
         }
       </div>

@@ -23,10 +23,10 @@ import org.springframework.web.bind.annotation.RestController;
 public class AdminContactController {
 
     public record MessageDto(UUID id, String name, String email, String message, String locale, boolean read,
-            Instant createdAt) {
+            boolean archived, Instant createdAt) {
         static MessageDto from(ContactMessage m) {
             return new MessageDto(m.getId(), m.getName(), m.getEmail(), m.getMessage(), m.getLocale(), m.isRead(),
-                    m.getCreatedAt());
+                    m.isArchived(), m.getCreatedAt());
         }
     }
 
@@ -38,19 +38,40 @@ public class AdminContactController {
         this.repository = repository;
     }
 
+    /**
+     * @param archived the archive instead of the inbox
+     * @param q        text searched in the name, e-mail and message (case-insensitive)
+     */
     @GetMapping
     public PageDto list(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "20") int size,
-            @RequestParam(defaultValue = "false") boolean unread) {
+            @RequestParam(defaultValue = "false") boolean unread, @RequestParam(defaultValue = "false") boolean archived,
+            @RequestParam(defaultValue = "") String q) {
         PageRequest pr = PageRequest.of(Math.max(0, page), Math.clamp(size, 1, 100));
-        Page<ContactMessage> p = unread ? repository.findAllByReadFalseOrderByCreatedAtDesc(pr)
-                : repository.findAllByOrderByCreatedAtDesc(pr);
+        String text = q.strip().toLowerCase(java.util.Locale.ROOT);
+        if (text.length() > 100) {
+            text = text.substring(0, 100);
+        }
+        String pattern = "%" + text.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%";
+        Page<ContactMessage> p = repository.search(archived, unread, pattern, pr);
         return new PageDto(p.getContent().stream().map(MessageDto::from).toList(), p.getNumber(), p.getSize(),
                 p.getTotalElements());
     }
 
     @GetMapping("/unread-count")
     public Map<String, Long> unreadCount() {
-        return Map.of("unread", repository.countByReadFalse());
+        return Map.of("unread", repository.countByReadFalseAndArchivedFalse(), "archived", repository.countByArchivedTrue());
+    }
+
+    /** archived messages leave the inbox (and count as read) */
+    @PutMapping("/{id}/archived")
+    @Transactional
+    public MessageDto setArchived(@PathVariable UUID id, @RequestParam(defaultValue = "true") boolean value) {
+        ContactMessage m = repository.findById(id).orElseThrow(() -> new NotFoundException("Message"));
+        m.setArchived(value);
+        if (value) {
+            m.setRead(true);
+        }
+        return MessageDto.from(m);
     }
 
     @PutMapping("/{id}/read")

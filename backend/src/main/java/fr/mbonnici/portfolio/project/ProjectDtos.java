@@ -48,6 +48,15 @@ public final class ProjectDtos {
         }
     }
 
+    /** Case study sections (Markdown); empty sections are not shown. */
+    public record CaseStudy(Localized context, Localized role, Localized challenges, Localized results) {
+
+        static CaseStudy from(Project p) {
+            return new CaseStudy(p.getContext().filled(), p.getRole().filled(), p.getChallenges().filled(),
+                    p.getResults().filled());
+        }
+    }
+
     /** Full page (public). */
     public record Detail(
             UUID id,
@@ -55,6 +64,7 @@ public final class ProjectDtos {
             Localized title,
             Localized tagline,
             Localized description,
+            CaseStudy caseStudy,
             Project.Category category,
             Project.SceneType sceneType,
             Project.DisplayMode displayMode,
@@ -83,6 +93,7 @@ public final class ProjectDtos {
             Localized title,
             Localized tagline,
             Localized description,
+            CaseStudy caseStudy,
             Project.Status status,
             boolean featured,
             int sortOrder,
@@ -110,6 +121,7 @@ public final class ProjectDtos {
             @NotNull Localized title,
             Localized tagline,
             Localized description,
+            CaseStudy caseStudy,
             @NotNull Project.Status status,
             Boolean featured,
             Integer sortOrder,

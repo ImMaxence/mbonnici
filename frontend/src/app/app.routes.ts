@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { profileResolver, projectResolver, projectsResolver, settingsResolver } from './core/api/resolvers';
+import { articleResolver, articlesResolver, profileResolver, projectResolver, projectsResolver, settingsResolver } from './core/api/resolvers';
 import { langGuard } from './core/i18n/lang.guard';
 import { Lang, SEGMENTS } from './core/i18n/routes';
 
@@ -29,14 +29,26 @@ function localized(lang: Lang): Routes {
     {
       path: s.about,
       loadComponent: () => import('./features/about/about.page').then((m) => m.AboutPage),
-      resolve: { settings: settingsResolver, profile: profileResolver },
+      resolve: { settings: settingsResolver, profile: profileResolver, projects: projectsResolver },
       data: { page: 'about' },
     },
     {
       path: s.contact,
       loadComponent: () => import('./features/contact/contact.page').then((m) => m.ContactPage),
-      resolve: { settings: settingsResolver },
+      resolve: { settings: settingsResolver, projects: projectsResolver },
       data: { page: 'contact' },
+    },
+    {
+      path: s.notes,
+      loadComponent: () => import('./features/notes/notes.page').then((m) => m.NotesPage),
+      resolve: { settings: settingsResolver, articles: articlesResolver },
+      data: { page: 'notes' },
+    },
+    {
+      path: `${s.notes}/:slug`,
+      loadComponent: () => import('./features/notes/note.page').then((m) => m.NotePage),
+      resolve: { settings: settingsResolver, article: articleResolver },
+      data: { page: 'note' },
     },
     {
       path: s.legal,

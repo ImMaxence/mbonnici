@@ -64,6 +64,8 @@ services:
       FORWARD_HEADERS_STRATEGY: framework
       COOKIE_SECURE: "true"
       GIT_SHA: ${GIT_SHA:-}
+      INSIGHTS_ENABLED: ${INSIGHTS_ENABLED:-true}
+      GITHUB_TOKEN: ${GITHUB_TOKEN:-}
     depends_on:
       db:
         condition: service_healthy

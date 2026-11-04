@@ -143,3 +143,23 @@ readable by the authenticated owner.
 - **Contact notifications removed**: messages never leave the server (no SMTP, no webhook).
 - `/api/auth/me` and `/api/auth/providers` (read-only) moved from the sign-in bucket (20/min) to the
   general API bucket, so normal browsing never trips the sign-in limit.
+
+## v1.4.0 additions
+
+- **Outbound requests** (`InsightsService`): the backend calls the live URL of each *published*
+  project (GET, 8 s timeout, redirects followed) and `api.github.com` for repositories on
+  `github.com`. Both come from back-office data (admin only, `http(s)` URLs validated); responses are
+  reduced to a status code, a latency and a few numbers, never forwarded. A malicious admin could
+  point a project at an internal address: accepted (single trusted admin), can be switched off with
+  `INSIGHTS_ENABLED=false`.
+- **`/api/analytics/vitals`**: anonymous beacon like the audience events (CSRF-exempt, analytics rate
+  limit, DNT / GPC honoured). Values are bounded per metric, paths starting with `/admin` or `/api`
+  are dropped, nothing identifies the visitor (no hash, no IP).
+- **`/api/cv`**: public, rendered from published data only, cached (10 minutes, ETag) and cheap once
+  rendered; the HTML given to the renderer is built server-side with every text escaped.
+- **Notes**: Markdown is rendered by the same template-based renderer as the project texts (no
+  `innerHTML`); fenced code is shown as text.
+- **Previews** (`/api/admin/projects/{id}/preview`, `/api/admin/articles/{id}/preview`) are admin-only
+  and the preview pages are `noindex`.
+- **Unused media clean-up** deletes only pictures referenced by no project, gallery, note or setting
+  (computed server-side at the time of the request), after a confirmation dialog.

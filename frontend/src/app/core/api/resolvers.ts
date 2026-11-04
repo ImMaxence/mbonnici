@@ -3,7 +3,7 @@ import { inject } from '@angular/core';
 import { ActivatedRouteSnapshot, RedirectCommand, ResolveFn, Router } from '@angular/router';
 import { catchError, map, of, tap } from 'rxjs';
 import { I18nService } from '../i18n/i18n.service';
-import type { Profile, ProjectCard, ProjectDetail, Settings } from './models';
+import type { ArticleCard, ArticleDetail, Profile, ProjectCard, ProjectDetail, Settings } from './models';
 import { SiteStore } from './site.store';
 
 /**
@@ -21,6 +21,27 @@ export const settingsResolver: ResolveFn<Settings> = () => {
 export const projectsResolver: ResolveFn<ProjectCard[]> = () => inject(HttpClient).get<ProjectCard[]>('/api/projects');
 
 export const profileResolver: ResolveFn<Profile> = () => inject(HttpClient).get<Profile>('/api/profile');
+
+export const articlesResolver: ResolveFn<ArticleCard[]> = () => inject(HttpClient).get<ArticleCard[]>('/api/articles');
+
+/** Unknown or unpublished note → the 404 page. */
+export const articleResolver: ResolveFn<ArticleDetail | RedirectCommand> = (route: ActivatedRouteSnapshot) => {
+  const http = inject(HttpClient);
+  const router = inject(Router);
+  const lang = inject(I18nService).lang();
+  const slug = route.paramMap.get('slug') ?? '';
+  return http.get<ArticleDetail>(`/api/articles/${encodeURIComponent(slug)}`).pipe(
+    map((a) => a as ArticleDetail | RedirectCommand),
+    catchError(() => of(new RedirectCommand(router.parseUrl(`/${lang}/404`), { skipLocationChange: true }))),
+  );
+};
+
+/** Back-office preview: the public page data of any project or note, drafts included. */
+export const projectPreviewResolver: ResolveFn<ProjectDetail> = (route: ActivatedRouteSnapshot) =>
+  inject(HttpClient).get<ProjectDetail>(`/api/admin/projects/${encodeURIComponent(route.paramMap.get('id') ?? '')}/preview`);
+
+export const articlePreviewResolver: ResolveFn<ArticleDetail> = (route: ActivatedRouteSnapshot) =>
+  inject(HttpClient).get<ArticleDetail>(`/api/admin/articles/${encodeURIComponent(route.paramMap.get('id') ?? '')}/preview`);
 
 /** Unknown slug → the 404 page (URL untouched, real 404 status during SSR). */
 export const projectResolver: ResolveFn<ProjectDetail | RedirectCommand> = (route: ActivatedRouteSnapshot) => {

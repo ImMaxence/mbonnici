@@ -8,6 +8,7 @@
  */
 export const fr = {
   meta: {
+    notes: { title: 'Notes', description: 'Notes de Maxence Bonnici : développement web, auto-hébergement, outils et retours d’expérience' },
     siteName: 'Maxence Bonnici',
     home: {
       title: 'Maxence Bonnici — Développeur Full Stack Java & Angular',
@@ -42,6 +43,7 @@ export const fr = {
   },
 
   nav: {
+    notes: 'Notes',
     home: 'Accueil',
     projects: 'Projets',
     about: 'À propos',
@@ -130,6 +132,14 @@ export const fr = {
   },
 
   projects: {
+    usedIn: 'utilisé dans {n} projets',
+    usedInOne: 'utilisé dans 1 projet',
+    with: 'avec',
+    clearTech: 'Retirer le filtre {tech}',
+    allWith: 'Tous les projets avec {tech}',
+    view: 'Affichage',
+    viewGrid: 'Grille',
+    viewList: 'Liste',
     titleA: 'Projets',
     titleB: 'en ligne',
     subtitle: 'Applications web, outils 100 % navigateur, jeux et sites vitrines, tous en ligne ou sur GitHub',
@@ -140,6 +150,21 @@ export const fr = {
   },
 
   project: {
+    online: 'En ligne',
+    offline: 'Hors ligne',
+    checkedAt: 'Vérifié à {time}',
+    status: 'Statut',
+    pushed: 'mis à jour {when}',
+    caseStudy: 'Étude de cas',
+    caseStudyTitle: 'Du besoin au résultat',
+    case: {
+      context: 'Contexte',
+      role: 'Mon rôle',
+      challenges: 'Défis',
+      results: 'Résultats',
+    },
+    similar: 'Un projet du même genre en tête ?',
+    similarCta: 'Parlons-en',
     backToProjects: 'Tous les projets',
     about: 'À propos du projet',
     visit: 'Visiter le site',
@@ -163,6 +188,7 @@ export const fr = {
   },
 
   about: {
+    cv: 'Télécharger mon CV',
     titleA: 'Full stack',
     titleB: 'par conviction',
     subtitle: 'du schéma de base de données au dernier pixel',
@@ -198,6 +224,8 @@ export const fr = {
     direct: 'En direct',
     socials: 'Réseaux',
     form: {
+      about: 'À propos de',
+      prefill: 'Bonjour, j’ai vu le projet {title} et j’aimerais vous parler d’un projet similaire : ',
       title: 'Écrire un message',
       name: 'Votre nom',
       email: 'Votre e-mail',
@@ -246,7 +274,7 @@ export const fr = {
         {
           h: 'Polices de caractères',
           p: [
-            'Le site utilise les polices Inter et Inter Tight (Rasmus Andersson), Instrument Serif (Instrument) et JetBrains Mono (JetBrains), toutes distribuées sous licence SIL Open Font License 1.1, qui autorise leur usage sur un site web. Elles sont intégrées au site via le projet Fontsource et servies depuis le même serveur que les pages : aucune requête n’est envoyée à Google Fonts ni à un autre service tiers.',
+            'Le site utilise les polices Inter et Inter Tight (Rasmus Andersson), Instrument Serif (Instrument) et JetBrains Mono (JetBrains), toutes distribuées sous licence SIL Open Font License 1.1, qui autorise leur usage sur un site web. Elles sont intégrées au site via le projet Fontsource et servies depuis le même serveur que les pages : aucune requête n’est envoyée à Google Fonts ni à un autre service tiers. Les mêmes polices sont intégrées au CV au format PDF, ce que la licence permet.',
           ],
         },
         {
@@ -278,6 +306,7 @@ export const fr = {
           p: [
             'Pour savoir quelles pages et quels projets sont consultés, le site enregistre des événements anonymes (page vue, projet consulté, lien sortant). Chaque visite est associée à un identifiant éphémère calculé à partir de votre adresse IP et de votre navigateur, haché avec un sel qui change chaque jour : il est impossible de vous reconnaître d’un jour à l’autre et l’adresse IP n’est jamais stockée.',
             'Les signaux « Do Not Track » et « Global Privacy Control » de votre navigateur sont respectés : aucun événement n’est enregistré lorsqu’ils sont activés. Les événements bruts sont supprimés après 13 mois.',
+            'Pour vérifier que le site reste rapide, votre navigateur envoie aussi, quand vous quittez la première page visitée, quelques mesures de performance (temps d’affichage, réactivité, stabilité de la mise en page) avec le chemin de la page et la largeur de l’écran. Ces mesures ne sont rattachées à aucun identifiant, pas même éphémère, respectent les mêmes signaux et sont supprimées après 13 mois.',
           ],
         },
         {
@@ -378,14 +407,15 @@ export const fr = {
         {
           h: 'Contenus non accessibles',
           p: [
-            'Non-conformités connues : les captures d’écran des projets disposent d’un texte alternatif générique (« page d’accueil de… ») qui ne décrit pas leur contenu en détail ; le site chargé en mode « En direct » est un site tiers dont l’accessibilité ne dépend pas de ce site.',
+            'Non-conformités connues : une partie des captures d’écran des projets a encore un texte alternatif générique (« page d’accueil de… ») qui ne décrit pas leur contenu en détail. Chaque image peut recevoir une description depuis l’espace d’administration, où les images sans texte alternatif sont signalées ; cette déclaration sera mise à jour une fois toutes les descriptions rédigées.',
+            'Le site chargé en mode « En direct » est un site tiers dont l’accessibilité ne dépend pas de ce site. Le CV au format PDF est généré à partir du contenu de la page À propos, qui en reste la version accessible de référence.',
             'Dérogation pour charge disproportionnée : aucune. Contenus non soumis à l’obligation : les sites tiers chargés dans un cadre à la demande du visiteur.',
           ],
         },
         {
           h: 'Établissement de cette déclaration',
           p: [
-            'Cette déclaration a été établie le 4 novembre 2026. Technologies utilisées : HTML, CSS, JavaScript (Angular), SVG. Environnement de test : navigateur Chromium récent (Playwright), sur ordinateur et en affichage mobile.',
+            'Cette déclaration a été établie le 4 novembre 2026 et mise à jour avec la version 1.4.0 (notes, vue liste des projets, visionneuse d’images). Technologies utilisées : HTML, CSS, JavaScript (Angular), SVG. Environnement de test : navigateur Chromium récent (Playwright), sur ordinateur et en affichage mobile.',
             'Le site respecte les préférences du système : thème clair ou sombre, réduction des animations (les animations d’ouverture, de transition et de défilement sont alors désactivées). Toutes les fonctions sont utilisables au clavier, un lien d’évitement mène directement au contenu et chaque changement de page est annoncé aux lecteurs d’écran.',
           ],
         },
@@ -405,6 +435,25 @@ export const fr = {
     },
   },
 
+  preview: {
+    label: 'Aperçu',
+    text: 'Ce brouillon n’est visible que par vous, tel qu’il apparaîtra une fois publié',
+    back: 'Revenir à l’édition',
+  },
+
+  notes: {
+    titleA: 'Notes',
+    titleB: 'de terrain',
+    subtitle: 'Ce que j’apprends en construisant et en hébergeant mes projets : décisions, outils, erreurs utiles',
+    empty: 'Aucune note publiée pour l’instant',
+    read: 'Lire',
+    minutes: '{n} min de lecture',
+    all: 'Toutes les notes',
+    neighbours: 'Navigation entre notes',
+    newer: 'Note plus récente',
+    older: 'Note plus ancienne',
+  },
+
   notFound: {
     title: 'Perdu en chemin',
     text: 'Cette page n’existe pas, ou plus',
@@ -412,6 +461,7 @@ export const fr = {
   },
 
   footer: {
+    cv: 'CV (PDF)',
     rights: '© {year} {owner} · Fait main, sans framework CSS',
     say: 'Écrivez-moi',
     pages: 'Pages',
@@ -433,6 +483,64 @@ export const fr = {
   },
 
   admin: {
+    unsaved: {
+      title: 'Quitter sans enregistrer ?',
+      message: 'Les modifications faites sur cette page seront perdues',
+      leave: 'Quitter sans enregistrer',
+      stay: 'Rester sur la page',
+      badge: 'Modifications non enregistrées',
+    },
+    translate: {
+      one: '1 texte à traduire en {lang}',
+      many: '{n} textes à traduire en {lang}',
+    },
+    preview: {
+      open: 'Aperçu',
+      tip: 'La page publique telle qu’elle sera, même en brouillon (enregistrez d’abord vos changements)',
+    },
+    notes: {
+      title: 'Notes',
+      intro: 'Articles courts en Markdown, publiés dans la section Notes du site (elle apparaît dès la première note publiée)',
+      new: 'Nouvelle note',
+      edit: 'Modifier la note',
+      empty: 'Aucune note pour l’instant',
+      first: 'Écrire la première note',
+      confirmDelete: 'Supprimer « {title} » ?',
+      fieldTitle: 'Titre',
+      summary: 'Résumé',
+      summaryHint: 'Une ou deux phrases, affichées dans la liste, le flux RSS et les aperçus de partage',
+      body: 'Texte (Markdown)',
+      bodyHint: '## titre, **gras**, *italique*, `code`, [lien](https://…), listes, > citation et blocs ``` de code',
+      livePreview: 'Aperçu en direct',
+      previewEmpty: 'Le rendu du texte s’affiche ici pendant que vous écrivez',
+      slugHint: 'Laissez vide pour le générer depuis le titre français',
+      date: 'Date de publication',
+      dateHint: 'Vide : la date de la première publication',
+      cover: 'Image de couverture (facultative)',
+    },
+    vitals: {
+      title: 'Performances réelles',
+      subtitle: 'Mesurées chez les visiteurs (75e centile), sans cookie ni identifiant',
+      none: 'Pas encore de mesure : elles arrivent avec les visites',
+      samples: '{n} mesures',
+      page: 'Page',
+      n: 'Mesures',
+      device: { mobile: 'Téléphone', desktop: 'Ordinateur' },
+      label: {
+        LCP: 'Affichage du contenu principal',
+        INP: 'Réactivité aux clics',
+        CLS: 'Stabilité de la mise en page',
+        FCP: 'Premier affichage',
+        TTFB: 'Réponse du serveur',
+      },
+      help: {
+        LCP: 'Largest Contentful Paint : bon sous 2,5 s',
+        INP: 'Interaction to Next Paint : bon sous 200 ms',
+        CLS: 'Cumulative Layout Shift : bon sous 0,1',
+        FCP: 'First Contentful Paint : bon sous 1,8 s',
+        TTFB: 'Time To First Byte : bon sous 0,8 s',
+      },
+    },
     title: 'Back office',
     navGroups: { overview: 'Vue d’ensemble', content: 'Contenu', site: 'Site' },
     login: {
@@ -448,6 +556,7 @@ export const fr = {
       footer: 'Accès réservé · les tentatives refusées sont journalisées',
     },
     nav: {
+      notes: 'Notes',
       dashboard: 'Tableau de bord',
       projects: 'Projets',
       media: 'Médias',
@@ -520,6 +629,14 @@ export const fr = {
       empty: 'Aucun projet, créez le premier !',
     },
     projectForm: {
+      caseStudy: 'Étude de cas',
+      caseStudyHint: 'Quatre sections facultatives en Markdown, affichées sous la description (une section vide n’apparaît pas)',
+      casePlaceholder: {
+        context: 'Pour qui, quel problème, quelles contraintes',
+        role: 'Ce que vous avez fait, seul ou en équipe',
+        challenges: 'Les difficultés techniques et comment vous les avez réglées',
+        results: 'Ce que le projet a changé, en chiffres si possible',
+      },
       titleNew: 'Nouveau projet',
       titleEdit: 'Modifier le projet',
       general: 'Général',
@@ -564,6 +681,19 @@ export const fr = {
       error: 'Impossible d’enregistrer : {message}',
     },
     media: {
+      noAltCount: '{n} sans texte alternatif',
+      unused: 'INUTILISÉE',
+      unusedTip: 'Aucun projet, aucune note ni aucun réglage n’utilise cette image',
+      unusedOnly: 'Inutilisées seulement ({n})',
+      cleanUp: 'Supprimer les inutilisées ({n})',
+      cleanUpTitle: 'Supprimer {n} images inutilisées ?',
+      cleanUpMessage: 'Les fichiers et leurs tailles responsives seront effacés du stockage. Pensez à faire une sauvegarde avant si besoin',
+      cleaned: '{n} images supprimées',
+      variantsTip: 'Refaire les tailles responsives manquantes (640, 1280, 1920 px)',
+      variantsStarted: 'Les tailles manquantes sont en cours de création',
+      variantsRunning: 'Une création est déjà en cours (ou cwebp est absent)',
+      focal: 'Point focal',
+      focalHint: 'Cliquez sur la zone à garder visible quand l’image est recadrée',
       title: 'Médiathèque',
       count: '{n} image(s)',
       noAlt: 'Pas de texte alternatif',
@@ -636,6 +766,14 @@ export const fr = {
       saved: 'Réglages enregistrés',
     },
     messages: {
+      boxes: 'Boîtes',
+      inbox: 'Boîte de réception',
+      archive: 'Archives',
+      archiveOne: 'Archiver',
+      unarchive: 'Remettre dans la boîte de réception',
+      search: 'Rechercher un nom, un e-mail ou un mot',
+      noMatch: 'Aucun message ne correspond',
+      archiveEmpty: 'Aucun message archivé',
       title: 'Messages',
       unreadOnly: 'Non lus uniquement',
       count: '{n} message(s)',

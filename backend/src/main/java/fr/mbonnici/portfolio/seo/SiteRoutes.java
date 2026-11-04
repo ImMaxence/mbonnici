@@ -21,7 +21,8 @@ public final class SiteRoutes {
                     "legal", "mentions-legales",
                     "privacy", "confidentialite",
                     "terms", "conditions-utilisation",
-                    "accessibility", "accessibilite"),
+                    "accessibility", "accessibilite",
+                    "notes", "notes"),
             "en", Map.of(
                     "home", "",
                     "projects", "projects",
@@ -30,7 +31,8 @@ public final class SiteRoutes {
                     "legal", "legal-notice",
                     "privacy", "privacy-policy",
                     "terms", "terms-of-use",
-                    "accessibility", "accessibility"));
+                    "accessibility", "accessibility",
+                    "notes", "notes"));
 
     public static String path(String lang, String page) {
         String seg = SEGMENTS.get(lang).get(page);
@@ -39,5 +41,10 @@ public final class SiteRoutes {
 
     public static String projectPath(String lang, String slug) {
         return path(lang, "projects") + "/" + slug;
+    }
+
+    /** a note (article) page; the notes section is listed only when it has published notes */
+    public static String notePath(String lang, String slug) {
+        return path(lang, "notes") + "/" + slug;
     }
 }

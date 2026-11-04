@@ -24,8 +24,14 @@ public class DatabaseDump {
 
     /** FK-safe order (parents first). Tokens, backup history and settings are deliberately excluded. */
     public static final List<String> TABLES = List.of(
-            "media", "site_settings", "project", "project_media", "experience", "education", "skill",
+            "media", "site_settings", "project", "project_media", "article", "experience", "education", "skill",
             "contact_message", "analytics_event");
+
+    /** Tables added after the first archive format: older archives may not have them (restored empty). */
+    public static final java.util.Set<String> OPTIONAL = java.util.Set.of("article");
+
+    /** Object keys inside an archive: an original or one of its responsive copies ("-w640"). */
+    public static final String MEDIA_KEY = "^\\d{4}/\\d{2}/[0-9a-f-]{36}(-w\\d{3,4})?\\.[a-z0-9]{3,4}$";
 
     private final DataSource dataSource;
 
@@ -78,8 +84,28 @@ public class DatabaseDump {
                     if (csv == null || csv.length == 0) {
                         continue;
                     }
-                    copy.copyIn("COPY " + table + " FROM STDIN WITH (FORMAT csv, HEADER true)",
-                            new ByteArrayInputStream(csv));
+                    // only the columns both sides know: an archive made before a migration added a
+                    // column restores with that column's default
+                    PgCsv.Table t = PgCsv.parse(csv);
+                    List<String> live = columns(c, table);
+                    List<Integer> keep = new java.util.ArrayList<>();
+                    List<String> cols = new java.util.ArrayList<>();
+                    for (int i = 0; i < t.header().size(); i++) {
+                        if (live.contains(t.header().get(i))) {
+                            keep.add(i);
+                            cols.add(t.header().get(i));
+                        }
+                    }
+                    if (cols.isEmpty()) {
+                        continue;
+                    }
+                    List<List<String>> rows = t.rows().stream()
+                            .map(r -> keep.stream().map(i -> i < r.size() ? r.get(i) : null).toList())
+                            .toList();
+                    String list = cols.stream().map(col -> "\"" + col.replace("\"", "") + "\"")
+                            .collect(java.util.stream.Collectors.joining(", "));
+                    copy.copyIn("COPY " + table + " (" + list + ") FROM STDIN WITH (FORMAT csv, HEADER true)",
+                            new ByteArrayInputStream(PgCsv.write(cols, rows)));
                 }
                 try (Statement st = c.createStatement()) {
                     st.execute("SELECT setval(pg_get_serial_sequence('analytics_event', 'id'), "
@@ -93,6 +119,20 @@ public class DatabaseDump {
                 c.setAutoCommit(true);
             }
         }
+    }
+
+    private static List<String> columns(Connection c, String table) throws SQLException {
+        List<String> out = new java.util.ArrayList<>();
+        try (var ps = c.prepareStatement("SELECT column_name FROM information_schema.columns "
+                + "WHERE table_schema = current_schema() AND table_name = ? ORDER BY ordinal_position")) {
+            ps.setString(1, table);
+            try (var rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    out.add(rs.getString(1));
+                }
+            }
+        }
+        return out;
     }
 
     /** Keeps the zip stream open when the copy API is done with an entry. */

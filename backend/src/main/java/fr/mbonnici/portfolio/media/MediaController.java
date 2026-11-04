@@ -24,14 +24,14 @@ public class MediaController {
         String objectKey = key.startsWith("/") ? key.substring(1) : key;
         return service.serve(objectKey)
                 .map(served -> {
-                    String etag = "\"" + served.media().getId() + "\"";
+                    String etag = "\"" + served.media().getId() + served.variant() + "\"";
                     if (request.checkNotModified(etag)) {
                         return ResponseEntity.status(304).<byte[]>build();
                     }
                     return ResponseEntity.ok()
                             .eTag(etag)
                             .cacheControl(CacheControl.maxAge(365, TimeUnit.DAYS).cachePublic().immutable())
-                            .contentType(MediaType.parseMediaType(served.media().getContentType()))
+                            .contentType(MediaType.parseMediaType(served.contentType()))
                             .header("X-Content-Type-Options", "nosniff")
                             // Even if an SVG slipped through, it cannot run scripts in this origin.
                             .header("Content-Security-Policy", "sandbox; default-src 'none'; style-src 'unsafe-inline'")

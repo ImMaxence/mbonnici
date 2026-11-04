@@ -6,12 +6,12 @@ import {
   afterNextRender,
   inject,
   input,
-  output,
   signal,
   viewChild,
 } from '@angular/core';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { IconComponent } from './icon.component';
+import { LightboxComponent } from './lightbox.component';
 import type { Visual } from './shots';
 
 /**
@@ -21,7 +21,7 @@ import type { Visual } from './shots';
 @Component({
   selector: 'app-slider',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [IconComponent, TranslatePipe],
+  imports: [IconComponent, TranslatePipe, LightboxComponent],
   template: `
     <div class="slider" role="region" [attr.aria-roledescription]="'project.carousel' | t" [attr.aria-label]="label()">
       <div
@@ -39,7 +39,7 @@ import type { Visual } from './shots';
         @for (img of images(); track img.src; let i = $index) {
           <figure class="slide" role="group" [attr.aria-roledescription]="'project.slide' | t" [attr.aria-label]="'project.slideOf' | t: { n: i + 1, total: images().length }">
             <button type="button" class="open" (click)="clicked(i)" [attr.aria-label]="('common.open' | t) + ' — ' + img.alt" tabindex="-1">
-              <img [src]="img.src" [alt]="img.alt" [width]="img.w" [height]="img.h" loading="lazy" decoding="async" draggable="false" />
+              <img [src]="img.src" [attr.srcset]="img.srcset || null" [attr.sizes]="img.srcset ? '(max-width: 720px) 86vw, 1100px' : null" [alt]="img.alt" [width]="img.w" [height]="img.h" loading="lazy" decoding="async" draggable="false" />
             </button>
           </figure>
         }
@@ -59,6 +59,7 @@ import type { Visual } from './shots';
         </div>
       }
     </div>
+    <app-lightbox #viewer [images]="images()" [label]="label()" />
   `,
   styles: `
     :host {
@@ -170,10 +171,10 @@ import type { Visual } from './shots';
 export class SliderComponent {
   readonly images = input.required<Visual[]>();
   readonly label = input('');
-  readonly opened = output<number>();
 
   readonly index = signal(0);
   private readonly track = viewChild.required<ElementRef<HTMLElement>>('track');
+  private readonly viewer = viewChild.required(LightboxComponent);
   private drag: { x: number; left: number; id: number; moved: boolean } | null = null;
   private suppressClick = false;
 
@@ -186,13 +187,13 @@ export class SliderComponent {
     return String(n).padStart(2, '0');
   }
 
-  go(i: number): void {
+  go(i: number, instant = false): void {
     const el = this.track().nativeElement;
     const slides = el.querySelectorAll<HTMLElement>('.slide');
     const target = slides[Math.max(0, Math.min(slides.length - 1, i))];
     if (!target) return;
     const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
-    el.scrollTo({ left: target.offsetLeft - el.offsetLeft - parseFloat(getComputedStyle(el).paddingLeft), behavior: reduced ? 'auto' : 'smooth' });
+    el.scrollTo({ left: target.offsetLeft - el.offsetLeft - parseFloat(getComputedStyle(el).paddingLeft), behavior: reduced || instant ? 'instant' : 'smooth' });
   }
 
   onScroll(): void {
@@ -246,6 +247,14 @@ export class SliderComponent {
 
   clicked(i: number): void {
     if (this.suppressClick) return;
-    this.opened.emit(i);
+    this.viewer().open(i, (j, align) => this.thumb(j, align));
+  }
+
+  /** the picture of slide i, for the viewer to grow from / shrink back into */
+  private thumb(i: number, align: boolean): HTMLElement | null {
+    const slide = this.track().nativeElement.querySelectorAll<HTMLElement>('.slide')[i];
+    if (!slide) return null;
+    if (align) this.go(i, true);
+    return slide.querySelector('img');
   }
 }

@@ -25,15 +25,31 @@ public final class SettingsDtos {
             Localized seoDescription,
             Legal legal,
             fr.mbonnici.portfolio.media.MediaDto avatar,
-            Instant updatedAt) {
+            Instant updatedAt,
+            /** at least one published note: the site shows its Notes section */
+            boolean hasNotes) {
 
         public static PublicSettings from(SiteSettings s) {
+            return from(s, false);
+        }
+
+        public static PublicSettings from(SiteSettings s, boolean hasNotes) {
             return new PublicSettings(s.getOwnerName(), s.getHeadline().filled(), s.getBio().filled(), s.getLocation(),
                     s.getPublicEmail(), s.getGithubUrl(), s.getLinkedinUrl(), s.getAvailability(),
                     s.getSeoTitle() == null ? Localized.EMPTY : s.getSeoTitle().filled(),
                     s.getSeoDescription() == null ? Localized.EMPTY : s.getSeoDescription().filled(),
                     new Legal(s.getLegalName(), s.getLegalAddress(), s.getLegalHost(), s.getLegalContactEmail()),
-                    fr.mbonnici.portfolio.media.MediaDto.from(s.getAvatar()), s.getUpdatedAt());
+                    fr.mbonnici.portfolio.media.MediaDto.from(s.getAvatar()), s.getUpdatedAt(), hasNotes);
+        }
+
+        /** as stored (back office): an empty language stays empty */
+        public static PublicSettings raw(SiteSettings s, boolean hasNotes) {
+            return new PublicSettings(s.getOwnerName(), s.getHeadline(), s.getBio(), s.getLocation(),
+                    s.getPublicEmail(), s.getGithubUrl(), s.getLinkedinUrl(), s.getAvailability(),
+                    s.getSeoTitle() == null ? Localized.EMPTY : s.getSeoTitle(),
+                    s.getSeoDescription() == null ? Localized.EMPTY : s.getSeoDescription(),
+                    new Legal(s.getLegalName(), s.getLegalAddress(), s.getLegalHost(), s.getLegalContactEmail()),
+                    fr.mbonnici.portfolio.media.MediaDto.from(s.getAvatar()), s.getUpdatedAt(), hasNotes);
         }
     }
 

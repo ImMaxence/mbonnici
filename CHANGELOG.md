@@ -7,7 +7,58 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [1.4.0] — 2026-11-04
+
+### Added
+- **CV as a PDF** generated from the site content (settings, experience, education, skills,
+  featured projects), in French and English, one A4 page in the site's typography (fonts embedded,
+  OFL): "Download my resume" on About and in the footer (`GET /api/cv?lang=fr|en`, cached until the
+  content changes, ETag).
+- **Notes**: short Markdown articles written in the back office (FR / EN, summary, cover, tags,
+  back-datable publication date, live preview), a Notes section in the navigation once a note is
+  published, note pages with `BlogPosting` data, RSS feeds (`/fr/rss.xml`, `/en/rss.xml`), sitemap
+  and `llms.txt` entries. Markdown gains fenced code blocks and quotes. Migration V6, `article` table
+  (backed up and restored like the other content; archives made before it still restore).
+- **Case studies**: four optional Markdown sections per project (context, role, challenges, results)
+  shown under the description.
+- **Live status and GitHub figures**: each published project's site is checked every 5 minutes
+  ("Online · 120 ms" on cards and pages) and its repository read every 6 hours (stars, last push,
+  languages), with conditional requests; optional `GITHUB_TOKEN`, `INSIGHTS_ENABLED`.
+- **Projects list view** next to the grid (remembered): large titles, the cover follows the pointer
+  with a spring; a small picture per row on touch screens.
+- **Skills ↔ projects**: a skill used by published projects links to the projects page filtered on it
+  (`?tech=`), and every technology of a project page links back.
+- **Contact from a project**: "Something similar in mind?" opens the contact form about that project,
+  with a first line already written.
+- **Responsive images**: 640, 1280 and 1920 px WebP copies made at upload (and in the background for
+  existing pictures, after a restore, or on demand), served with `srcset`; **focal point** per picture
+  (click where it must stay visible when cropped).
+- **Real-user performance** (Core Web Vitals): LCP, INP, CLS, FCP and TTFB measured in visitors'
+  browsers with the Performance APIs, sent once as an anonymous beacon (no identifier, DNT / GPC
+  honoured, 13-month retention), p75 per metric, device and page on the dashboard.
+- Back office: **draft preview** of projects and notes (the public page as it will be), **unsaved
+  changes** guard (dialog when leaving, browser warning when closing the tab, "Unsaved changes"
+  badge), **texts to translate** counters on the FR / EN tabs and in the lists, **message archive and
+  search** with a "Reply" that quotes the message, **unused pictures** filter and clean-up, count of
+  pictures without alternative text.
+
+### Changed
+- Texts are stored per language as typed; the fallback to the other language happens when reading,
+  so an empty translation stays visible (and fixable) in the back office.
+- Privacy policy: the performance measurements are described. Accessibility statement updated.
+
+### Fixed
+- Saving a project that already had pictures failed (unique key on the gallery links).
+- The landing page of a visit was counted as "/" in the audience figures.
+- A full restore of an archive made before a migration added columns failed.
+
 ## [1.3.1] — 2026-11-04
+
+### Added
+- **Image viewer** on project pages: the picture grows out of the gallery thumbnail and shrinks
+  back into the one being viewed on close; previous / next buttons, ← → Home End, swipe or drag,
+  counter and caption, click outside or Escape to close, the gallery follows the last image seen
+  (replaces the bare lightbox that opened at once without any navigation).
 
 ### Changed
 - **Drag and drop feels physical**: the picked row, chip or tile is lifted and follows the pointer,

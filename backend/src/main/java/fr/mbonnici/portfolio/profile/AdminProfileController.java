@@ -33,7 +33,7 @@ public class AdminProfileController {
 
     @GetMapping
     public Profile get() {
-        return service.get();
+        return service.getRaw();
     }
 
     @PostMapping("/experiences")

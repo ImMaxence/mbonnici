@@ -11,9 +11,16 @@ import org.springframework.web.bind.annotation.RestController;
 public class AdminAnalyticsController {
 
     private final AnalyticsService service;
+    private final VitalsService vitals;
 
-    public AdminAnalyticsController(AnalyticsService service) {
+    public AdminAnalyticsController(AnalyticsService service, VitalsService vitals) {
         this.service = service;
+        this.vitals = vitals;
+    }
+
+    @GetMapping("/vitals")
+    public VitalsService.Overview vitals(@RequestParam(defaultValue = "30") int days) {
+        return vitals.overview(days);
     }
 
     @GetMapping("/overview")

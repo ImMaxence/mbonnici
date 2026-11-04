@@ -1,16 +1,20 @@
-import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
-import { SKILL_CATEGORIES, type Skill, type SkillCategory } from '../../core/api/models';
+import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
+import { SKILL_CATEGORIES, type ProjectCard, type Skill, type SkillCategory } from '../../core/api/models';
+import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
+import { LinkDirective } from '../curtain/link.directive';
 import { RevealDirective } from './reveal.directive';
+import { usesTech } from './tech';
 
 /**
  * Skills grouped by what they are for, one row per family (back office → Profil → Compétences).
  * No self-rated bars: level 5 only marks the everyday tools; the order is the back-office order.
+ * A skill used by published projects links to the projects page filtered on it.
  */
 @Component({
   selector: 'app-toolbox',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [TranslatePipe, RevealDirective],
+  imports: [TranslatePipe, RevealDirective, LinkDirective],
   template: `
     <dl class="toolbox">
       @for (g of groups(); track g.key; let i = $index) {
@@ -22,7 +26,19 @@ import { RevealDirective } from './reveal.directive';
           <dd>
             <ul>
               @for (s of g.items; track s.id) {
-                <li [class.daily]="s.level >= 5">{{ s.name }}</li>
+                <li [class.daily]="s.level >= 5">
+                  @if (s.count) {
+                    <a
+                      class="tech"
+                      [appLink]="i18n.path('projects') + '?tech=' + encode(s.name)"
+                      [linkLabel]="'nav.projects' | t"
+                      [attr.aria-label]="s.name + ' — ' + (s.count === 1 ? ('projects.usedInOne' | t) : ('projects.usedIn' | t: { n: s.count }))"
+                      >{{ s.name }}<sup>{{ s.count }}</sup></a
+                    >
+                  } @else {
+                    {{ s.name }}
+                  }
+                </li>
               }
             </ul>
           </dd>
@@ -90,6 +106,29 @@ import { RevealDirective } from './reveal.directive';
     li.daily {
       color: var(--fg);
     }
+    .tech {
+      background-image: linear-gradient(currentColor, currentColor);
+      background-size: 0 1px;
+      background-repeat: no-repeat;
+      background-position: 0 92%;
+      transition:
+        background-size 0.5s var(--ease-out),
+        color var(--dur-1);
+    }
+    .tech:hover,
+    .tech:focus-visible {
+      color: var(--accent);
+      background-size: 100% 1px;
+    }
+    .tech sup {
+      font-family: var(--font-mono);
+      font-size: 0.32em;
+      font-weight: 500;
+      letter-spacing: 0;
+      margin-left: 0.2em;
+      vertical-align: 1.6em;
+      color: var(--fg-3);
+    }
     li.daily::before {
       content: '';
       display: inline-block;
@@ -116,11 +155,22 @@ import { RevealDirective } from './reveal.directive';
 })
 export class ToolboxComponent {
   readonly skills = input<Skill[]>([]);
+  /** published projects, to link each skill to the projects using it */
+  readonly projects = input<ProjectCard[]>([]);
+  readonly i18n = inject(I18nService);
 
   readonly groups = computed(() => {
-    const map = new Map<SkillCategory, Skill[]>();
-    for (const s of this.skills()) map.set(s.category, [...(map.get(s.category) ?? []), s]);
+    const projects = this.projects();
+    const map = new Map<SkillCategory, (Skill & { count: number })[]>();
+    for (const s of this.skills()) {
+      const count = projects.filter((p) => usesTech(p.stack, s.name)).length;
+      map.set(s.category, [...(map.get(s.category) ?? []), { ...s, count }]);
+    }
     return SKILL_CATEGORIES.filter((k) => map.has(k)).map((key) => ({ key, items: map.get(key)! }));
   });
+
+  encode(v: string): string {
+    return encodeURIComponent(v);
+  }
   readonly hasDaily = computed(() => this.skills().some((s) => s.level >= 5));
 }

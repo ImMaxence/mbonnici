@@ -402,7 +402,7 @@ public class BackupService {
                     index = mapper.readValue(zip.readAllBytes(), mapper.getTypeFactory().constructMapType(Map.class, String.class, String.class));
                 } else if (name.startsWith("media/") && !entry.isDirectory()) {
                     String key = name.substring(6);
-                    if (!key.matches("^\\d{4}/\\d{2}/[0-9a-f-]{36}\\.[a-z0-9]{3,4}$")) {
+                    if (!key.matches(DatabaseDump.MEDIA_KEY)) {
                         throw new ApiException(HttpStatus.BAD_REQUEST, "archive contains an invalid media key: " + key);
                     }
                     media.put(key, zip.readAllBytes());
@@ -422,7 +422,7 @@ public class BackupService {
                     + " differs from the running schema " + current + " (use force to override)");
         }
         for (String table : DatabaseDump.TABLES) {
-            if (!csv.containsKey(table)) {
+            if (!csv.containsKey(table) && !DatabaseDump.OPTIONAL.contains(table)) {
                 throw new ApiException(HttpStatus.BAD_REQUEST, "archive is missing table " + table);
             }
         }

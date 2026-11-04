@@ -29,6 +29,11 @@ export interface MediaDto {
   sizeBytes: number;
   originalFilename: string | null;
   createdAt: string;
+  /** smaller copies for responsive images ("url 640w, …"), absent when there is none */
+  srcset?: string | null;
+  /** point to keep in view when a frame crops the picture, 0..1 from the left / top */
+  focalX?: number;
+  focalY?: number;
 }
 
 /** How a project is staged: browser + phone, phone only, browser only */
@@ -55,8 +60,19 @@ export interface ProjectCard {
   repoUrl: string | null;
 }
 
+/** Case study sections (Markdown); an empty section is not shown */
+export interface CaseStudy {
+  context: Localized;
+  role: Localized;
+  challenges: Localized;
+  results: Localized;
+}
+export const CASE_STUDY_KEYS = ['context', 'role', 'challenges', 'results'] as const;
+export type CaseStudyKey = (typeof CASE_STUDY_KEYS)[number];
+
 export interface ProjectDetail extends ProjectCard {
   description: Localized;
+  caseStudy?: CaseStudy;
   allowIframe: boolean;
   gallery: MediaDto[];
   mobile: MediaDto[];
@@ -78,6 +94,7 @@ export interface AdminProject {
   title: Localized;
   tagline: Localized;
   description: Localized;
+  caseStudy?: CaseStudy;
   status: ProjectStatus;
   featured: boolean;
   sortOrder: number;
@@ -104,6 +121,7 @@ export interface ProjectUpsert {
   title: Localized;
   tagline: Localized;
   description: Localized;
+  caseStudy: CaseStudy;
   status: ProjectStatus;
   featured: boolean;
   sortOrder: number;
@@ -143,6 +161,8 @@ export interface Settings {
   /** picture next to the name in the header */
   avatar: MediaDto | null;
   updatedAt: string;
+  /** at least one published note: the Notes section is shown */
+  hasNotes?: boolean;
 }
 
 export interface SettingsUpdate {
@@ -228,7 +248,98 @@ export interface ContactMessage {
   message: string;
   locale: string | null;
   read: boolean;
+  archived?: boolean;
   createdAt: string;
+}
+
+// ── live status of the sites and GitHub figures ─────────────────────────────
+export interface SiteStatus {
+  up: boolean;
+  status: number | null;
+  latencyMs: number | null;
+  checkedAt: string;
+}
+
+export interface RepoStats {
+  fullName: string;
+  stars: number;
+  forks: number;
+  pushedAt: string | null;
+  languages: { name: string; share: number }[];
+  fetchedAt: string;
+}
+
+export interface Insight {
+  site: SiteStatus | null;
+  repo: RepoStats | null;
+}
+
+// ── notes (articles) ─────────────────────────────────────────────────────────
+export type ArticleStatus = 'DRAFT' | 'PUBLISHED';
+
+export interface ArticleCard {
+  id: string;
+  slug: string;
+  title: Localized;
+  summary: Localized;
+  tags: string[];
+  cover: MediaDto | null;
+  publishedAt: string | null;
+  minutes: { fr: number; en: number };
+}
+
+export interface ArticleDetail extends ArticleCard {
+  body: Localized;
+  updatedAt: string;
+  previous: ArticleCard | null;
+  next: ArticleCard | null;
+}
+
+export interface AdminArticle {
+  id: string;
+  slug: string;
+  title: Localized;
+  summary: Localized;
+  body: Localized;
+  status: ArticleStatus;
+  tags: string[];
+  coverMediaId: string | null;
+  cover: MediaDto | null;
+  createdAt: string;
+  updatedAt: string;
+  publishedAt: string | null;
+}
+
+export interface ArticleUpsert {
+  slug?: string | null;
+  title: Localized;
+  summary: Localized;
+  body: Localized;
+  status: ArticleStatus;
+  tags: string[];
+  coverMediaId: string | null;
+  publishedAt: string | null;
+}
+
+// ── Core Web Vitals (real users) ─────────────────────────────────────────────
+export type VitalMetric = 'LCP' | 'INP' | 'CLS' | 'FCP' | 'TTFB';
+
+export interface VitalStat {
+  metric: VitalMetric;
+  samples: number;
+  p75: number | null;
+  good: number;
+  needsImprovement: number;
+  poor: number;
+  goodThreshold: number;
+  poorThreshold: number;
+}
+
+export interface VitalsOverview {
+  days: number;
+  metrics: VitalStat[];
+  byDevice: Record<string, VitalStat[]>;
+  pages: { path: string; samples: number; lcp: number | null; inp: number | null; cls: number | null }[];
 }
 
 export interface Page<T> {

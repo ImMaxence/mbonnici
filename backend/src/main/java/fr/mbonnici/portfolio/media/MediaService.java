@@ -12,14 +12,19 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
+import java.util.ArrayList;
 import java.util.Base64;
+import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.UUID;
 import java.util.regex.Pattern;
 import javax.imageio.ImageIO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.cache.CacheManager;
+import org.springframework.context.event.EventListener;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -34,12 +39,16 @@ public class MediaService {
     private static final int MAX_PIXELS = 40_000_000;
     private static final int MAX_WIDTH = 2560;
     private static final java.util.Set<String> ACCEPTED = java.util.Set.of("image/png", "image/jpeg");
-    private static final Pattern KEY = Pattern.compile("^\\d{4}/\\d{2}/[0-9a-f-]{36}\\.[a-z0-9]{3,4}$");
+    /** original object, optionally a smaller copy ("-w640") */
+    private static final Pattern KEY = Pattern.compile("^(\\d{4}/\\d{2}/[0-9a-f-]{36})(?:-w(\\d{3,4}))?(\\.[a-z0-9]{3,4})$");
+    /** widths of the responsive copies (only those narrower than the original are made) */
+    static final List<Integer> VARIANT_WIDTHS = List.of(640, 1280, 1920);
 
     private final MediaRepository repository;
     private final StorageService storage;
     private final CacheManager cacheManager;
     private final WebpEncoder webpEncoder;
+    private final AtomicBoolean backfilling = new AtomicBoolean();
 
     public MediaService(MediaRepository repository, StorageService storage, CacheManager cacheManager,
             WebpEncoder webpEncoder) {
@@ -89,6 +98,7 @@ public class MediaService {
             throw ApiException.badRequest("unsupported file type: the image is corrupted");
         }
         String blur = lqip(img);
+        byte[] source = bytes;
         int width = img.getWidth();
         int height = img.getHeight();
 
@@ -108,8 +118,13 @@ public class MediaService {
         String key = String.format("%d/%02d/%s.%s", today.getYear(), today.getMonthValue(), UUID.randomUUID(), extension);
         storage.put(key, contentType, bytes);
 
-        Media media = repository.save(Media.create(key, contentType, bytes.length, width, height, blur,
-                safeName(file.getOriginalFilename()), alt == null ? Localized.EMPTY : alt.filled()));
+        Media media = Media.create(key, contentType, bytes.length, width, height, blur,
+                safeName(file.getOriginalFilename()), alt == null ? Localized.EMPTY : alt.filled());
+        // 5. smaller copies for phones and laptops, from the original pixels
+        if (webp.isPresent()) {
+            media.setVariantWidths(makeVariants(key, source, detected.extension(), img.getWidth(), img.getHeight(), width));
+        }
+        media = repository.save(media);
         log.info("Uploaded media {} ({} bytes, {}x{}, {})", key, bytes.length, width, height, contentType);
         return MediaDto.from(media);
     }
@@ -129,32 +144,154 @@ public class MediaService {
     }
 
     @Transactional
+    public MediaDto updateFocal(UUID id, double x, double y) {
+        Media m = repository.findById(id).orElseThrow(() -> new NotFoundException("Media"));
+        m.setFocal(x, y);
+        evictProjects();
+        return MediaDto.from(repository.save(m));
+    }
+
+    @Transactional
     public void delete(UUID id) {
         Media m = repository.findById(id).orElseThrow(() -> new NotFoundException("Media"));
         repository.delete(m);
         repository.flush();
-        try {
-            storage.delete(m.getObjectKey());
-        } catch (Exception e) {
-            log.warn("Object {} could not be deleted from storage: {}", m.getObjectKey(), e.getMessage());
-        }
+        deleteObjects(m);
         evictProjects();
+    }
+
+    /** Images no project, article or setting points to. */
+    @Transactional(readOnly = true)
+    public List<UUID> unused() {
+        return repository.findUnusedIds();
+    }
+
+    /** Deletes every unused image; returns how many went. */
+    @Transactional
+    public int deleteUnused() {
+        List<Media> gone = repository.findAllById(repository.findUnusedIds());
+        repository.deleteAll(gone);
+        repository.flush();
+        gone.forEach(this::deleteObjects);
+        evictProjects();
+        log.info("Deleted {} unused media", gone.size());
+        return gone.size();
+    }
+
+    private void deleteObjects(Media m) {
+        List<String> keys = new ArrayList<>(List.of(m.getObjectKey()));
+        m.getVariantWidths().forEach(w -> keys.add(m.variantKey(w)));
+        for (String k : keys) {
+            try {
+                storage.delete(k);
+            } catch (Exception e) {
+                log.warn("Object {} could not be deleted from storage: {}", k, e.getMessage());
+            }
+        }
+    }
+
+    // ── responsive copies ────────────────────────────────────────────────────
+
+    /** Encodes and stores the copies narrower than the stored picture; returns their widths. */
+    private List<Integer> makeVariants(String key, byte[] source, String sourceExt, int sourceW, int sourceH, int storedW) {
+        List<Integer> made = new ArrayList<>();
+        for (int w : VARIANT_WIDTHS) {
+            if (w >= storedW) {
+                continue;
+            }
+            var copy = webpEncoder.encode(source, sourceExt, sourceW, sourceH, w);
+            if (copy.isPresent()) {
+                storage.put(Media.variantKey(key, w), "image/webp", copy.get().bytes());
+                made.add(w);
+            }
+        }
+        return made;
+    }
+
+    /**
+     * Makes the missing copies of pictures stored before responsive images existed (or restored
+     * without them). Runs in the background at start-up and after a restore; safe to call twice.
+     * @return true when a run was started
+     */
+    public boolean backfillVariants() {
+        if (!webpEncoder.available() || !backfilling.compareAndSet(false, true)) {
+            return false;
+        }
+        Thread.ofVirtual().name("media-variants").start(() -> {
+            int done = 0;
+            try {
+                for (Media m : repository.findAll()) {
+                    if (fillVariants(m)) {
+                        done++;
+                    }
+                }
+            } catch (RuntimeException e) {
+                log.warn("Responsive copies stopped: {}", e.getMessage());
+            } finally {
+                backfilling.set(false);
+                if (done > 0) {
+                    evictProjects();
+                    log.info("Made responsive copies for {} media", done);
+                }
+            }
+        });
+        return true;
+    }
+
+    public boolean isBackfilling() {
+        return backfilling.get();
+    }
+
+    @EventListener(ApplicationReadyEvent.class)
+    void onReady() {
+        backfillVariants();
+    }
+
+    private boolean fillVariants(Media m) {
+        if (m.getWidth() == null || m.getHeight() == null || !"image/webp".equals(m.getContentType())) {
+            return false;
+        }
+        List<Integer> expected = VARIANT_WIDTHS.stream().filter(w -> w < m.getWidth()).toList();
+        boolean complete = m.getVariantWidths().containsAll(expected)
+                && expected.stream().allMatch(w -> storage.get(m.variantKey(w)).isPresent());
+        if (complete) {
+            return false;
+        }
+        var stored = storage.get(m.getObjectKey());
+        if (stored.isEmpty()) {
+            return false;
+        }
+        List<Integer> made = makeVariants(m.getObjectKey(), stored.get().bytes(), "webp", m.getWidth(), m.getHeight(), m.getWidth());
+        if (made.isEmpty()) {
+            return false;
+        }
+        repository.findById(m.getId()).ifPresent(fresh -> {
+            fresh.setVariantWidths(made);
+            repository.save(fresh);
+        });
+        return true;
     }
 
     /** Resolves a public object key to its bytes; unknown or malformed keys yield empty. */
     @Transactional(readOnly = true)
     public Optional<Served> serve(String key) {
-        if (key == null || !KEY.matcher(key).matches()) {
+        var match = key == null ? null : KEY.matcher(key);
+        if (match == null || !match.matches()) {
             return Optional.empty();
         }
-        return repository.findByObjectKey(key)
-                .flatMap(m -> storage.get(key).map(o -> new Served(m, o.bytes())));
+        String original = match.group(1) + match.group(3);
+        Integer width = match.group(2) == null ? null : Integer.valueOf(match.group(2));
+        return repository.findByObjectKey(original)
+                .filter(m -> width == null || m.getVariantWidths().contains(width))
+                .flatMap(m -> storage.get(key).map(o -> new Served(m, width == null ? m.getContentType() : "image/webp",
+                        o.bytes(), width == null ? "" : "-w" + width)));
     }
 
-    public record Served(Media media, byte[] bytes) {}
+    /** @param variant "" for the original, "-w640" for a copy (part of the ETag) */
+    public record Served(Media media, String contentType, byte[] bytes, String variant) {}
 
     private void evictProjects() {
-        for (String name : new String[] {"projects", "settings"}) {
+        for (String name : new String[] {"projects", "settings", "articles"}) {
             var cache = cacheManager.getCache(name);
             if (cache != null) {
                 cache.clear();

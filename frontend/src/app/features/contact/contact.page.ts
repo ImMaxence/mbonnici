@@ -1,9 +1,9 @@
-import { Component, computed, effect, inject, input, signal } from '@angular/core';
+import { Component, computed, effect, inject, input, signal, untracked } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { AnalyticsService } from '../../core/analytics/analytics.service';
 import { ApiService } from '../../core/api/api.service';
-import type { Settings } from '../../core/api/models';
+import type { ProjectCard, Settings } from '../../core/api/models';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { SeoService } from '../../core/seo/seo.service';
@@ -73,6 +73,12 @@ interface FormErrors {
           } @else {
             <form (ngSubmit)="submit()" novalidate>
               <h2 class="h3">{{ 'contact.form.title' | t }}</h2>
+              @if (about(); as p) {
+                <p class="about-project small">
+                  <span class="faint">{{ 'contact.form.about' | t }}</span>
+                  <strong>{{ i18n.l(p.title) }}</strong>
+                </p>
+              }
               <div class="field">
                 <label for="c-name">{{ 'contact.form.name' | t }}</label>
                 <input id="c-name" class="input" name="name" autocomplete="name" [(ngModel)]="model.name" [placeholder]="'contact.form.namePh' | t" [attr.aria-invalid]="errors().name ? 'true' : null" (blur)="touch('name')" />
@@ -121,6 +127,15 @@ interface FormErrors {
     </main>
   `,
   styles: `
+    .about-project {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin: -0.4rem 0 0.2rem;
+      padding: 0.6rem 0.8rem;
+      border-radius: 10px;
+      background: var(--accent-soft);
+    }
     .head {
       display: grid;
       gap: var(--space-4);
@@ -200,9 +215,18 @@ export class ContactPage {
 
   /** resolved by the route and bound as an input */
   readonly settings = input<Settings>();
+  /** published projects (to name the one in ?project=) */
+  readonly projects = input<ProjectCard[]>();
+  /** ?project=slug: coming from "a similar project?" on a project page */
+  readonly project = input<string | undefined>();
+  readonly about = computed(() => {
+    const slug = this.project();
+    return slug ? ((this.projects() ?? []).find((p) => p.slug === slug) ?? null) : null;
+  });
   readonly state = signal<State>('idle');
   readonly copied = signal(false);
   readonly model = { name: '', email: '', message: '', website: '' };
+  private prefilled = '';
   private readonly touched = signal<Record<string, boolean>>({});
   private readonly submitted = signal(false);
   private readonly version = signal(0);
@@ -225,6 +249,20 @@ export class ContactPage {
 
 
   constructor() {
+    // a first line about the project the visitor came from (kept if they already typed something)
+    effect(() => {
+      const p = this.about();
+      this.i18n.lang();
+      untracked(() => {
+        if (!p) return;
+        const text = this.i18n.t('contact.form.prefill', { title: this.i18n.l(p.title) });
+        if (!this.model.message.trim() || this.model.message === this.prefilled) {
+          this.model.message = text;
+          this.prefilled = text;
+          this.version.update((v) => v + 1);
+        }
+      });
+    });
     effect(() => {
       this.i18n.lang();
       this.seo.set({

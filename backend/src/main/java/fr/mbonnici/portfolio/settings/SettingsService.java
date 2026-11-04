@@ -16,16 +16,25 @@ public class SettingsService {
 
     private final SettingsRepository repository;
     private final fr.mbonnici.portfolio.media.MediaRepository media;
+    private final fr.mbonnici.portfolio.article.ArticleRepository articles;
 
-    public SettingsService(SettingsRepository repository, fr.mbonnici.portfolio.media.MediaRepository media) {
+    public SettingsService(SettingsRepository repository, fr.mbonnici.portfolio.media.MediaRepository media,
+            fr.mbonnici.portfolio.article.ArticleRepository articles) {
         this.repository = repository;
         this.media = media;
+        this.articles = articles;
     }
 
     @Cacheable(CACHE)
     @Transactional(readOnly = true)
     public PublicSettings get() {
-        return PublicSettings.from(load());
+        return PublicSettings.from(load(), hasNotes());
+    }
+
+    /** Back office: texts as stored, without the fallback to the other language. */
+    @Transactional(readOnly = true)
+    public PublicSettings getRaw() {
+        return PublicSettings.raw(load(), hasNotes());
     }
 
     @CacheEvict(value = CACHE, allEntries = true)
@@ -36,15 +45,15 @@ public class SettingsService {
         }
         SiteSettings s = load();
         s.setOwnerName(in.ownerName().trim());
-        s.setHeadline(in.headline().filled());
-        s.setBio(in.bio() == null ? Localized.EMPTY : in.bio().filled());
+        s.setHeadline(Localized.clean(in.headline()));
+        s.setBio(Localized.clean(in.bio()));
         s.setLocation(blankToNull(in.location()));
         s.setPublicEmail(blankToNull(in.publicEmail()));
         s.setGithubUrl(blankToNull(in.githubUrl()));
         s.setLinkedinUrl(blankToNull(in.linkedinUrl()));
         s.setAvailability(in.availability());
-        s.setSeoTitle(in.seoTitle() == null ? Localized.EMPTY : in.seoTitle().filled());
-        s.setSeoDescription(in.seoDescription() == null ? Localized.EMPTY : in.seoDescription().filled());
+        s.setSeoTitle(Localized.clean(in.seoTitle()));
+        s.setSeoDescription(Localized.clean(in.seoDescription()));
         s.setLegalName(blankToNull(in.legalName()));
         s.setLegalAddress(blankToNull(in.legalAddress()));
         s.setLegalHost(blankToNull(in.legalHost()));
@@ -53,7 +62,11 @@ public class SettingsService {
                 : media.findById(in.avatarMediaId())
                         .orElseThrow(() -> new fr.mbonnici.portfolio.common.NotFoundException("Avatar media")));
         s.touch();
-        return PublicSettings.from(repository.save(s));
+        return PublicSettings.raw(repository.save(s), hasNotes());
+    }
+
+    private boolean hasNotes() {
+        return articles.existsByStatus(fr.mbonnici.portfolio.article.Article.Status.PUBLISHED);
     }
 
     private SiteSettings load() {

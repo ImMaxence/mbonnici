@@ -32,6 +32,15 @@ public class ProfileService {
         this.skills = skills;
     }
 
+    /** Back office: texts as stored, without the fallback to the other language. */
+    @Transactional(readOnly = true)
+    public Profile getRaw() {
+        return new Profile(
+                experiences.findAllByOrderBySortOrderAscStartDateDesc().stream().map(ExperienceDto::raw).toList(),
+                education.findAllByOrderBySortOrderAscStartDateDesc().stream().map(EducationDto::raw).toList(),
+                skills.findAllByOrderBySortOrderAscNameAsc().stream().map(SkillDto::from).toList());
+    }
+
     @Cacheable(CACHE)
     @Transactional(readOnly = true)
     public Profile get() {
@@ -74,8 +83,8 @@ public class ProfileService {
         }
         e.setCompany(in.company().trim());
         e.setCompanyUrl(blankToNull(in.companyUrl()));
-        e.setRole(in.role().filled());
-        e.setDescription(in.description() == null ? Localized.EMPTY : in.description().filled());
+        e.setRole(Localized.clean(in.role()));
+        e.setDescription(Localized.clean(in.description()));
         e.setLocation(blankToNull(in.location()));
         e.setContractType(in.contractType());
         e.setStartDate(in.startDate());
@@ -115,7 +124,7 @@ public class ProfileService {
         }
         e.setSchool(in.school().trim());
         e.setSchoolUrl(blankToNull(in.schoolUrl()));
-        e.setDegree(in.degree().filled());
+        e.setDegree(Localized.clean(in.degree()));
         e.setLocation(blankToNull(in.location()));
         e.setStartDate(in.startDate());
         e.setEndDate(in.endDate());

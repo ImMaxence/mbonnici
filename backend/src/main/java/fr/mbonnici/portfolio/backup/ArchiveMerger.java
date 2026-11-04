@@ -28,8 +28,8 @@ import org.springframework.stereotype.Component;
 public class ArchiveMerger {
 
     /** Upsert order (parents first). project_media and analytics_event are handled separately. */
-    static final List<String> ORDER = List.of("media", "site_settings", "project", "experience", "education", "skill",
-            "contact_message");
+    static final List<String> ORDER = List.of("media", "site_settings", "project", "article", "experience", "education",
+            "skill", "contact_message");
 
     /**
      * @param ids       table → primary keys to insert or overwrite
@@ -129,6 +129,11 @@ public class ArchiveMerger {
                     st.execute("UPDATE tmp_project t SET cover_media_id = NULL WHERE cover_media_id IS NOT NULL "
                             + "AND NOT EXISTS (SELECT 1 FROM media m WHERE m.id = t.cover_media_id)");
                     st.execute("DELETE FROM project p USING tmp_project t WHERE p.slug = t.slug AND p.id <> t.id");
+                }
+                case "article" -> {
+                    st.execute("UPDATE tmp_article t SET cover_media_id = NULL WHERE cover_media_id IS NOT NULL "
+                            + "AND NOT EXISTS (SELECT 1 FROM media m WHERE m.id = t.cover_media_id)");
+                    st.execute("DELETE FROM article a USING tmp_article t WHERE a.slug = t.slug AND a.id <> t.id");
                 }
                 case "site_settings" -> st.execute("UPDATE tmp_site_settings t SET avatar_media_id = NULL "
                         + "WHERE avatar_media_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM media m WHERE m.id = t.avatar_media_id)");

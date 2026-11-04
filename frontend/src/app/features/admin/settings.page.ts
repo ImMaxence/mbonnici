@@ -7,17 +7,31 @@ import { Lang } from '../../core/i18n/routes';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { IconComponent } from '../../shared/ui/icon.component';
 import { MediaPickerComponent } from './media-picker.component';
+import { TooltipDirective } from '../../shared/ui/tooltip.directive';
+import { HasUnsavedChanges, snapshot, warnBeforeUnload } from './unsaved.guard';
+import { missingIn } from './missing-lang.component';
 
 @Component({
   selector: 'app-admin-settings',
-  imports: [FormsModule, TranslatePipe, IconComponent, MediaPickerComponent],
+  imports: [FormsModule, TranslatePipe, IconComponent, MediaPickerComponent, TooltipDirective],
   template: `
     <div class="admin-head">
-      <h1>{{ 'admin.settings.title' | t }}</h1>
+      <div>
+        <h1>{{ 'admin.settings.title' | t }}</h1>
+        @if (dirty()) {
+          <span class="unsaved" role="status"><i aria-hidden="true"></i>{{ 'admin.unsaved.badge' | t }}</span>
+        }
+      </div>
       <div class="row">
         <div class="lang-tabs" role="tablist">
-          <button type="button" role="tab" [attr.aria-selected]="lang() === 'fr'" (click)="lang.set('fr')">FR</button>
-          <button type="button" role="tab" [attr.aria-selected]="lang() === 'en'" (click)="lang.set('en')">EN</button>
+          @for (l of langs; track l) {
+            <button type="button" role="tab" [attr.aria-selected]="lang() === l" (click)="lang.set(l)">
+              {{ l.toUpperCase() }}
+              @if (missing(l); as n) {
+                <span class="tab-miss" [appTip]="(n === 1 ? 'admin.translate.one' : 'admin.translate.many') | t: { n: n, lang: l.toUpperCase() }">{{ n }}</span>
+              }
+            </button>
+          }
         </div>
         <button type="button" class="btn btn-accent" (click)="save()" [disabled]="saving() || !form">{{ 'admin.settings.save' | t }}</button>
       </div>
@@ -118,7 +132,9 @@ import { MediaPickerComponent } from './media-picker.component';
     }
   `,
 })
-export class AdminSettingsPage {
+export class AdminSettingsPage implements HasUnsavedChanges {
+  readonly langs: Lang[] = ['fr', 'en'];
+  private savedState = '';
   private readonly api = inject(ApiService);
   private readonly i18n = inject(I18nService);
 
@@ -134,6 +150,16 @@ export class AdminSettingsPage {
 
   constructor() {
     afterNextRender(() => this.load());
+    warnBeforeUnload(() => this.dirty());
+  }
+
+  dirty(): boolean {
+    return !!this.form && this.savedState !== '' && snapshot(this.form) !== this.savedState;
+  }
+
+  missing(lang: Lang): number {
+    const f = this.form;
+    return f ? missingIn(lang, [f.headline, f.bio, f.seoTitle, f.seoDescription]) : 0;
   }
 
   private async load(): Promise<void> {
@@ -156,6 +182,7 @@ export class AdminSettingsPage {
       avatarMediaId: s.avatar?.id ?? null,
     };
     this.avatar.set(s.avatar ?? null);
+    this.savedState = snapshot(this.form);
     this.ready.set(true);
   }
 
@@ -170,6 +197,7 @@ export class AdminSettingsPage {
     this.error.set('');
     try {
       await this.api.updateSettings(this.form);
+      this.savedState = snapshot(this.form);
       this.toast.set(this.i18n.t('admin.settings.saved'));
       setTimeout(() => this.toast.set(''), 1800);
     } catch (e) {

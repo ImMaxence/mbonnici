@@ -33,6 +33,9 @@ public class ContactMessage {
     @Column(nullable = false)
     private boolean read;
 
+    @Column(nullable = false)
+    private boolean archived;
+
     @Column(name = "created_at", nullable = false)
     private Instant createdAt = Instant.now();
 
@@ -55,5 +58,7 @@ public class ContactMessage {
     public String getLocale() { return locale; }
     public boolean isRead() { return read; }
     public void setRead(boolean read) { this.read = read; }
+    public boolean isArchived() { return archived; }
+    public void setArchived(boolean archived) { this.archived = archived; }
     public Instant getCreatedAt() { return createdAt; }
 }

@@ -92,7 +92,7 @@ import { ToolboxComponent } from '../../shared/ui/toolbox.component';
           <span class="eyebrow" appReveal>{{ 'home.toolbox' | t }}</span>
           <h2 appReveal revealSplit="words">{{ 'home.toolboxSub' | t }}</h2>
         </div>
-        <app-toolbox [skills]="profile()?.skills ?? []" />
+        <app-toolbox [skills]="profile()?.skills ?? []" [projects]="projects() ?? []" />
       </section>
       }
 

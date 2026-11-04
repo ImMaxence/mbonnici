@@ -52,7 +52,9 @@ Without Drive you can still download archives and restore from a file from the s
    Coolify reads `docker-compose.yml` at the repository root.
 2. **Environment variables**: paste the content of `.env.example` and fill every secret
    (`openssl rand -hex 32` makes good values for `POSTGRES_PASSWORD`, `S3_SECRET_KEY` and
-   `ANALYTICS_SALT_SECRET`). Set `APP_URL=https://mbonnici.fr`.
+   `ANALYTICS_SALT_SECRET`). Set `APP_URL=https://mbonnici.fr`. Optional: `GITHUB_TOKEN` (a
+   fine-grained token, public repositories read-only) for the GitHub figures of the project pages,
+   `INSIGHTS_ENABLED=false` to stop the status checks of the project sites.
 3. **Domains**: on the `frontend` service set `https://mbonnici.fr` and port `4000`.
    Leave the other services without a domain; they are not exposed.
 4. Deploy. The first start runs the Flyway migrations; the backend waits for PostgreSQL and

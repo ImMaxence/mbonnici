@@ -107,6 +107,33 @@ max), then the picture is decoded (blur placeholder) and re-encoded to WebP by `
 stripped, 2560 px max). Without `cwebp` the original is kept. Objects are served with a sandbox
 CSP and immutable caching. Projects without pictures fall back to `/img/project-placeholder*.svg`.
 
+Responsive copies: at upload `WebpEncoder` also makes 640, 1280 and 1920 px WebP copies (only those
+narrower than the picture), stored next to the original as `<key>-w640.webp`; `media.variant_widths`
+lists them and `MediaDto.srcset` gives the browser the choice. Pictures stored before (or restored
+without their copies) get them from a background job at start-up and after a restore. Each picture
+also has a focal point (`focal_x`, `focal_y`, top centre by default) used as `object-position`.
+
+## Notes, CV, insights and web vitals (1.4.0)
+
+- **Notes** (`article` table): Markdown in both languages, `ArticleService` (cache `articles`,
+  evicts `settings` too because `PublicSettings.hasNotes` shows the Notes section). Public
+  `/api/articles`, admin `/api/admin/articles` (+ `/{id}/preview`), RSS at `/fr/rss.xml` and
+  `/en/rss.xml` (`SeoController`, proxied by the SSR server like `sitemap.xml`).
+- **Case study**: `project.context_*`, `role_*`, `challenges_*`, `results_*` (Markdown).
+- **CV**: `CvService` builds XHTML from settings, profile and featured projects and renders it with
+  OpenHTMLtoPDF (PDFBox) using the TTF fonts in `resources/cv/fonts` (OFL). The PDF is cached per
+  language until the content fingerprint changes; `GET /api/cv?lang=&download=`.
+- **Insights**: `InsightsService` keeps in memory the live status of each published project's site
+  (GET every 5 min, 8 s timeout) and GitHub figures (stars, last push, languages, every 6 h with
+  ETags). Exposed at `/api/insights`, fetched by the browser only (`InsightsStore`), never part of the
+  server render. Disabled in tests (`app.insights.enabled`).
+- **Web vitals**: `core/analytics/vitals.service.ts` observes LCP, FCP, TTFB (navigation timing),
+  CLS (session windows) and INP (event timing) and sends one beacon when the landing page is hidden;
+  `VitalsService` stores rows in `web_vital` (metric, value, path, device: no identifier) and
+  computes p75 with `percentile_cont`. Not part of backups (measurements, not content).
+- **Texts per language** are stored as typed (`Localized.clean`); public DTOs apply `filled()` (the
+  other language stands in), the back office reads them raw to show what is left to translate.
+
 ## Contact messages
 
 Every message is stored (`contact_message`) and only read in the back office (Messages, unread

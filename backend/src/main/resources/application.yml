@@ -88,6 +88,11 @@ app:
   git-sha: ${GIT_SHA:}
   # local only (refused unless app.url is localhost): /api/auth/dev-login opens an admin session without Google
   dev-login: ${DEV_LOGIN:false}
+  # live status of the project sites and GitHub figures (stars, last push, languages)
+  insights:
+    enabled: ${INSIGHTS_ENABLED:true}
+    # optional: a fine-grained token (public repositories, read-only) raises the GitHub quota from 60 to 5000 calls an hour
+    github-token: ${GITHUB_TOKEN:}
   analytics:
     salt-secret: ${ANALYTICS_SALT_SECRET:dev-only-salt-change-me}
     retention-days: 400

@@ -58,6 +58,27 @@ public class Project {
     @AttributeOverride(name = "en", column = @Column(name = "description_en", nullable = false))
     private Localized description = Localized.EMPTY;
 
+    // ── case study (Markdown): context, role, challenges, results ──
+    @Embedded
+    @AttributeOverride(name = "fr", column = @Column(name = "context_fr", nullable = false))
+    @AttributeOverride(name = "en", column = @Column(name = "context_en", nullable = false))
+    private Localized context = Localized.EMPTY;
+
+    @Embedded
+    @AttributeOverride(name = "fr", column = @Column(name = "role_fr", nullable = false))
+    @AttributeOverride(name = "en", column = @Column(name = "role_en", nullable = false))
+    private Localized role = Localized.EMPTY;
+
+    @Embedded
+    @AttributeOverride(name = "fr", column = @Column(name = "challenges_fr", nullable = false))
+    @AttributeOverride(name = "en", column = @Column(name = "challenges_en", nullable = false))
+    private Localized challenges = Localized.EMPTY;
+
+    @Embedded
+    @AttributeOverride(name = "fr", column = @Column(name = "results_fr", nullable = false))
+    @AttributeOverride(name = "en", column = @Column(name = "results_en", nullable = false))
+    private Localized results = Localized.EMPTY;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Status status = Status.DRAFT;
@@ -136,6 +157,14 @@ public class Project {
     public void setTagline(Localized tagline) { this.tagline = tagline; }
     public Localized getDescription() { return description; }
     public void setDescription(Localized description) { this.description = description; }
+    public Localized getContext() { return context; }
+    public void setContext(Localized v) { this.context = v == null ? Localized.EMPTY : v; }
+    public Localized getRole() { return role; }
+    public void setRole(Localized v) { this.role = v == null ? Localized.EMPTY : v; }
+    public Localized getChallenges() { return challenges; }
+    public void setChallenges(Localized v) { this.challenges = v == null ? Localized.EMPTY : v; }
+    public Localized getResults() { return results; }
+    public void setResults(Localized v) { this.results = v == null ? Localized.EMPTY : v; }
     public Status getStatus() { return status; }
     public boolean isFeatured() { return featured; }
     public void setFeatured(boolean featured) { this.featured = featured; }

@@ -20,7 +20,7 @@ const browserDistFolder = join(import.meta.dirname, '../browser');
 const API_BASE_URL = (process.env['API_BASE_URL'] ?? 'http://localhost:8080').replace(/\/$/, '');
 const PROXY_API = process.env['PROXY_API'] !== 'false';
 const IS_PROD = process.env['NODE_ENV'] === 'production';
-const PROXIED_FILES = new Set(['/sitemap.xml', '/robots.txt', '/llms.txt', '/llms-full.txt']);
+const PROXIED_FILES = new Set(['/sitemap.xml', '/robots.txt', '/llms.txt', '/llms-full.txt', '/fr/rss.xml', '/en/rss.xml']);
 const LANGS = ['fr', 'en'];
 
 // Hop-by-hop and body-framing headers that must never be copied through the proxy.

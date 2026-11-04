@@ -1023,8 +1023,7 @@
 }
 
 /* the reset zeroes every margin: dialogs need theirs to be centred */
-dialog.confirm,
-dialog.lightbox {
+dialog.confirm {
   margin: auto;
 }
 
@@ -1065,4 +1064,42 @@ dialog.lightbox {
   display: block;
   margin-top: 0.8rem;
   font-size: 0.9rem;
+}
+
+/* unsaved changes (forms) and texts still to translate (FR / EN tabs) */
+.unsaved {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.3rem;
+  font-size: 0.78rem;
+  color: #b45309;
+}
+
+.unsaved i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #d97706;
+  animation: unsaved-pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes unsaved-pulse {
+  50% {
+    opacity: 0.35;
+  }
+}
+
+.tab-miss {
+  display: inline-grid;
+  place-items: center;
+  min-width: 16px;
+  height: 16px;
+  margin-left: 4px;
+  padding: 0 4px;
+  border-radius: 99px;
+  background: #d97706;
+  color: #fff;
+  font: 700 9.5px/1 var(--font-body);
+  font-variant-numeric: tabular-nums;
 }

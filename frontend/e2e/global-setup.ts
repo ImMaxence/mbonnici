@@ -27,7 +27,8 @@ export default async function globalSetup(config: FullConfig): Promise<void> {
     const { id } = await staged.json();
     const applied = await api.post(`/api/admin/backups/stage/${id}/apply`, {
       headers: { 'X-XSRF-TOKEN': xsrf },
-      data: { mode: 'REPLACE' },
+      // force: an archive made by an older version restores too (new columns get their defaults)
+      data: { mode: 'REPLACE', force: true },
     });
     if (!applied.ok()) throw new Error(`restoring the starter archive failed: ${applied.status()} ${await applied.text()}`);
     await api.post('/api/auth/logout', { headers: { 'X-XSRF-TOKEN': xsrf } });

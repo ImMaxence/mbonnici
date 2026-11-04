@@ -13,11 +13,14 @@ type Block =
   | { t: 'p'; v: Inline[] }
   | { t: 'h'; level: 2 | 3; v: Inline[] }
   | { t: 'ul'; items: Inline[][] }
-  | { t: 'ol'; items: Inline[][] };
+  | { t: 'ol'; items: Inline[][] }
+  | { t: 'pre'; lang: string; code: string }
+  | { t: 'quote'; v: Inline[] };
 
 /**
- * Renders a small Markdown subset (paragraphs, headings, lists, bold, italic, code, links) through
- * Angular templates — never innerHTML — so content from the back office cannot inject markup.
+ * Renders a small Markdown subset (paragraphs, headings, lists, quotes, fenced code, bold, italic,
+ * inline code, links) through Angular templates — never innerHTML — so content from the back
+ * office cannot inject markup.
  */
 @Component({
   selector: 'app-md',
@@ -76,6 +79,12 @@ type Block =
             }
           </ol>
         }
+        @case ('quote') {
+          <blockquote><ng-container *ngTemplateOutlet="inline; context: { $implicit: b.v }" /></blockquote>
+        }
+        @case ('pre') {
+          <pre class="code" [attr.data-lang]="b.lang || null"><code>{{ b.code }}</code></pre>
+        }
       }
     }
   `,
@@ -109,6 +118,12 @@ export function parseMarkdown(src: string): Block[] {
   const blocks: Block[] = [];
   let para: string[] = [];
   let list: { t: 'ul' | 'ol'; items: string[] } | null = null;
+  let quote: string[] = [];
+  let fence: { lang: string; lines: string[] } | null = null;
+  const flushQuote = (): void => {
+    if (quote.length) blocks.push({ t: 'quote', v: parseInline(quote.join(' ')) });
+    quote = [];
+  };
   const flushPara = (): void => {
     if (para.length) blocks.push({ t: 'p', v: parseInline(para.join(' ')) });
     para = [];
@@ -119,11 +134,38 @@ export function parseMarkdown(src: string): Block[] {
   };
   for (const raw of src.replace(/\r\n?/g, '\n').split('\n')) {
     const line = raw.trimEnd();
+    // fenced code: kept verbatim until the closing fence
+    const fenceMark = /^\s{0,3}```\s*([\w+#-]*)\s*$/.exec(line);
+    if (fence) {
+      if (fenceMark && !fenceMark[1]) {
+        blocks.push({ t: 'pre', lang: fence.lang, code: fence.lines.join('\n') });
+        fence = null;
+      } else {
+        fence.lines.push(raw);
+      }
+      continue;
+    }
+    if (fenceMark) {
+      flushPara();
+      flushList();
+      flushQuote();
+      fence = { lang: fenceMark[1], lines: [] };
+      continue;
+    }
     if (!line.trim()) {
       flushPara();
       flushList();
+      flushQuote();
       continue;
     }
+    const q = /^\s{0,3}>\s?(.*)$/.exec(line);
+    if (q) {
+      flushPara();
+      flushList();
+      quote.push(q[1].trim());
+      continue;
+    }
+    flushQuote();
     const heading = /^\s{0,3}(#{1,6})\s+(.*?)\s*#*$/.exec(line);
     if (heading) {
       flushPara();
@@ -148,8 +190,10 @@ export function parseMarkdown(src: string): Block[] {
     flushList();
     para.push(line.trim());
   }
+  if (fence) blocks.push({ t: 'pre', lang: fence.lang, code: fence.lines.join('\n') });
   flushPara();
   flushList();
+  flushQuote();
   return blocks;
 }
 

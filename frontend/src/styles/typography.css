@@ -194,6 +194,47 @@ b {
   border-radius: var(--radius-xs);
 }
 
+.prose blockquote {
+  padding-left: 1.1em;
+  border-left: 2px solid var(--accent);
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 1.3em;
+  line-height: 1.45;
+  color: var(--fg);
+}
+
+.prose pre.code {
+  position: relative;
+  overflow-x: auto;
+  padding: 1.1em 1.25em;
+  border-radius: var(--radius-m);
+  background: var(--fg);
+  color: var(--bg);
+  font-size: 0.86em;
+  line-height: 1.6;
+  tab-size: 2;
+}
+
+.prose pre.code code {
+  padding: 0;
+  background: none;
+  font-size: 1em;
+  white-space: pre;
+}
+
+.prose pre.code[data-lang]::before {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0.6em;
+  right: 0.9em;
+  font-family: var(--font-mono);
+  font-size: 0.72em;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  opacity: 0.5;
+}
+
 .visually-hidden {
   position: absolute !important;
   width: 1px;

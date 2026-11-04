@@ -48,6 +48,10 @@ to publish projects, pictures and career updates without touching the code.
   **gallery slider**.
 - **Native JavaScript physics**: magnetic cursor, springs, frame-rate-independent damping.
 - **Text navigation** in a top bar that hides while reading; a full-screen menu on phones and tablets.
+- **Projects in a grid or a list** (the cover follows the pointer), **case studies**, live status of
+  each site ("Online · 120 ms") and GitHub figures, skills linked to the projects that use them,
+  an image viewer with swipe and keyboard, responsive WebP copies with a focal point.
+- **Notes** (Markdown articles with RSS) and a **CV as a PDF** generated from the About content.
 
 **Content & SEO**
 - French and English with localised URLs (`/fr/projets/meowtrix`, `/en/projects/meowtrix`),
@@ -60,7 +64,10 @@ to publish projects, pictures and career updates without touching the code.
 
 **Back office** (`/admin`, Google sign-in restricted to one e-mail address)
 - Dashboard with page views, unique visitors, project views, outbound clicks, daily traffic
-  chart, most viewed projects and pages, themes / languages / devices, referrers.
+  chart, most viewed projects and pages, themes / languages / devices, referrers, and **real-user
+  Core Web Vitals** (p75 per metric, device and page) measured without any identifier.
+- Draft **preview**, unsaved-changes guard, texts-to-translate counters, message archive and
+  search, unused pictures clean-up.
 - Frontend and backend versions, build date and commit, Java and Spring Boot versions, database
   and storage health — all on one card.
 - Projects: bilingual editor, live card preview, accent colour, media picker (cover, gallery, mobile),

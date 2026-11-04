@@ -7,6 +7,9 @@ app:
   url: http://localhost:4200
   admin-emails: admin@example.com
   trust-proxy: false
+  # no outbound calls to the live sites or GitHub during tests
+  insights:
+    enabled: false
   analytics:
     salt-secret: test-salt
   storage:

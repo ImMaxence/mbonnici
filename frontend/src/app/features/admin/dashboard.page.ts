@@ -4,7 +4,7 @@ import { TooltipDirective } from '../../shared/ui/tooltip.directive';
 import { AuthService } from '../../core/auth/auth.service';
 import { Component, DestroyRef, afterNextRender, computed, inject, signal } from '@angular/core';
 import { ApiService } from '../../core/api/api.service';
-import type { AdminInfo, AnalyticsOverview, KeyCount, SystemInfo } from '../../core/api/models';
+import type { AdminInfo, AnalyticsOverview, KeyCount, SystemInfo, VitalMetric, VitalsOverview } from '../../core/api/models';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { LocalizedPipe, TranslatePipe } from '../../core/i18n/translate.pipe';
 import { IconComponent } from '../../shared/ui/icon.component';
@@ -190,6 +190,63 @@ const PAD = { top: 16, right: 16, bottom: 28, left: 36 };
           <ng-container *ngTemplateOutlet="share; context: { $implicit: o.locales, title: ('admin.dashboard.locales' | t) }" />
           <ng-container *ngTemplateOutlet="share; context: { $implicit: o.themes, title: ('admin.dashboard.themes' | t) }" />
         </div>
+      </section>
+
+      <!-- ── real-user performance ── -->
+      <section class="panel vitals">
+        <div class="panel-head">
+          <h2>{{ 'admin.vitals.title' | t }}</h2>
+          <span class="small faint">{{ 'admin.vitals.subtitle' | t }}</span>
+        </div>
+        @if (vitals(); as v) {
+          @if (!hasVitals()) {
+            <div class="empty"><app-icon name="gauge" [size]="22" /><p>{{ 'admin.vitals.none' | t }}</p></div>
+          } @else {
+            <div class="vital-grid">
+              @for (m of v.metrics; track m.metric) {
+                <div class="vital" [attr.data-rating]="rating(m.metric, m.p75)" [appTip]="'admin.vitals.help.' + m.metric | t">
+                  <span class="v-name mono">{{ m.metric }}</span>
+                  <strong class="v-value">{{ m.p75 === null ? '—' : format(m.metric, m.p75) }}</strong>
+                  <span class="v-label small">{{ 'admin.vitals.label.' + m.metric | t }}</span>
+                  <span class="v-bar" aria-hidden="true">
+                    <i class="good" [style.flex-grow]="m.good"></i><i class="ni" [style.flex-grow]="m.needsImprovement"></i><i class="poor" [style.flex-grow]="m.poor"></i>
+                  </span>
+                  <span class="v-samples small faint mono">{{ 'admin.vitals.samples' | t: { n: m.samples } }}</span>
+                </div>
+              }
+            </div>
+            <div class="vital-foot">
+              <div class="devices">
+                @for (d of devices(); track d.key) {
+                  <div class="device">
+                    <span class="small"><app-icon [name]="d.key === 'mobile' ? 'phone' : 'monitor'" [size]="14" /> {{ 'admin.vitals.device.' + d.key | t }}</span>
+                    @for (m of d.stats; track m.metric) {
+                      <span class="mono small chip-v" [attr.data-rating]="rating(m.metric, m.p75)">{{ m.metric }} {{ m.p75 === null ? '—' : format(m.metric, m.p75) }}</span>
+                    }
+                  </div>
+                }
+              </div>
+              @if (v.pages.length) {
+                <table class="table vital-pages">
+                  <thead>
+                    <tr><th>{{ 'admin.vitals.page' | t }}</th><th class="num">LCP</th><th class="num">INP</th><th class="num">CLS</th><th class="num">{{ 'admin.vitals.n' | t }}</th></tr>
+                  </thead>
+                  <tbody>
+                    @for (p of v.pages.slice(0, 6); track p.path) {
+                      <tr>
+                        <td class="mono small">{{ p.path }}</td>
+                        <td class="num" [attr.data-rating]="rating('LCP', p.lcp)">{{ p.lcp === null ? '—' : format('LCP', p.lcp) }}</td>
+                        <td class="num" [attr.data-rating]="rating('INP', p.inp)">{{ p.inp === null ? '—' : format('INP', p.inp) }}</td>
+                        <td class="num" [attr.data-rating]="rating('CLS', p.cls)">{{ p.cls === null ? '—' : format('CLS', p.cls) }}</td>
+                        <td class="num faint">{{ p.samples }}</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              }
+            </div>
+          }
+        }
       </section>
 
       <!-- ── system ── -->
@@ -511,6 +568,105 @@ const PAD = { top: 16, right: 16, bottom: 28, left: 36 };
       display: inline-flex;
       align-items: center;
       gap: 0.35rem;
+    }
+    .vitals {
+      margin-bottom: var(--space-5);
+    }
+    .vital-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 0.75rem;
+    }
+    .vital {
+      display: grid;
+      gap: 0.3rem;
+      padding: 0.9rem 1rem;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: var(--bg);
+    }
+    .v-name {
+      font-size: 0.7rem;
+      letter-spacing: 0.08em;
+      color: var(--fg-3);
+    }
+    .v-value {
+      font-family: var(--font-display);
+      font-size: 1.9rem;
+      letter-spacing: -0.03em;
+      line-height: 1;
+    }
+    [data-rating='good'] .v-value,
+    td[data-rating='good'],
+    .chip-v[data-rating='good'] {
+      color: #15803d;
+    }
+    [data-rating='ni'] .v-value,
+    td[data-rating='ni'],
+    .chip-v[data-rating='ni'] {
+      color: #b45309;
+    }
+    [data-rating='poor'] .v-value,
+    td[data-rating='poor'],
+    .chip-v[data-rating='poor'] {
+      color: #c62828;
+    }
+    .v-label {
+      color: var(--fg-2);
+    }
+    .v-bar {
+      display: flex;
+      gap: 2px;
+      height: 5px;
+      border-radius: 99px;
+      overflow: hidden;
+      background: var(--bg-3);
+    }
+    .v-bar i {
+      flex-basis: 0;
+    }
+    .v-bar .good {
+      background: #22a05a;
+    }
+    .v-bar .ni {
+      background: #e0a12a;
+    }
+    .v-bar .poor {
+      background: #e5484d;
+    }
+    .vital-foot {
+      display: grid;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+    @media (min-width: 1100px) {
+      .vital-foot {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
+        align-items: start;
+      }
+    }
+    .devices {
+      display: grid;
+      gap: 0.6rem;
+    }
+    .device {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.4rem 0.8rem;
+    }
+    .device > span:first-child {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      min-width: 7rem;
+      font-weight: 600;
+    }
+    .chip-v {
+      padding: 0.15rem 0.5rem;
+      border-radius: 6px;
+      background: var(--bg);
+      border: 1px solid var(--line);
     }
     .table-scroll {
       max-height: 300px;
@@ -863,10 +1019,39 @@ export class DashboardPage {
 
   private async load(): Promise<void> {
     try {
-      this.overview.set(await this.api.analytics(this.days()));
+      const [overview, vitals] = await Promise.all([this.api.analytics(this.days()), this.api.vitals(this.days()).catch(() => null)]);
+      this.overview.set(overview);
+      this.vitals.set(vitals);
     } catch (e) {
       this.error.set(String(e));
     }
+  }
+
+  // ── Core Web Vitals ────────────────────────────────────────────────────
+  readonly vitals = signal<VitalsOverview | null>(null);
+  readonly hasVitals = computed(() => (this.vitals()?.metrics ?? []).some((m) => m.samples > 0));
+  readonly devices = computed(() =>
+    Object.entries(this.vitals()?.byDevice ?? {})
+      .map(([key, stats]) => ({ key, stats }))
+      .filter((d) => d.stats.some((s) => s.samples > 0)),
+  );
+  private static readonly LIMITS: Record<VitalMetric, [number, number]> = {
+    LCP: [2500, 4000],
+    INP: [200, 500],
+    CLS: [0.1, 0.25],
+    FCP: [1800, 3000],
+    TTFB: [800, 1800],
+  };
+
+  rating(metric: VitalMetric | string, value: number | null): 'good' | 'ni' | 'poor' | null {
+    if (value === null) return null;
+    const [good, poor] = DashboardPage.LIMITS[metric as VitalMetric];
+    return value <= good ? 'good' : value <= poor ? 'ni' : 'poor';
+  }
+
+  format(metric: VitalMetric | string, value: number): string {
+    if (metric === 'CLS') return value.toFixed(2);
+    return value >= 1000 ? (value / 1000).toLocaleString(this.i18n.locale(), { maximumFractionDigits: 1 }) + ' s' : Math.round(value) + ' ms';
   }
 
   linePath(key: 'yViews' | 'yVisitors'): string {

@@ -19,12 +19,14 @@ import { IconComponent } from '../../shared/ui/icon.component';
 import { ConfirmService } from '../../shared/ui/confirm.service';
 import { TooltipDirective } from '../../shared/ui/tooltip.directive';
 import { SortMove, SortableDirective, moveItem } from '../../shared/ui/sortable.directive';
+import { MissingLangComponent } from './missing-lang.component';
+import { HasUnsavedChanges, snapshot, warnBeforeUnload } from './unsaved.guard';
 
 type Section = 'experience' | 'education' | 'skill';
 
 @Component({
   selector: 'app-admin-profile',
-  imports: [FormsModule, TranslatePipe, LocalizedPipe, IconComponent, TooltipDirective, SortableDirective],
+  imports: [FormsModule, TranslatePipe, LocalizedPipe, IconComponent, TooltipDirective, SortableDirective, MissingLangComponent],
   template: `
     <div class="admin-head">
       <h1>{{ 'admin.profile.title' | t }}</h1>
@@ -54,7 +56,7 @@ type Section = 'experience' | 'education' | 'skill';
         <div class="list-row sortable" data-sort-item>
           <button type="button" class="drag-handle" data-sort-handle [appTip]="'admin.projects.dragTip' | t"><app-icon name="drag" [size]="16" /></button>
           <span class="mono small faint dates">{{ e.startDate }} → {{ e.endDate ?? '…' }}</span>
-          <div><strong>{{ e.role | l }}</strong><span class="muted"> · {{ e.company }}</span></div>
+          <div><strong>{{ e.role | l }}</strong><span class="muted"> · {{ e.company }}</span> <app-missing-lang [fields]="[e.role, e.description]" /></div>
           <div class="row" style="gap:.4rem">
             <button type="button" class="icon-btn" (click)="startExperience(e)" [appTip]="'admin.projects.edit' | t"><app-icon name="edit" [size]="15" /></button>
             <button type="button" class="icon-btn danger" (click)="deleteItem('experience', e.id)" [appTip]="'admin.profile.delete' | t"><app-icon name="trash" [size]="15" /></button>
@@ -100,7 +102,7 @@ type Section = 'experience' | 'education' | 'skill';
         <div class="list-row sortable" data-sort-item>
           <button type="button" class="drag-handle" data-sort-handle [appTip]="'admin.projects.dragTip' | t"><app-icon name="drag" [size]="16" /></button>
           <span class="mono small faint dates">{{ e.startDate }} → {{ e.endDate ?? '…' }}</span>
-          <div><strong>{{ e.degree | l }}</strong><span class="muted"> · {{ e.school }}</span></div>
+          <div><strong>{{ e.degree | l }}</strong><span class="muted"> · {{ e.school }}</span> <app-missing-lang [fields]="[e.degree]" /></div>
           <div class="row" style="gap:.4rem">
             <button type="button" class="icon-btn" (click)="startEducation(e)" [appTip]="'admin.projects.edit' | t"><app-icon name="edit" [size]="15" /></button>
             <button type="button" class="icon-btn danger" (click)="deleteItem('education', e.id)" [appTip]="'admin.profile.delete' | t"><app-icon name="trash" [size]="15" /></button>
@@ -237,7 +239,9 @@ type Section = 'experience' | 'education' | 'skill';
     }
   `,
 })
-export class AdminProfilePage {
+export class AdminProfilePage implements HasUnsavedChanges {
+  /** the entry being edited, as it was when the form opened */
+  private editState = '';
   private readonly api = inject(ApiService);
   private readonly i18n = inject(I18nService);
   private readonly confirmDialog = inject(ConfirmService);
@@ -263,6 +267,17 @@ export class AdminProfilePage {
 
   constructor() {
     afterNextRender(() => this.load());
+    warnBeforeUnload(() => this.dirty());
+  }
+
+  private current(): unknown {
+    const s = this.editing();
+    return s === 'experience' ? this.exp : s === 'education' ? this.edu : s === 'skill' ? this.sk : null;
+  }
+
+  /** an open form holds changes */
+  dirty(): boolean {
+    return this.editing() !== null && snapshot(this.current()) !== this.editState;
   }
 
   async load(): Promise<void> {
@@ -279,6 +294,7 @@ export class AdminProfilePage {
       ? { ...e, role: { ...e.role }, description: { ...e.description }, skills: [...e.skills] }
       : { company: '', companyUrl: null, role: { fr: '', en: '' }, description: { fr: '', en: '' }, location: null, contractType: 'CDI', startDate: '', endDate: null, skills: [], sortOrder: 0 };
     this.editing.set('experience');
+    this.editState = snapshot(this.exp);
   }
 
   startEducation(e?: Education): void {
@@ -287,12 +303,14 @@ export class AdminProfilePage {
       ? { ...e, degree: { ...e.degree } }
       : { school: '', schoolUrl: null, degree: { fr: '', en: '' }, location: null, startDate: '', endDate: null, sortOrder: 0 };
     this.editing.set('education');
+    this.editState = snapshot(this.edu);
   }
 
   startSkill(s?: Skill): void {
     this.skId = s?.id;
     this.sk = s ? { name: s.name, category: s.category, level: s.level, sortOrder: s.sortOrder } : { name: '', category: 'TOOL', level: 3, sortOrder: 0 };
     this.editing.set('skill');
+    this.editState = snapshot(this.sk);
   }
 
   async saveExperience(): Promise<void> {

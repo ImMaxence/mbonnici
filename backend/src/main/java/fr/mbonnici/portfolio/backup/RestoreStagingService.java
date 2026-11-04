@@ -44,11 +44,11 @@ public class RestoreStagingService {
     private static final Logger log = LoggerFactory.getLogger(RestoreStagingService.class);
     private static final Duration TTL = Duration.ofHours(1);
     private static final int MAX_STAGED = 3;
-    private static final String MEDIA_KEY = "^\\d{4}/\\d{2}/[0-9a-f-]{36}\\.[a-z0-9]{3,4}$";
+    private static final String MEDIA_KEY = DatabaseDump.MEDIA_KEY;
 
     /** Tables offered for selection, in display order. */
-    static final List<String> VISIBLE = List.of("site_settings", "project", "experience", "education", "skill", "media",
-            "contact_message", "analytics_event");
+    static final List<String> VISIBLE = List.of("site_settings", "project", "article", "experience", "education", "skill",
+            "media", "contact_message", "analytics_event");
     /** Columns that change on every save and would make every row look modified. */
     private static final Set<String> VOLATILE = Set.of("updated_at");
 
@@ -84,15 +84,17 @@ public class RestoreStagingService {
     private final ArchiveMerger merger;
     private final StorageService storage;
     private final ObjectMapper mapper;
+    private final fr.mbonnici.portfolio.media.MediaService media;
     private final Map<String, Staged> staged = new ConcurrentHashMap<>();
 
     public RestoreStagingService(BackupService backups, DatabaseDump dump, ArchiveMerger merger, StorageService storage,
-            ObjectMapper mapper) {
+            ObjectMapper mapper, fr.mbonnici.portfolio.media.MediaService media) {
         this.backups = backups;
         this.dump = dump;
         this.merger = merger;
         this.storage = storage;
         this.mapper = mapper;
+        this.media = media;
     }
 
     // ── staging ──────────────────────────────────────────────────────────────
@@ -170,7 +172,15 @@ public class RestoreStagingService {
         }
         for (String table : DatabaseDump.TABLES) {
             if (!tables.containsKey(table)) {
-                throw new ApiException(HttpStatus.BAD_REQUEST, "archive is missing table " + table);
+                if (!DatabaseDump.OPTIONAL.contains(table)) {
+                    throw new ApiException(HttpStatus.BAD_REQUEST, "archive is missing table " + table);
+                }
+                // made before this table existed: nothing in it
+                try {
+                    tables.put(table, new PgCsv.Table(PgCsv.parse(dump.dumpTable(table)).header(), List.of()));
+                } catch (java.sql.SQLException ex) {
+                    throw new IOException("cannot read table " + table, ex);
+                }
             }
         }
         evictIfFull();
@@ -207,7 +217,7 @@ public class RestoreStagingService {
         Map<String, String> linksA = table.equals("project") ? linkSignatures(archiveAll.get("project_media")) : Map.of();
         Map<String, String> linksB = table.equals("project") ? linkSignatures(liveAll.get("project_media")) : Map.of();
         String uniqueCol = switch (table) {
-            case "project" -> "slug";
+            case "project", "article" -> "slug";
             case "media" -> "object_key";
             default -> null;
         };
@@ -308,7 +318,7 @@ public class RestoreStagingService {
     private static String label(String table, PgCsv.Table t, List<String> r) {
         return switch (table) {
             case "site_settings" -> t.get(r, "owner_name");
-            case "project" -> t.get(r, "title_fr");
+            case "project", "article" -> t.get(r, "title_fr");
             case "experience" -> t.get(r, "company") + " — " + t.get(r, "role_fr");
             case "education" -> t.get(r, "school");
             case "skill" -> t.get(r, "name");
@@ -321,7 +331,7 @@ public class RestoreStagingService {
     private static String detail(String table, PgCsv.Table t, List<String> r) {
         return switch (table) {
             case "site_settings" -> t.get(r, "headline_fr");
-            case "project" -> "/" + t.get(r, "slug") + " · " + t.get(r, "status");
+            case "project", "article" -> "/" + t.get(r, "slug") + " · " + t.get(r, "status");
             case "experience" -> t.get(r, "start_date") + " → " + Objects.requireNonNullElse(t.get(r, "end_date"), "…");
             case "education" -> t.get(r, "degree_fr");
             case "skill" -> t.get(r, "category") + " · " + t.get(r, "level");
@@ -346,6 +356,8 @@ public class RestoreStagingService {
         }
         RunDto run = backups.exclusive(s.trigger(), s.source(), () -> mode == Mode.REPLACE ? replace(s, req.forced()) : merge(s, req));
         discard(id);
+        // pictures restored without their responsive copies get them back in the background
+        media.backfillVariants();
         return run;
     }
 
@@ -378,6 +390,12 @@ public class RestoreStagingService {
         for (List<String> p : projects.rows()) {
             if (ids.get("project").contains(projects.get(p, "id")) && projects.get(p, "cover_media_id") != null) {
                 needed.add(projects.get(p, "cover_media_id"));
+            }
+        }
+        PgCsv.Table articles = s.tables().get("article");
+        for (List<String> a : articles.rows()) {
+            if (ids.get("article").contains(articles.get(a, "id")) && articles.get(a, "cover_media_id") != null) {
+                needed.add(articles.get(a, "cover_media_id"));
             }
         }
         PgCsv.Table settingsTable = s.tables().get("site_settings");
@@ -424,7 +442,8 @@ public class RestoreStagingService {
             ZipEntry e;
             while ((e = zip.getNextEntry()) != null) {
                 String name = e.getName();
-                if (name.startsWith("media/") && keys.contains(name.substring(6))) {
+                // the original and its responsive copies
+                if (name.startsWith("media/") && keys.contains(name.substring(6).replaceFirst("-w\\d{3,4}(\\.[a-z0-9]+)$", "$1"))) {
                     String key = name.substring(6);
                     storage.put(key, s.mediaTypes().getOrDefault(key, "application/octet-stream"), zip.readAllBytes());
                     n++;

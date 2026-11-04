@@ -6,13 +6,15 @@ import { LinkDirective } from '../curtain/link.directive';
 import { CursorDirective } from '../cursor/cursor.directive';
 import { IconComponent } from './icon.component';
 import { ShowcaseComponent } from './showcase.component';
+import { StatusPillComponent } from './status-pill.component';
+import { InsightsStore } from '../../core/api/insights.store';
 import { stripDot } from './text';
 
 /** Project tile: the real landing page (desktop + phone) with title, year and stack underneath. */
 @Component({
   selector: 'app-project-card',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [TranslatePipe, LinkDirective, CursorDirective, IconComponent, ShowcaseComponent],
+  imports: [TranslatePipe, LinkDirective, CursorDirective, IconComponent, ShowcaseComponent, StatusPillComponent],
   template: `
     <a
       class="pc"
@@ -47,6 +49,9 @@ import { stripDot } from './text';
         </div>
         <p class="tagline">{{ tagline() }}</p>
         <p class="meta mono">
+          @if (insight()?.site; as site) {
+            <app-status-pill [site]="site" />
+          }
           <span>{{ 'categories.' + project().category | t }}</span>
           @if (project().year) {
             <span>{{ project().year }}</span>
@@ -138,5 +143,7 @@ export class ProjectCardComponent {
   readonly title = computed(() => this.i18n.l(this.project().title));
   readonly tagline = computed(() => stripDot(this.i18n.l(this.project().tagline)));
   readonly path = computed(() => this.i18n.path('project', this.project().slug));
+  private readonly insights = inject(InsightsStore);
+  readonly insight = computed(() => this.insights.of(this.project().slug));
 }
 

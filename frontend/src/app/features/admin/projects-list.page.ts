@@ -8,10 +8,12 @@ import { IconComponent } from '../../shared/ui/icon.component';
 import { ConfirmService } from '../../shared/ui/confirm.service';
 import { TooltipDirective } from '../../shared/ui/tooltip.directive';
 import { SortMove, SortableDirective, moveItem } from '../../shared/ui/sortable.directive';
+import { MissingLangComponent } from './missing-lang.component';
+import { CASE_STUDY_KEYS } from '../../core/api/models';
 
 @Component({
   selector: 'app-admin-projects',
-  imports: [RouterLink, TranslatePipe, LocalizedPipe, IconComponent, TooltipDirective, SortableDirective],
+  imports: [RouterLink, TranslatePipe, LocalizedPipe, IconComponent, TooltipDirective, SortableDirective, MissingLangComponent],
   template: `
     <div class="admin-head">
       <div>
@@ -42,6 +44,7 @@ import { SortMove, SortableDirective, moveItem } from '../../shared/ui/sortable.
                     <app-icon name="star" [size]="14" />
                   }
                   <span class="status-pill" [attr.data-status]="p.status">{{ 'admin.projects.status.' + p.status | t }}</span>
+                  <app-missing-lang [fields]="texts(p)" />
                 </div>
                 <div class="small faint mono">/{{ p.slug }} · {{ 'categories.' + p.category | t }} · {{ p.year ?? '—' }}</div>
               </div>
@@ -109,6 +112,10 @@ export class ProjectsListPage {
     if (!ok) return;
     await this.api.deleteProject(p.id);
     this.projects.update((list) => list.filter((x) => x.id !== p.id));
+  }
+
+  texts(p: AdminProject) {
+    return [p.title, p.tagline, p.description, ...CASE_STUDY_KEYS.map((k) => p.caseStudy?.[k])];
   }
 
   // ── reordering (SortableDirective) ─────────────────────────────────────────

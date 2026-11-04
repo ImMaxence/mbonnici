@@ -38,6 +38,12 @@ public class AdminProjectController {
         return service.getAdmin(id);
     }
 
+    /** the public page as it will look, drafts included */
+    @GetMapping("/{id}/preview")
+    public ProjectDtos.Detail preview(@PathVariable UUID id) {
+        return service.preview(id);
+    }
+
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public Admin create(@Valid @RequestBody Upsert body) {

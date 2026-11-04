@@ -27,6 +27,9 @@ import { IconComponent } from './icon.component';
             <a [appLink]="i18n.path('home')" [linkLabel]="'nav.home' | t">{{ 'nav.home' | t }}</a>
             <a [appLink]="i18n.path('projects')" [linkLabel]="'nav.projects' | t">{{ 'nav.projects' | t }}</a>
             <a [appLink]="i18n.path('about')" [linkLabel]="'nav.about' | t">{{ 'nav.about' | t }}</a>
+            @if (settings()?.hasNotes) {
+              <a [appLink]="i18n.path('notes')" [linkLabel]="'nav.notes' | t">{{ 'nav.notes' | t }}</a>
+            }
             <a [appLink]="i18n.path('contact')" [linkLabel]="'nav.contact' | t">{{ 'nav.contact' | t }}</a>
           </nav>
           <div class="col links">
@@ -37,6 +40,7 @@ import { IconComponent } from './icon.component';
             @if (settings()?.linkedinUrl; as li) {
               <a [href]="li" target="_blank" rel="noopener noreferrer me">LinkedIn <app-icon name="arrow-up-right" [size]="14" /></a>
             }
+            <a [href]="'/api/cv?lang=' + i18n.lang()" target="_blank" rel="noopener">{{ 'footer.cv' | t }} <app-icon name="arrow-up-right" [size]="14" /></a>
             <a href="https://github.com/ImMaxence/mbonnici" target="_blank" rel="noopener noreferrer">{{ 'footer.source' | t }} <app-icon name="arrow-up-right" [size]="14" /></a>
           </div>
         </div>

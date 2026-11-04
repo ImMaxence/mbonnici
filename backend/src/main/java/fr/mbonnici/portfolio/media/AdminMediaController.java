@@ -3,7 +3,10 @@ package fr.mbonnici.portfolio.media;
 import fr.mbonnici.portfolio.common.Localized;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -39,6 +42,8 @@ public class AdminMediaController {
 
     public record AltInput(@Size(max = 300) String fr, @Size(max = 300) String en) {}
 
+    public record FocalInput(@DecimalMin("0") @DecimalMax("1") double x, @DecimalMin("0") @DecimalMax("1") double y) {}
+
     @GetMapping
     public PageDto<MediaDto> list(@RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "40") int size) {
@@ -58,9 +63,32 @@ public class AdminMediaController {
         return service.updateAlt(id, Localized.of(in.fr(), in.en()));
     }
 
+    @PutMapping("/{id}/focal")
+    public MediaDto updateFocal(@PathVariable UUID id, @Valid @RequestBody FocalInput in) {
+        return service.updateFocal(id, in.x(), in.y());
+    }
+
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable UUID id) {
         service.delete(id);
+    }
+
+    /** images referenced by no project, article or setting */
+    @GetMapping("/unused")
+    public Map<String, List<UUID>> unused() {
+        return Map.of("ids", service.unused());
+    }
+
+    @DeleteMapping("/unused")
+    public Map<String, Integer> deleteUnused() {
+        return Map.of("deleted", service.deleteUnused());
+    }
+
+    /** (re)makes the missing responsive copies in the background */
+    @PostMapping("/variants")
+    public Map<String, Boolean> variants() {
+        boolean started = service.backfillVariants();
+        return Map.of("started", started, "running", service.isBackfilling());
     }
 }

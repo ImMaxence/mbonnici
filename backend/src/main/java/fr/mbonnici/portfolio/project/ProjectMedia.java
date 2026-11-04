@@ -55,4 +55,10 @@ public class ProjectMedia {
     public Media getMedia() { return media; }
     public Kind getKind() { return kind; }
     public int getSortOrder() { return sortOrder; }
+
+    /** a link kept across an update gets its new role and position */
+    void place(Kind kind, int sortOrder) {
+        this.kind = kind == null ? Kind.GALLERY : kind;
+        this.sortOrder = sortOrder;
+    }
 }

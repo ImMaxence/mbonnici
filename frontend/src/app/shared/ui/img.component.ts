@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
 import type { MediaDto } from '../../core/api/models';
 import { I18nService } from '../../core/i18n/i18n.service';
+import { focalPosition } from './shots';
 
 /**
  * Image with reserved aspect ratio (no layout shift) and a blurred inline placeholder that
@@ -16,6 +17,8 @@ import { I18nService } from '../../core/i18n/i18n.service';
       }
       <img
         [src]="media().url"
+        [attr.srcset]="media().srcset || null"
+        [style.object-position]="position()"
         [alt]="alt()"
         [attr.width]="media().width"
         [attr.height]="media().height"
@@ -74,6 +77,7 @@ export class ImgComponent {
   private readonly i18n = inject(I18nService);
   readonly loaded = signal(false);
   readonly alt = computed(() => this.i18n.l(this.media().alt));
+  readonly position = computed(() => focalPosition(this.media()));
   readonly ratio = computed(() => {
     const m = this.media();
     return m.width && m.height ? `${m.width} / ${m.height}` : '16 / 10';

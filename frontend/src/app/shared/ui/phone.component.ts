@@ -20,7 +20,7 @@ import type { Visual } from './shots';
             <span class="icons"><i class="sig"><i></i><i></i><i></i><i></i></i><i class="wifi"></i><i class="bat"><i></i></i></span>
           </span>
         }
-        <img class="shot" [src]="shot().src" [alt]="alt()" [width]="shot().w" [height]="shot().h" [attr.loading]="eager() ? 'eager' : 'lazy'" decoding="async" draggable="false" />
+        <img class="shot" [src]="shot().src" [attr.srcset]="shot().srcset || null" [attr.sizes]="shot().srcset ? '(max-width: 720px) 45vw, 22vw' : null" [alt]="alt()" [width]="shot().w" [height]="shot().h" [attr.loading]="eager() ? 'eager' : 'lazy'" decoding="async" draggable="false" />
       </div>
       <img class="bezel" src="/img/devices/phone.svg" alt="" width="1350" height="2760" aria-hidden="true" draggable="false" [attr.loading]="eager() ? 'eager' : 'lazy'" decoding="async" />
     </div>

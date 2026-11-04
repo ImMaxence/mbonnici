@@ -66,6 +66,22 @@ test.describe('projects', () => {
     await expect(slider.locator('.count')).toContainText('02');
   });
 
+  test('gallery images open in a viewer with navigation', async ({ page }) => {
+    await page.goto('/fr/projets/localatscv');
+    const slider = page.locator('app-slider');
+    await slider.scrollIntoViewIfNeeded();
+    await slider.locator('.slide .open').first().click();
+    const viewer = page.locator('dialog.viewer');
+    await expect(viewer).toBeVisible();
+    await expect(viewer.locator('.lb-count')).toContainText('01');
+    await viewer.getByRole('button', { name: 'Suivant' }).click();
+    await expect(viewer.locator('.lb-count')).toContainText('02');
+    await page.keyboard.press('ArrowLeft');
+    await expect(viewer.locator('.lb-count')).toContainText('01');
+    await page.keyboard.press('Escape');
+    await expect(viewer).toBeHidden();
+  });
+
   test('mobile version is shown in the phone mock-up', async ({ page }) => {
     await page.goto('/fr/projets/meowtrix');
     const phone = page.locator('section.mobile app-phone').first();

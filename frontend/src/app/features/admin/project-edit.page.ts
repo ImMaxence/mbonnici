@@ -21,6 +21,9 @@ import { IconComponent } from '../../shared/ui/icon.component';
 import { MediaPickerComponent } from './media-picker.component';
 import { TooltipDirective } from '../../shared/ui/tooltip.directive';
 import { SortMove, SortableDirective, moveItem } from '../../shared/ui/sortable.directive';
+import { CASE_STUDY_KEYS } from '../../core/api/models';
+import { HasUnsavedChanges, snapshot, warnBeforeUnload } from './unsaved.guard';
+import { missingIn } from './missing-lang.component';
 
 interface MediaRow {
   media: MediaDto;
@@ -33,6 +36,12 @@ function emptyForm(): ProjectUpsert {
     title: { fr: '', en: '' },
     tagline: { fr: '', en: '' },
     description: { fr: '', en: '' },
+    caseStudy: {
+      context: { fr: '', en: '' },
+      role: { fr: '', en: '' },
+      challenges: { fr: '', en: '' },
+      results: { fr: '', en: '' },
+    },
     status: 'DRAFT',
     featured: false,
     sortOrder: 0,
@@ -59,12 +68,26 @@ function emptyForm(): ProjectUpsert {
       <div>
         <a class="small link" routerLink="/admin/projects">← {{ 'admin.nav.projects' | t }}</a>
         <h1>{{ (id() ? 'admin.projectForm.titleEdit' : 'admin.projectForm.titleNew') | t }}</h1>
+        @if (dirty()) {
+          <span class="unsaved" role="status"><i aria-hidden="true"></i>{{ 'admin.unsaved.badge' | t }}</span>
+        }
       </div>
       <div class="row">
         <div class="lang-tabs" role="tablist">
-          <button type="button" role="tab" [attr.aria-selected]="lang() === 'fr'" (click)="lang.set('fr')">FR</button>
-          <button type="button" role="tab" [attr.aria-selected]="lang() === 'en'" (click)="lang.set('en')">EN</button>
+          @for (l of langs; track l) {
+            <button type="button" role="tab" [attr.aria-selected]="lang() === l" (click)="lang.set(l)">
+              {{ l | uppercase }}
+              @if (missing(l); as n) {
+                <span class="tab-miss" [appTip]="(n === 1 ? 'admin.translate.one' : 'admin.translate.many') | t: { n: n, lang: (l | uppercase) }">{{ n }}</span>
+              }
+            </button>
+          }
         </div>
+        @if (id()) {
+          <a class="btn btn-ghost" [href]="'/admin/preview/projects/' + id()" target="_blank" rel="noopener" [appTip]="'admin.preview.tip' | t">
+            <app-icon name="eye" [size]="16" /> {{ 'admin.preview.open' | t }}
+          </a>
+        }
         <button type="button" class="btn btn-accent" (click)="save()" [disabled]="saving()">
           {{ (saving() ? 'admin.projectForm.saving' : 'admin.projectForm.save') | t }}
         </button>
@@ -98,6 +121,19 @@ function emptyForm(): ProjectUpsert {
             <textarea id="f-desc" class="textarea" name="description" rows="10" [(ngModel)]="form.description[lang()]"></textarea>
             <span class="field-hint">{{ 'admin.projectForm.descriptionHint' | t }}</span>
           </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2 class="panel-title">{{ 'admin.projectForm.caseStudy' | t }} — {{ lang() | uppercase }}</h2>
+        <p class="small faint" style="margin: -0.4rem 0 1rem; max-width: 70ch">{{ 'admin.projectForm.caseStudyHint' | t }}</p>
+        <div class="form-grid cols-2">
+          @for (k of caseKeys; track k) {
+            <div class="field">
+              <label [for]="'f-case-' + k">{{ 'project.case.' + k | t }}</label>
+              <textarea [id]="'f-case-' + k" class="textarea" [name]="'case-' + k" rows="5" [(ngModel)]="form.caseStudy[k][lang()]" [placeholder]="'admin.projectForm.casePlaceholder.' + k | t"></textarea>
+            </div>
+          }
         </div>
       </div>
 
@@ -255,8 +291,12 @@ function emptyForm(): ProjectUpsert {
     }
   `,
 })
-export class ProjectEditPage {
+export class ProjectEditPage implements HasUnsavedChanges {
   readonly id = input<string>();
+  readonly langs: Lang[] = ['fr', 'en'];
+  readonly caseKeys = CASE_STUDY_KEYS;
+  /** the last saved state, to tell whether the form holds changes */
+  private savedState = '';
   private readonly api = inject(ApiService);
   private readonly router = inject(Router);
   readonly i18n = inject(I18nService);
@@ -285,11 +325,27 @@ export class ProjectEditPage {
     afterNextRender(() => {
       const id = this.id();
       if (id) this.load(id);
+      else this.savedState = this.state();
     });
+    warnBeforeUnload(() => this.dirty());
     effect(() => {
       // keep form in sync with route changes new → edit
       this.id();
     });
+  }
+
+  private state(): string {
+    return snapshot({ form: this.form, rows: this.rows().map((r) => [r.media.id, r.kind]) });
+  }
+
+  dirty(): boolean {
+    return this.savedState !== '' && this.state() !== this.savedState;
+  }
+
+  /** texts written in the other language but empty in this one */
+  missing(lang: Lang): number {
+    const f = this.form;
+    return missingIn(lang, [f.title, f.tagline, f.description, ...CASE_STUDY_KEYS.map((k) => f.caseStudy[k])]);
   }
 
   moveRow(m: SortMove): void {
@@ -312,6 +368,12 @@ export class ProjectEditPage {
         title: { ...p.title },
         tagline: { ...p.tagline },
         description: { ...p.description },
+        caseStudy: {
+          context: { ...(p.caseStudy?.context ?? { fr: '', en: '' }) },
+          role: { ...(p.caseStudy?.role ?? { fr: '', en: '' }) },
+          challenges: { ...(p.caseStudy?.challenges ?? { fr: '', en: '' }) },
+          results: { ...(p.caseStudy?.results ?? { fr: '', en: '' }) },
+        },
         status: p.status,
         featured: p.featured,
         sortOrder: p.sortOrder,
@@ -331,6 +393,7 @@ export class ProjectEditPage {
       this.coverMedia.set(p.cover);
       this.rows.set(p.media.map((m) => ({ media: m.media, kind: m.kind })));
       this.bump();
+      this.savedState = this.state();
     } catch (e) {
       this.error.set(String(e));
     }
@@ -384,8 +447,9 @@ export class ProjectEditPage {
       const saved = id ? await this.api.updateProject(id, body) : await this.api.createProject(body);
       this.saved.set(true);
       setTimeout(() => this.saved.set(false), 2000);
+      this.form.slug = saved.slug;
+      this.savedState = this.state();
       if (!id) await this.router.navigate(['/admin/projects', saved.id]);
-      else this.form.slug = saved.slug;
     } catch (e) {
       if (e instanceof HttpErrorResponse) {
         const body = e.error as ApiError | null;

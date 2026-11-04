@@ -4,6 +4,8 @@ import { ActivatedRoute, NavigationEnd, Router, RouterOutlet } from '@angular/ro
 import { filter } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AnalyticsService } from './core/analytics/analytics.service';
+import { VitalsService } from './core/analytics/vitals.service';
+import { InsightsStore } from './core/api/insights.store';
 import { I18nService } from './core/i18n/i18n.service';
 import { TranslatePipe } from './core/i18n/translate.pipe';
 import { MotionService } from './core/motion/motion.service';
@@ -43,6 +45,8 @@ export class App {
   private readonly scroll = inject(ScrollService);
   private readonly analytics = inject(AnalyticsService);
   private readonly transition = inject(TransitionService);
+  private readonly vitals = inject(VitalsService);
+  private readonly insights = inject(InsightsStore);
   private readonly browser = isPlatformBrowser(inject(PLATFORM_ID));
   private readonly destroyRef = inject(DestroyRef);
 
@@ -65,6 +69,7 @@ export class App {
         this.transition.onNavigationEnd();
         if (this.browser) {
           this.analytics.pageView(url.split('?')[0]);
+          if (!url.startsWith('/admin')) this.insights.ensure();
           // announce the new page to screen readers (pages set the document title)
           setTimeout(() => this.announcement.set(document.title), 400);
         }
@@ -81,7 +86,10 @@ export class App {
       this.scroll.start();
       this.analytics.init();
       if (!this.isAdmin()) {
-        this.analytics.pageView(this.router.url.split('?')[0]);
+        // the landing page: the router may not have settled on it yet, the address bar has
+        this.analytics.pageView(location.pathname);
+        this.vitals.start(location.pathname);
+        this.insights.ensure();
       }
     });
   }

@@ -106,7 +106,7 @@ public class AnalyticsService {
         List<DailyPoint> daily = repository.daily(since).stream()
                 .map(r -> new DailyPoint((String) r[0], toLong(r[1]), toLong(r[2]))).toList();
         List<ProjectStat> top = repository.topProjects(since, 10).stream()
-                .map(r -> new ProjectStat((String) r[0], Localized.of((String) r[1], (String) r[2]), toLong(r[3]),
+                .map(r -> new ProjectStat((String) r[0], Localized.of((String) r[1], (String) r[2]).filled(), toLong(r[3]),
                         toLong(r[4]))).toList();
 
         return new Overview(d,

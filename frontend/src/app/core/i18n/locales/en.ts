@@ -3,6 +3,7 @@ import type { Dictionary } from './fr';
 /** English dictionary — must mirror fr.ts key for key (enforced by the Dictionary type). */
 export const en: Dictionary = {
   meta: {
+    notes: { title: 'Notes', description: 'Notes by Maxence Bonnici: web development, self-hosting, tools and lessons learned' },
     siteName: 'Maxence Bonnici',
     home: {
       title: 'Maxence Bonnici — Full Stack Developer, Java & Angular',
@@ -35,6 +36,7 @@ export const en: Dictionary = {
   },
 
   nav: {
+    notes: 'Notes',
     home: 'Home',
     projects: 'Projects',
     about: 'About',
@@ -123,6 +125,14 @@ export const en: Dictionary = {
   },
 
   projects: {
+    usedIn: 'used in {n} projects',
+    usedInOne: 'used in 1 project',
+    with: 'with',
+    clearTech: 'Remove the {tech} filter',
+    allWith: 'All projects with {tech}',
+    view: 'View',
+    viewGrid: 'Grid',
+    viewList: 'List',
     titleA: 'Projects',
     titleB: 'online',
     subtitle: 'Web applications, 100% in-browser tools, games and showcase sites, all live or on GitHub',
@@ -133,6 +143,21 @@ export const en: Dictionary = {
   },
 
   project: {
+    online: 'Online',
+    offline: 'Offline',
+    checkedAt: 'Checked at {time}',
+    status: 'Status',
+    pushed: 'updated {when}',
+    caseStudy: 'Case study',
+    caseStudyTitle: 'From the need to the result',
+    case: {
+      context: 'Context',
+      role: 'My role',
+      challenges: 'Challenges',
+      results: 'Results',
+    },
+    similar: 'Something similar in mind?',
+    similarCta: 'Let’s talk',
     backToProjects: 'All projects',
     about: 'About the project',
     visit: 'Visit the site',
@@ -156,6 +181,7 @@ export const en: Dictionary = {
   },
 
   about: {
+    cv: 'Download my resume',
     titleA: 'Full stack',
     titleB: 'by conviction',
     subtitle: 'from the database schema to the last pixel',
@@ -191,6 +217,8 @@ export const en: Dictionary = {
     direct: 'Directly',
     socials: 'Social',
     form: {
+      about: 'About',
+      prefill: 'Hello, I saw the {title} project and would like to talk about a similar one: ',
       title: 'Write a message',
       name: 'Your name',
       email: 'Your e-mail',
@@ -239,7 +267,7 @@ export const en: Dictionary = {
         {
           h: 'Typefaces',
           p: [
-            'The site uses the Inter and Inter Tight (Rasmus Andersson), Instrument Serif (Instrument) and JetBrains Mono (JetBrains) typefaces, all distributed under the SIL Open Font License 1.1, which allows their use on a website. They are bundled with the site through the Fontsource project and served from the same server as the pages: no request is sent to Google Fonts or any other third party.',
+            'The site uses the Inter and Inter Tight (Rasmus Andersson), Instrument Serif (Instrument) and JetBrains Mono (JetBrains) typefaces, all distributed under the SIL Open Font License 1.1, which allows their use on a website. They are bundled with the site through the Fontsource project and served from the same server as the pages: no request is sent to Google Fonts or any other third party. The same fonts are embedded in the PDF resume, which the licence allows.',
           ],
         },
         {
@@ -271,6 +299,7 @@ export const en: Dictionary = {
           p: [
             'To know which pages and projects are viewed, the site records anonymous events (page view, project view, outbound link). Each visit is tied to an ephemeral identifier computed from your IP address and browser, hashed with a salt that changes every day: you cannot be recognised from one day to the next and the IP address is never stored.',
             'Your browser’s “Do Not Track” and “Global Privacy Control” signals are honoured: no event is recorded when they are on. Raw events are deleted after 13 months.',
+            'To check that the site stays fast, your browser also sends, when you leave the first page you visited, a few performance measurements (display time, responsiveness, layout stability) with the page path and the screen width. They are tied to no identifier, not even a temporary one, follow the same signals and are deleted after 13 months.',
           ],
         },
         {
@@ -371,14 +400,15 @@ export const en: Dictionary = {
         {
           h: 'Non-accessible content',
           p: [
-            'Known non-compliances: project screenshots have a generic alternative text (“home page of…”) that does not describe their content in detail; the site loaded in “Live” mode is a third-party site whose accessibility does not depend on this site.',
+            'Known non-compliances: some project screenshots still have a generic alternative text (“home page of…”) that does not describe their content in detail. Each picture can be given a description from the back office, where pictures without alternative text are flagged; this statement will be updated once every description is written.',
+            'The site loaded in “Live” mode is a third-party site whose accessibility does not depend on this site. The PDF resume is generated from the content of the About page, which remains its accessible reference version.',
             'Exemption for disproportionate burden: none. Content outside the scope: third-party sites loaded in a frame at the visitor’s request.',
           ],
         },
         {
           h: 'Preparation of this statement',
           p: [
-            'This statement was prepared on 4 November 2026. Technologies used: HTML, CSS, JavaScript (Angular), SVG. Test environment: a recent Chromium browser (Playwright), on desktop and in a mobile viewport.',
+            'This statement was prepared on 4 November 2026 and updated with version 1.4.0 (notes, projects list view, picture viewer). Technologies used: HTML, CSS, JavaScript (Angular), SVG. Test environment: a recent Chromium browser (Playwright), on desktop and in a mobile viewport.',
             'The site follows system preferences: light or dark theme and reduced motion (the opening, transition and scroll animations are then disabled). Every feature can be used with a keyboard, a skip link leads straight to the content and each page change is announced to screen readers.',
           ],
         },
@@ -398,6 +428,25 @@ export const en: Dictionary = {
     },
   },
 
+  preview: {
+    label: 'Preview',
+    text: 'Only you can see this draft, as it will look once published',
+    back: 'Back to editing',
+  },
+
+  notes: {
+    titleA: 'Field',
+    titleB: 'notes',
+    subtitle: 'What I learn while building and hosting my projects: decisions, tools, useful mistakes',
+    empty: 'No note published yet',
+    read: 'Read',
+    minutes: '{n} min read',
+    all: 'All notes',
+    neighbours: 'Note navigation',
+    newer: 'Newer note',
+    older: 'Older note',
+  },
+
   notFound: {
     title: 'Lost on the way',
     text: 'This page does not exist, or no longer does',
@@ -405,6 +454,7 @@ export const en: Dictionary = {
   },
 
   footer: {
+    cv: 'Resume (PDF)',
     rights: '© {year} {owner} · Handmade, no CSS framework',
     say: 'Write to me',
     pages: 'Pages',
@@ -426,6 +476,64 @@ export const en: Dictionary = {
   },
 
   admin: {
+    unsaved: {
+      title: 'Leave without saving?',
+      message: 'The changes made on this page will be lost',
+      leave: 'Leave without saving',
+      stay: 'Stay on the page',
+      badge: 'Unsaved changes',
+    },
+    translate: {
+      one: '1 text to translate into {lang}',
+      many: '{n} texts to translate into {lang}',
+    },
+    preview: {
+      open: 'Preview',
+      tip: 'The public page as it will look, even as a draft (save your changes first)',
+    },
+    notes: {
+      title: 'Notes',
+      intro: 'Short Markdown articles, published in the Notes section of the site (it appears with the first published note)',
+      new: 'New note',
+      edit: 'Edit the note',
+      empty: 'No note yet',
+      first: 'Write the first note',
+      confirmDelete: 'Delete “{title}”?',
+      fieldTitle: 'Title',
+      summary: 'Summary',
+      summaryHint: 'One or two sentences, shown in the list, the RSS feed and link previews',
+      body: 'Text (Markdown)',
+      bodyHint: '## heading, **bold**, *italic*, `code`, [link](https://…), lists, > quote and ``` code blocks',
+      livePreview: 'Live preview',
+      previewEmpty: 'The rendered text shows here while you type',
+      slugHint: 'Leave empty to make it from the French title',
+      date: 'Publication date',
+      dateHint: 'Empty: the date of the first publication',
+      cover: 'Cover picture (optional)',
+    },
+    vitals: {
+      title: 'Real-user performance',
+      subtitle: 'Measured in visitors’ browsers (75th percentile), no cookie, no identifier',
+      none: 'No measurement yet: they come with visits',
+      samples: '{n} samples',
+      page: 'Page',
+      n: 'Samples',
+      device: { mobile: 'Phone', desktop: 'Computer' },
+      label: {
+        LCP: 'Main content shown',
+        INP: 'Response to clicks',
+        CLS: 'Layout stability',
+        FCP: 'First paint',
+        TTFB: 'Server response',
+      },
+      help: {
+        LCP: 'Largest Contentful Paint: good under 2.5 s',
+        INP: 'Interaction to Next Paint: good under 200 ms',
+        CLS: 'Cumulative Layout Shift: good under 0.1',
+        FCP: 'First Contentful Paint: good under 1.8 s',
+        TTFB: 'Time To First Byte: good under 0.8 s',
+      },
+    },
     title: 'Back office',
     navGroups: { overview: 'Overview', content: 'Content', site: 'Site' },
     login: {
@@ -441,6 +549,7 @@ export const en: Dictionary = {
       footer: 'Restricted access · refused attempts are logged',
     },
     nav: {
+      notes: 'Notes',
       dashboard: 'Dashboard',
       projects: 'Projects',
       media: 'Media',
@@ -513,6 +622,14 @@ export const en: Dictionary = {
       empty: 'No project yet. Create the first one!',
     },
     projectForm: {
+      caseStudy: 'Case study',
+      caseStudyHint: 'Four optional Markdown sections shown under the description (an empty section is not shown)',
+      casePlaceholder: {
+        context: 'For whom, which problem, which constraints',
+        role: 'What you did, alone or in a team',
+        challenges: 'The technical difficulties and how you solved them',
+        results: 'What the project changed, with figures if possible',
+      },
       titleNew: 'New project',
       titleEdit: 'Edit project',
       general: 'General',
@@ -557,6 +674,19 @@ export const en: Dictionary = {
       error: 'Could not save: {message}',
     },
     media: {
+      noAltCount: '{n} without alternative text',
+      unused: 'UNUSED',
+      unusedTip: 'No project, note or setting uses this picture',
+      unusedOnly: 'Unused only ({n})',
+      cleanUp: 'Delete the unused ones ({n})',
+      cleanUpTitle: 'Delete {n} unused pictures?',
+      cleanUpMessage: 'The files and their responsive copies will be erased from the storage. Make a backup first if needed',
+      cleaned: '{n} pictures deleted',
+      variantsTip: 'Make the missing responsive copies (640, 1280, 1920 px)',
+      variantsStarted: 'The missing copies are being made',
+      variantsRunning: 'A run is already in progress (or cwebp is missing)',
+      focal: 'Focal point',
+      focalHint: 'Click the part that must stay visible when the picture is cropped',
       title: 'Media library',
       count: '{n} image(s)',
       noAlt: 'No alternative text',
@@ -629,6 +759,14 @@ export const en: Dictionary = {
       saved: 'Settings saved',
     },
     messages: {
+      boxes: 'Boxes',
+      inbox: 'Inbox',
+      archive: 'Archive',
+      archiveOne: 'Archive',
+      unarchive: 'Move back to the inbox',
+      search: 'Search a name, an e-mail or a word',
+      noMatch: 'No message matches',
+      archiveEmpty: 'No archived message',
       title: 'Messages',
       unreadOnly: 'Unread only',
       count: '{n} message(s)',

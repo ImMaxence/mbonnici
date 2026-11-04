@@ -1,5 +1,5 @@
 import { Component, effect, inject, input } from '@angular/core';
-import { type Profile, type Settings } from '../../core/api/models';
+import { type Profile, type ProjectCard, type Settings } from '../../core/api/models';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { LocalizedPipe, TranslatePipe } from '../../core/i18n/translate.pipe';
 import { SeoService } from '../../core/seo/seo.service';
@@ -10,6 +10,7 @@ import { IconComponent } from '../../shared/ui/icon.component';
 import { MarkdownComponent } from '../../shared/ui/markdown.component';
 import { RevealDirective } from '../../shared/ui/reveal.directive';
 import { NoDotPipe } from '../../shared/ui/text';
+import { AnalyticsService } from '../../core/analytics/analytics.service';
 import { ToolboxComponent } from '../../shared/ui/toolbox.component';
 
 @Component({
@@ -46,6 +47,12 @@ import { ToolboxComponent } from '../../shared/ui/toolbox.component';
             }
             @if (settings()?.linkedinUrl; as li) {
               <a class="btn btn-ghost" [href]="li" target="_blank" rel="noopener noreferrer me" appMagnetic><app-icon name="linkedin" [size]="16" /> LinkedIn</a>
+            }
+            @if (profile()?.experiences?.length) {
+              <!-- generated from this page's content, always up to date -->
+              <a class="btn btn-ghost" [href]="'/api/cv?lang=' + i18n.lang() + '&download=true'" download (click)="cvDownloaded()" appMagnetic>
+                <app-icon name="download" [size]="16" /> {{ 'about.cv' | t }}
+              </a>
             }
             <a class="btn" [appLink]="i18n.path('contact')" [linkLabel]="'nav.contact' | t" appMagnetic>{{ 'home.ctaContact' | t }} <app-icon class="arrow" name="arrow-right" [size]="16" /></a>
           </div>
@@ -132,7 +139,7 @@ import { ToolboxComponent } from '../../shared/ui/toolbox.component';
           <span class="eyebrow" appReveal>{{ 'about.skills' | t }}</span>
           <h2 appReveal revealSplit="words">{{ 'about.skillsSub' | t }}</h2>
         </div>
-        <app-toolbox [skills]="profile()?.skills ?? []" />
+        <app-toolbox [skills]="profile()?.skills ?? []" [projects]="projects() ?? []" />
       </section>
       }
 
@@ -233,6 +240,14 @@ export class AboutPage {
   // resolved by the route and bound as inputs
   readonly settings = input<Settings>();
   readonly profile = input<Profile>();
+  private readonly analytics = inject(AnalyticsService);
+
+  cvDownloaded(): void {
+    this.analytics.outbound(undefined, this.i18n.path('about'));
+  }
+
+  /** published projects, for the skills that link to them */
+  readonly projects = input<ProjectCard[]>();
 
   constructor() {
     effect(() => {

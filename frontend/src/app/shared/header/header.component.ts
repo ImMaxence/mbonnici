@@ -44,7 +44,7 @@ interface NavItem {
         </a>
 
         <nav class="links" [attr.aria-label]="'nav.menu' | t">
-          @for (item of items(); track item.key) {
+          @for (item of items(); track $index) {
             <a [href]="item.path" [class.is-active]="item.active" [attr.aria-current]="item.active ? 'page' : null" (click)="go($event, item)">
               <span class="n" aria-hidden="true">{{ item.n }}</span>{{ item.label }}
             </a>
@@ -95,7 +95,7 @@ interface NavItem {
           </button>
         </div>
         <nav class="menu-links">
-          @for (item of allItems(); track item.key; let i = $index) {
+          @for (item of allItems(); track $index; let i = $index) {
             <a [href]="item.path" [class.is-active]="item.active" [attr.aria-current]="item.active ? 'page' : null" (click)="go($event, item)" [style.--i]="i">
               <span class="n" aria-hidden="true">{{ item.n }}</span>
               <span class="t">{{ item.label }}</span>
@@ -501,6 +501,8 @@ export class HeaderComponent {
       { key: 'home', label: d.home },
       { key: 'projects', label: d.projects },
       { key: 'about', label: d.about },
+      // only once a note is published
+      ...(this.store.settings()?.hasNotes ? [{ key: 'notes' as PageKey, label: d.notes }] : []),
       { key: 'contact', label: d.contact },
     ];
     return nav.map((n, i) => {

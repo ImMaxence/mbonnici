@@ -82,6 +82,12 @@ public class ProjectService {
         return projects.findAllByOrderBySortOrderAscCreatedAtDesc().stream().map(this::toAdmin).toList();
     }
 
+    /** The public page of any project, draft included (back-office preview). */
+    @Transactional(readOnly = true)
+    public Detail preview(UUID id) {
+        return toDetail(projects.findById(id).orElseThrow(() -> new NotFoundException("Project")), null, null);
+    }
+
     @Transactional(readOnly = true)
     public Admin getAdmin(UUID id) {
         return toAdmin(projects.findById(id).orElseThrow(() -> new NotFoundException("Project")));
@@ -153,9 +159,14 @@ public class ProjectService {
         if (in.title().isBlank()) {
             throw ApiException.badRequest("title is required in at least one language");
         }
-        p.setTitle(in.title().filled());
-        p.setTagline(in.tagline() == null ? Localized.EMPTY : in.tagline().filled());
-        p.setDescription(in.description() == null ? Localized.EMPTY : in.description().filled());
+        p.setTitle(Localized.clean(in.title()));
+        p.setTagline(Localized.clean(in.tagline()));
+        p.setDescription(Localized.clean(in.description()));
+        var cs = in.caseStudy();
+        p.setContext(cs == null ? Localized.EMPTY : Localized.clean(cs.context()));
+        p.setRole(cs == null ? Localized.EMPTY : Localized.clean(cs.role()));
+        p.setChallenges(cs == null ? Localized.EMPTY : Localized.clean(cs.challenges()));
+        p.setResults(cs == null ? Localized.EMPTY : Localized.clean(cs.results()));
         p.setStatus(in.status());
         p.setFeatured(Boolean.TRUE.equals(in.featured()));
         p.setSortOrder(in.sortOrder() == null ? 0 : in.sortOrder());
@@ -181,14 +192,33 @@ public class ProjectService {
                 loaded.computeIfAbsent(ref.mediaId(),
                         id -> mediaRepository.findById(id).orElseThrow(() -> new NotFoundException("Media " + id)));
             }
-            p.getMedia().clear();
+            // Links are reconciled, not cleared and re-added: Hibernate inserts before it deletes, so
+            // re-adding an image already linked would hit the (project_id, media_id) unique key.
+            Map<UUID, ProjectMedia> existing = new LinkedHashMap<>();
+            for (ProjectMedia pm : p.getMedia()) {
+                existing.put(pm.getMedia().getId(), pm);
+            }
+            List<ProjectMedia> next = new ArrayList<>();
             int i = 0;
             for (MediaRef ref : in.media()) {
-                Media m = loaded.get(ref.mediaId());
-                if (p.getMedia().stream().noneMatch(pm -> pm.getMedia().getId().equals(m.getId()))) {
-                    p.getMedia().add(ProjectMedia.of(p, m, ref.kind(), i++));
+                if (next.stream().anyMatch(pm -> pm.getMedia().getId().equals(ref.mediaId()))) {
+                    continue; // the same image twice
+                }
+                ProjectMedia kept = existing.remove(ref.mediaId());
+                if (kept != null) {
+                    kept.place(ref.kind(), i++);
+                    next.add(kept);
+                } else {
+                    next.add(ProjectMedia.of(p, loaded.get(ref.mediaId()), ref.kind(), i++));
                 }
             }
+            p.getMedia().removeIf(pm -> existing.containsKey(pm.getMedia().getId()));
+            for (ProjectMedia pm : next) {
+                if (!p.getMedia().contains(pm)) {
+                    p.getMedia().add(pm);
+                }
+            }
+            p.getMedia().sort(java.util.Comparator.comparingInt(ProjectMedia::getSortOrder));
         }
     }
 
@@ -223,7 +253,7 @@ public class ProjectService {
             (pm.getKind() == ProjectMedia.Kind.MOBILE ? mobile : gallery).add(MediaDto.from(pm.getMedia()));
         }
         return new Detail(p.getId(), p.getSlug(), p.getTitle().filled(), p.getTagline().filled(),
-                p.getDescription().filled(), p.getCategory(), p.getSceneType(), p.getDisplayMode(), p.getAccentColor(), p.getYear(),
+                p.getDescription().filled(), ProjectDtos.CaseStudy.from(p), p.getCategory(), p.getSceneType(), p.getDisplayMode(), p.getAccentColor(), p.getYear(),
                 List.copyOf(p.getStack()), List.copyOf(p.getTags()), p.isFeatured(), MediaDto.from(p.getCoverMedia()),
                 p.getLiveUrl(), p.getRepoUrl(), p.isAllowIframe(), gallery, mobile, p.getPublishedAt(), p.getUpdatedAt(),
                 previous, next);
@@ -234,7 +264,8 @@ public class ProjectService {
                 .map(pm -> new MediaItem(MediaDto.from(pm.getMedia()), pm.getKind(), pm.getSortOrder()))
                 .toList();
         Media cover = p.getCoverMedia();
-        return new Admin(p.getId(), p.getSlug(), p.getTitle(), p.getTagline(), p.getDescription(), p.getStatus(),
+        return new Admin(p.getId(), p.getSlug(), p.getTitle(), p.getTagline(), p.getDescription(),
+                new ProjectDtos.CaseStudy(p.getContext(), p.getRole(), p.getChallenges(), p.getResults()), p.getStatus(),
                 p.isFeatured(), p.getSortOrder(), p.getYear(), p.getCategory(), p.getSceneType(), p.getDisplayMode(), p.getAccentColor(),
                 cover == null ? null : cover.getId(), MediaDto.from(cover), p.getRepoUrl(), p.getLiveUrl(),
                 p.isAllowIframe(), List.copyOf(p.getStack()), List.copyOf(p.getTags()), items, p.getCreatedAt(),

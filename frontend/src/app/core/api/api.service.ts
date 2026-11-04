@@ -28,6 +28,13 @@ import type {
   SkillInput,
   StagedPreview,
   ApplyRestore,
+  AdminArticle,
+  ArticleDetail,
+  ArticleStatus,
+  ArticleUpsert,
+  Insight,
+  ProjectDetail,
+  VitalsOverview,
 } from './models';
 
 /** Absolute origin of the API during SSR (e.g. http://backend:8080); empty in the browser (same origin). */
@@ -53,6 +60,11 @@ export class ApiService {
     return firstValueFrom(this.http.post<void>('/api/contact', input));
   }
 
+  /** live status of the sites and GitHub figures, slug → insight (browser only, never blocks a page) */
+  insights(): Promise<Record<string, Insight>> {
+    return firstValueFrom(this.http.get<Record<string, Insight>>('/api/insights'));
+  }
+
   // ── auth ───────────────────────────────────────────────────────────────────
   me(): Promise<Me> {
     return firstValueFrom(this.http.get<Me>('/api/auth/me'));
@@ -65,6 +77,10 @@ export class ApiService {
   // ── admin: info & analytics ────────────────────────────────────────────────
   adminInfo(): Promise<AdminInfo> {
     return firstValueFrom(this.http.get<AdminInfo>('/api/admin/info'));
+  }
+
+  vitals(days: number): Promise<VitalsOverview> {
+    return firstValueFrom(this.http.get<VitalsOverview>('/api/admin/analytics/vitals', { params: { days } }));
   }
 
   analytics(days: number): Promise<AnalyticsOverview> {
@@ -90,6 +106,11 @@ export class ApiService {
 
   setProjectStatus(id: string, status: ProjectStatus): Promise<AdminProject> {
     return firstValueFrom(this.http.put<AdminProject>(`/api/admin/projects/${id}/status`, null, { params: { status } }));
+  }
+
+  /** the public page of a project as it will look, drafts included */
+  previewProject(id: string): Promise<ProjectDetail> {
+    return firstValueFrom(this.http.get<ProjectDetail>(`/api/admin/projects/${id}/preview`));
   }
 
   deleteProject(id: string): Promise<void> {
@@ -123,6 +144,49 @@ export class ApiService {
 
   deleteMedia(id: string): Promise<void> {
     return firstValueFrom(this.http.delete<void>(`/api/admin/media/${id}`));
+  }
+
+  updateMediaFocal(id: string, x: number, y: number): Promise<MediaDto> {
+    return firstValueFrom(this.http.put<MediaDto>(`/api/admin/media/${id}/focal`, { x, y }));
+  }
+
+  unusedMedia(): Promise<{ ids: string[] }> {
+    return firstValueFrom(this.http.get<{ ids: string[] }>('/api/admin/media/unused'));
+  }
+
+  deleteUnusedMedia(): Promise<{ deleted: number }> {
+    return firstValueFrom(this.http.delete<{ deleted: number }>('/api/admin/media/unused'));
+  }
+
+  makeMediaVariants(): Promise<{ started: boolean; running: boolean }> {
+    return firstValueFrom(this.http.post<{ started: boolean; running: boolean }>('/api/admin/media/variants', null));
+  }
+
+  // ── admin: notes ───────────────────────────────────────────────────────────
+  adminArticles(): Promise<AdminArticle[]> {
+    return firstValueFrom(this.http.get<AdminArticle[]>('/api/admin/articles'));
+  }
+
+  adminArticle(id: string): Promise<AdminArticle> {
+    return firstValueFrom(this.http.get<AdminArticle>(`/api/admin/articles/${id}`));
+  }
+
+  saveArticle(body: ArticleUpsert, id?: string): Promise<AdminArticle> {
+    return id
+      ? firstValueFrom(this.http.put<AdminArticle>(`/api/admin/articles/${id}`, body))
+      : firstValueFrom(this.http.post<AdminArticle>('/api/admin/articles', body));
+  }
+
+  setArticleStatus(id: string, status: ArticleStatus): Promise<AdminArticle> {
+    return firstValueFrom(this.http.put<AdminArticle>(`/api/admin/articles/${id}/status`, null, { params: { status } }));
+  }
+
+  previewArticle(id: string): Promise<ArticleDetail> {
+    return firstValueFrom(this.http.get<ArticleDetail>(`/api/admin/articles/${id}/preview`));
+  }
+
+  deleteArticle(id: string): Promise<void> {
+    return firstValueFrom(this.http.delete<void>(`/api/admin/articles/${id}`));
   }
 
   // ── admin: profile ─────────────────────────────────────────────────────────
@@ -169,14 +233,18 @@ export class ApiService {
     return firstValueFrom(this.http.put<Settings>('/api/admin/settings', body));
   }
 
-  messages(page = 0, unread = false): Promise<Page<ContactMessage>> {
+  messages(page = 0, unread = false, archived = false, q = ''): Promise<Page<ContactMessage>> {
     return firstValueFrom(
-      this.http.get<Page<ContactMessage>>('/api/admin/messages', { params: { page, size: 20, unread } }),
+      this.http.get<Page<ContactMessage>>('/api/admin/messages', { params: { page, size: 20, unread, archived, q } }),
     );
   }
 
-  unreadCount(): Promise<{ unread: number }> {
-    return firstValueFrom(this.http.get<{ unread: number }>('/api/admin/messages/unread-count'));
+  unreadCount(): Promise<{ unread: number; archived?: number }> {
+    return firstValueFrom(this.http.get<{ unread: number; archived?: number }>('/api/admin/messages/unread-count'));
+  }
+
+  archiveMessage(id: string, value: boolean): Promise<ContactMessage> {
+    return firstValueFrom(this.http.put<ContactMessage>(`/api/admin/messages/${id}/archived`, null, { params: { value } }));
   }
 
   markRead(id: string, value: boolean): Promise<ContactMessage> {

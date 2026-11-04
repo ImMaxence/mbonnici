@@ -48,7 +48,7 @@ const PLACEHOLDER_MOBILE: Visual = { src: '/img/project-placeholder-mobile.svg',
                 ></iframe>
               } @else {
                 @let d = desktop();
-                <img [src]="d.src" [alt]="d.alt" [width]="d.w" [height]="d.h" [attr.loading]="priority() ? 'eager' : 'lazy'" [attr.fetchpriority]="priority() ? 'high' : null" decoding="async" />
+                <img [src]="d.src" [attr.srcset]="d.srcset || null" [attr.sizes]="d.srcset ? sizes() : null" [style.object-position]="d.pos" [alt]="d.alt" [width]="d.w" [height]="d.h" [attr.loading]="priority() ? 'eager' : 'lazy'" [attr.fetchpriority]="priority() ? 'high' : null" decoding="async" />
               }
             </div>
           </figure>
@@ -236,6 +236,8 @@ export class ShowcaseComponent {
   /** load the real site inside the browser frame (project page, when framing is allowed) */
   readonly live = input(false);
   readonly priority = input(false);
+  /** rendered width of the browser frame, for the responsive copies */
+  readonly sizes = input('(max-width: 720px) 92vw, 46vw');
 
   private readonly i18n = inject(I18nService);
   private readonly sanitizer = inject(DomSanitizer);

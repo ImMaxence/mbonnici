@@ -21,7 +21,7 @@ public class AdminSettingsController {
 
     @GetMapping
     public PublicSettings get() {
-        return service.get();
+        return service.getRaw();
     }
 
     @PutMapping

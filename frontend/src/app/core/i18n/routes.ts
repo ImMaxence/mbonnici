@@ -3,12 +3,23 @@
  * keep the two in sync (the sitemap is generated from the Java copy).
  */
 export type Lang = 'fr' | 'en';
-export type PageKey = 'home' | 'projects' | 'project' | 'about' | 'contact' | 'legal' | 'privacy' | 'terms' | 'accessibility';
+export type PageKey =
+  | 'home'
+  | 'projects'
+  | 'project'
+  | 'about'
+  | 'contact'
+  | 'legal'
+  | 'privacy'
+  | 'terms'
+  | 'accessibility'
+  | 'notes'
+  | 'note';
 
 export const LANGS: readonly Lang[] = ['fr', 'en'] as const;
 export const DEFAULT_LANG: Lang = 'fr';
 
-export const SEGMENTS: Record<Lang, Record<Exclude<PageKey, 'project'>, string>> = {
+export const SEGMENTS: Record<Lang, Record<Exclude<PageKey, 'project' | 'note'>, string>> = {
   fr: {
     home: '',
     projects: 'projets',
@@ -18,6 +29,7 @@ export const SEGMENTS: Record<Lang, Record<Exclude<PageKey, 'project'>, string>>
     privacy: 'confidentialite',
     terms: 'conditions-utilisation',
     accessibility: 'accessibilite',
+    notes: 'notes',
   },
   en: {
     home: '',
@@ -28,6 +40,7 @@ export const SEGMENTS: Record<Lang, Record<Exclude<PageKey, 'project'>, string>>
     privacy: 'privacy-policy',
     terms: 'terms-of-use',
     accessibility: 'accessibility',
+    notes: 'notes',
   },
 };
 
@@ -39,6 +52,9 @@ export function isLang(value: unknown): value is Lang {
 export function pagePath(lang: Lang, page: PageKey, slug?: string): string {
   if (page === 'project') {
     return `/${lang}/${SEGMENTS[lang].projects}/${slug ?? ''}`;
+  }
+  if (page === 'note') {
+    return `/${lang}/${SEGMENTS[lang].notes}/${slug ?? ''}`;
   }
   const segment = SEGMENTS[lang][page];
   return segment ? `/${lang}/${segment}` : `/${lang}`;
@@ -67,6 +83,9 @@ export function parsePath(url: string): ParsedPath | null {
     if (pages[key] === segment) {
       if (key === 'projects' && parts[2]) {
         return { lang, page: 'project', slug: parts[2] };
+      }
+      if (key === 'notes' && parts[2]) {
+        return { lang, page: 'note', slug: parts[2] };
       }
       return { lang, page: key };
     }

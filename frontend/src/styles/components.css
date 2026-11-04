@@ -313,28 +313,6 @@ button.chip:hover,
   background: var(--accent-fg);
 }
 
-/* ─── Dialog / lightbox ───────────────────────────────────────────────────── */
-dialog.lightbox {
-  border: 0;
-  padding: 0;
-  background: transparent;
-  max-width: min(96vw, 1400px);
-  max-height: 94vh;
-  outline: none;
-}
-
-dialog.lightbox::backdrop {
-  background: rgba(0, 0, 0, 0.82);
-  backdrop-filter: blur(18px);
-}
-
-dialog.lightbox img {
-  max-height: 90vh;
-  width: auto;
-  border-radius: var(--radius-m);
-  box-shadow: var(--shadow-3);
-}
-
 /* ─── Misc ────────────────────────────────────────────────────────────────── */
 .stat {
   display: grid;
@@ -432,4 +410,12 @@ dialog.lightbox img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+/* image viewer open (LightboxComponent): the page stays put behind it */
+html.viewer-open {
+  overflow: hidden;
+  scrollbar-gutter: stable;
+  /* the reserved gutter shows the root background: same ink as the viewer shade */
+  background: rgb(9 9 10);
 }

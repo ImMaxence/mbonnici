@@ -22,12 +22,24 @@ public final class ProfileDtos {
                     e.getDescription().filled(), e.getLocation(), e.getContractType(), e.getStartDate(), e.getEndDate(),
                     List.copyOf(e.getSkills()), e.getSortOrder());
         }
+
+        /** as stored (back office): an empty language stays empty, so it can be spotted and translated */
+        static ExperienceDto raw(Experience e) {
+            return new ExperienceDto(e.getId(), e.getCompany(), e.getCompanyUrl(), e.getRole(), e.getDescription(),
+                    e.getLocation(), e.getContractType(), e.getStartDate(), e.getEndDate(), List.copyOf(e.getSkills()),
+                    e.getSortOrder());
+        }
     }
 
     public record EducationDto(UUID id, String school, String schoolUrl, Localized degree, String location,
             LocalDate startDate, LocalDate endDate, int sortOrder) {
         static EducationDto from(Education e) {
             return new EducationDto(e.getId(), e.getSchool(), e.getSchoolUrl(), e.getDegree().filled(), e.getLocation(),
+                    e.getStartDate(), e.getEndDate(), e.getSortOrder());
+        }
+
+        static EducationDto raw(Education e) {
+            return new EducationDto(e.getId(), e.getSchool(), e.getSchoolUrl(), e.getDegree(), e.getLocation(),
                     e.getStartDate(), e.getEndDate(), e.getSortOrder());
         }
     }
