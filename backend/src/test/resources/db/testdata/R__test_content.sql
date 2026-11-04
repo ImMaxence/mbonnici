@@ -21,7 +21,7 @@ Diplômé d''EPITECH, j''ai passé près de trois ans chez MONEXT à développer
 
 An EPITECH graduate, I spent almost three years at MONEXT developing and automating tests for payment services before joining Sopra Steria on projects for Airbus Helicopters. Outside work I build tools that run entirely in the browser, with no account and no server.',
   'Aix-en-Provence, France',
-  'maxence.bonnici2002@gmail.com',
+  'maxence.bonnici@outlook.fr',
   'https://github.com/ImMaxence',
   'https://www.linkedin.com/in/maxence-bonnici-77b540250/',
   'LISTENING',
@@ -29,7 +29,7 @@ An EPITECH graduate, I spent almost three years at MONEXT developing and automat
   'Maxence Bonnici — Full Stack Developer, Java & Angular',
   'Portfolio de Maxence Bonnici, développeur full stack Java / Spring Boot et Angular à Aix-en-Provence : projets, expériences et outils open source.',
   'Portfolio of Maxence Bonnici, full stack developer (Java / Spring Boot and Angular) in Aix-en-Provence, France: projects, experience and open-source tools.',
-  'Maxence Bonnici', '', 'Serveur personnel auto-hébergé en France, exposé via Cloudflare, Inc. (101 Townsend St, San Francisco, CA 94107, USA)', 'maxence.bonnici2002@gmail.com'
+  'Maxence Bonnici', '', 'Serveur personnel auto-hébergé en France, exposé via Cloudflare, Inc. (101 Townsend St, San Francisco, CA 94107, USA)', 'maxence.bonnici@outlook.fr'
 );
 
 -- Experience (most recent first)
@@ -236,12 +236,6 @@ LocalATSCV gives you both: designs recruiters like and real text that robots rea
 -- Content refresh (v1.2.0). Every statement only touches values still equal to the
 -- original seed, so anything already edited from the back office is left alone.
 -- ─────────────────────────────────────────────────────────────────────────────
-
--- professional address for the public contact and the legal pages (Google sign-in keeps ADMIN_EMAIL)
-update site_settings set public_email = 'maxence.bonnici@outlook.fr'
- where public_email = 'maxence.bonnici2002@gmail.com';
-update site_settings set legal_contact_email = 'maxence.bonnici@outlook.fr'
- where legal_contact_email = 'maxence.bonnici2002@gmail.com';
 
 -- bio: a 100 % technical path, agile teamwork, and no more "no server" claim
 update site_settings set bio_fr = replace(bio_fr,

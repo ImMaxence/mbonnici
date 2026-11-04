@@ -50,7 +50,8 @@ services:
       S3_SECRET_KEY: portfolio-secret
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-not-configured}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-not-configured}
-      ADMIN_EMAIL: ${ADMIN_EMAIL:-maxence.bonnici2002@gmail.com}
+      # the local sign-in opens a session for the first address
+      ADMIN_EMAIL: admin@localhost
       APP_URL: http://localhost:${LOCAL_PORT:-4000}
       ANALYTICS_SALT_SECRET: local-only-salt
       COOKIE_SECURE: "false"

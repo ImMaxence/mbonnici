@@ -83,7 +83,8 @@ management:
 
 app:
   url: ${APP_URL:http://localhost:4200}
-  admin-emails: ${ADMIN_EMAIL:maxence.bonnici2002@gmail.com}
+  # required, no default: the Google address(es) allowed in the back office, separated by ";"
+  admin-emails: ${ADMIN_EMAIL}
   trust-proxy: ${TRUST_PROXY:false}
   # local only (refused unless app.url is localhost): /api/auth/dev-login opens an admin session without Google
   dev-login: ${DEV_LOGIN:false}

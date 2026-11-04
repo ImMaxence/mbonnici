@@ -56,7 +56,7 @@ public class DevLoginController {
         if (!devLoginAllowed()) {
             throw new ApiException(HttpStatus.NOT_FOUND, "not found");
         }
-        String email = props.adminEmails().isEmpty() ? "admin@localhost" : props.adminEmails().getFirst();
+        String email = props.adminEmails().getFirst();
         var auth = UsernamePasswordAuthenticationToken.authenticated(email, null,
                 List.of(new SimpleGrantedAuthority(AdminOidcUserService.ROLE_ADMIN)));
         auth.setDetails(Map.of("devLogin", true));

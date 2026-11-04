@@ -25,8 +25,9 @@ over the private Docker network.
    `http://localhost:8081/api/auth/oauth2/code/google` for local development).
 4. Keep the client ID and secret for Coolify's environment variables below.
 
-Only the address in `ADMIN_EMAIL` can sign in; every other Google account is rejected before a
-session is created.
+Only the addresses listed in `ADMIN_EMAIL` (separated by `;`) can sign in, with an e-mail Google has
+verified; every other Google account is rejected before a session is created. The variable is
+required: the backend refuses to start without it.
 
 ### Google Drive backups (optional)
 
@@ -52,11 +53,12 @@ Without Drive you can still download archives and restore from a file from the s
 
 1. **Projects → New resource → Docker Compose** (from the Git repository, branch `main`).
    Coolify reads `docker-compose.yml` at the repository root.
-2. **Environment variables**: only `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` are entered by hand.
+2. **Environment variables**: only `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` and `ADMIN_EMAIL` (the
+   allowed Google addresses, separated by `;`) are entered by hand.
    The database and storage users and passwords and the analytics secret are Coolify magic variables
    (`SERVICE_USER_*`, `SERVICE_PASSWORD_64_*`): generated on the first deployment, kept after. Never
    regenerate the `POSTGRES` ones: the database keeps the user and password it was created with.
-   Everything else (domain, admin e-mail, proxy settings) is written in `docker-compose.yml`.
+   Everything else (domain, proxy settings) is written in `docker-compose.yml`.
 3. **Domains**: on the `frontend` service set `https://mbonnici.fr` and port `4000`.
    Leave the other services without a domain; they are not exposed.
 4. Deploy. The first start runs the Flyway migrations; the backend waits for PostgreSQL and
@@ -103,7 +105,7 @@ the version of each tier.
 1. **Dependencies**: `npm audit` in `frontend` (0 vulnerabilities at 1.5.0) and the Maven versions
    (Spring Boot 4.1.2 and AWS SDK 2.57.8 were the latest at 1.5.0; libraries managed by the Spring Boot
    BOM follow Spring Boot, do not bump them by hand).
-2. **Secrets** in Coolify: `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`; the `SERVICE_*` values are
+2. **Secrets** in Coolify: `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`, `ADMIN_EMAIL`; the `SERVICE_*` values are
    generated. `DEV_LOGIN` must **not** be set (it is refused anyway unless the site URL is
    localhost).
 3. **Google console**: authorised redirect URI `https://mbonnici.fr/api/auth/oauth2/code/google`

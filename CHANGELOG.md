@@ -21,8 +21,9 @@ All notable changes to this project are documented here. The format follows
   and kept out of search engines (`X-Robots-Tag: noindex`, no longer allowed in `robots.txt`).
 - The share-picture fonts moved to `resources/fonts`.
 - **Deployment**: Coolify generates the database, storage and analytics secrets (`SERVICE_USER_*`,
-  `SERVICE_PASSWORD_64_*`); only the Google client is entered by hand, everything else is written in
-  `docker-compose.yml`. `GIT_SHA`, `GITHUB_TOKEN` and `INSIGHTS_ENABLED` are gone (the back office no
+  `SERVICE_PASSWORD_64_*`); only the Google client and `ADMIN_EMAIL` are entered by hand, everything
+  else is written in `docker-compose.yml`. `ADMIN_EMAIL` is required (no address in the code any more)
+  and takes several addresses separated by `;`. `GIT_SHA`, `GITHUB_TOKEN` and `INSIGHTS_ENABLED` are gone (the back office no
   longer shows a commit). Container logs are rotated (3 files of 10 MB).
 
 ### Removed
