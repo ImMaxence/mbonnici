@@ -4,7 +4,30 @@ test.describe('back office access', () => {
   test('admin area redirects anonymous visitors to the login screen', async ({ page }) => {
     await page.goto('/admin');
     await page.waitForURL('**/admin/login');
-    await expect(page.getByRole('link', { name: /Google/ })).toHaveAttribute('href', '/api/auth/oauth2/authorization/google');
+    const providers = await (await page.request.get('/api/auth/providers')).json();
+    if (providers.google) {
+      await expect(page.getByRole('link', { name: /Google/ })).toHaveAttribute('href', '/api/auth/oauth2/authorization/google');
+    } else {
+      await expect(page.getByText(/GOOGLE_CLIENT_ID/)).toBeVisible();
+    }
+  });
+
+  test('local sign-in opens the back office and a restore is reviewed before anything changes', async ({ page }) => {
+    const providers = await (await page.request.get('/api/auth/providers')).json();
+    test.skip(!providers.devLogin, 'DEV_LOGIN is off on this server');
+    await page.goto('/admin/login');
+    await page.getByRole('link', { name: /Connexion locale/ }).click();
+    await page.waitForURL(/\/admin$/);
+    await page.goto('/admin/backups');
+    // export the live data, then stage the very same archive: everything is identical
+    const archive = await (await page.request.get('/api/admin/backups/export')).body();
+    await page.locator('input[type=file]').setInputFiles({ name: 'snapshot.zip', mimeType: 'application/zip', buffer: archive });
+    const review = page.locator('app-restore-review');
+    await expect(review).toBeVisible();
+    await expect(review.getByRole('radio', { name: /Choisir ce que j’importe/ })).toHaveAttribute('aria-checked', 'true');
+    await expect(review.getByText(/0 élément\(s\) sélectionné\(s\)/)).toBeVisible();
+    await review.getByRole('button', { name: /Annuler/ }).click();
+    await expect(review).toBeHidden();
   });
 
   test('admin API is closed without a session', async ({ request }) => {

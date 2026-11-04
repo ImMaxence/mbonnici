@@ -1,150 +1,127 @@
-import { Component, computed, effect, inject, input } from '@angular/core';
-import type { Profile, ProjectCard, Settings } from '../../core/api/models';
+import { Component, DestroyRef, PLATFORM_ID, computed, effect, inject, input, signal } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+import { type Profile, type ProjectCard, type Settings } from '../../core/api/models';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { LocalizedPipe, TranslatePipe } from '../../core/i18n/translate.pipe';
 import { SeoService } from '../../core/seo/seo.service';
 import { LinkDirective } from '../../shared/curtain/link.directive';
 import { MagneticDirective } from '../../shared/cursor/magnetic.directive';
-import { SceneHostComponent } from '../../shared/scenes/scene-host.component';
 import { FooterComponent } from '../../shared/ui/footer.component';
 import { IconComponent } from '../../shared/ui/icon.component';
 import { ProjectCardComponent } from '../../shared/ui/project-card.component';
 import { RevealDirective } from '../../shared/ui/reveal.directive';
+import { NoDotPipe } from '../../shared/ui/text';
+import { ToolboxComponent } from '../../shared/ui/toolbox.component';
 
 @Component({
   selector: 'app-home',
   imports: [
     TranslatePipe,
     LocalizedPipe,
+    NoDotPipe,
     LinkDirective,
     MagneticDirective,
-    SceneHostComponent,
     FooterComponent,
     IconComponent,
     ProjectCardComponent,
     RevealDirective,
+    ToolboxComponent,
   ],
   template: `
     <main id="main" class="page home">
       <!-- ── Hero ───────────────────────────────────────────────────────── -->
-      <section class="hero">
-        <app-scene class="hero-scene" type="HERO" [autoplay]="true" [ariaLabel]="'home.heroAria' | t" />
-        <div class="container hero-inner">
-          <p class="eyebrow" appReveal>{{ 'home.eyebrow' | t: { year: year } }}</p>
-          <p class="hello" appReveal [revealDelay]="80">
-            {{ 'home.hello' | t }} <strong>{{ settings()?.ownerName ?? 'Maxence Bonnici' }}</strong>
-            <span class="sep">—</span>
-            <span class="muted">{{ settings()?.headline | l }}</span>
+      <section class="hero container">
+        <div class="hero-top" appReveal>
+          <span class="eyebrow">{{ settings()?.headline | l }}</span>
+          <span class="mono small faint clock">
+            {{ settings()?.location ?? 'Aix-en-Provence' }} · <time>{{ time() }}</time>
+          </span>
+        </div>
+
+        <h1 class="display headline" appReveal revealSplit="words" [revealDelay]="60">
+          {{ 'home.headlineA' | t }} <span class="accent-word">{{ 'home.headlineB' | t }}</span> {{ 'home.headlineC' | t }}
+        </h1>
+
+        <div class="hero-foot">
+          <p class="lead" appReveal [revealDelay]="360">
+            <strong>{{ settings()?.ownerName ?? 'Maxence Bonnici' }}</strong> — {{ 'home.intro' | t }}
           </p>
-          <h1 class="display" appReveal revealSplit="words" [revealDelay]="120">
-            {{ 'home.headlineA' | t }} <span class="gradient-text">{{ 'home.headlineB' | t }}</span> {{ 'home.headlineC' | t }}
-          </h1>
-          <p class="lead" appReveal [revealDelay]="420">{{ 'home.intro' | t }}</p>
-          <div class="row cta" appReveal [revealDelay]="520">
+          <div class="cta" appReveal [revealDelay]="460">
             <a class="btn btn-lg" [appLink]="i18n.path('projects')" [linkLabel]="'nav.projects' | t" appMagnetic>
               {{ 'home.ctaProjects' | t }} <app-icon class="arrow" name="arrow-right" [size]="18" />
             </a>
             <a class="btn btn-ghost btn-lg" [appLink]="i18n.path('contact')" [linkLabel]="'nav.contact' | t" appMagnetic>
               {{ 'home.ctaContact' | t }}
             </a>
-            @if (settings()?.availability; as state) {
-              <span class="availability" [attr.data-state]="state"><i class="dot"></i>{{ 'availability.' + state | t }}</span>
-            }
           </div>
+          @if (settings()?.availability; as state) {
+            <span class="availability" [attr.data-state]="state" appReveal [revealDelay]="540"><i class="dot"></i>{{ 'availability.' + state | t }}</span>
+          }
         </div>
-        <a class="scroll-hint" href="#work" aria-hidden="true" tabindex="-1">
-          <span>{{ 'home.scrollHint' | t }}</span>
-          <app-icon name="arrow-down" [size]="16" />
-        </a>
       </section>
 
       <!-- ── Selected work ──────────────────────────────────────────────── -->
       <section class="section container" id="work">
-        <div class="section-head">
-          <div class="stack" style="gap: 0.75rem">
-            <span class="eyebrow" appReveal>{{ 'home.selected' | t }}</span>
+        <div class="section-title">
+          <span class="eyebrow" appReveal>(01) {{ 'home.selected' | t }}</span>
+          <div class="title-row">
             <h2 appReveal revealSplit="words">{{ 'home.selectedSub' | t }}</h2>
+            <a class="btn btn-ghost" [appLink]="i18n.path('projects')" [linkLabel]="'nav.projects' | t" appReveal>
+              {{ 'home.allProjects' | t }} <app-icon class="arrow" name="arrow-right" [size]="16" />
+            </a>
           </div>
-          <a class="btn btn-ghost" [appLink]="i18n.path('projects')" [linkLabel]="'nav.projects' | t" appReveal>
-            {{ 'home.allProjects' | t }} <app-icon class="arrow" name="arrow-right" [size]="16" />
-          </a>
         </div>
         <div class="work-grid">
           @for (p of featured(); track p.id; let i = $index) {
-            <div appReveal [revealDelay]="i * 90" [class.wide]="i === 0">
+            <div appReveal [revealDelay]="(i % 2) * 90" [class.wide]="i === 0">
               <app-project-card [project]="p" />
             </div>
           }
         </div>
       </section>
 
-      <!-- ── Toolbox marquee ────────────────────────────────────────────── -->
-      <section class="section-tight toolbox">
-        <div class="container section-head">
-          <div class="stack" style="gap: 0.75rem">
-            <span class="eyebrow" appReveal>{{ 'home.toolbox' | t }}</span>
-            <h2 appReveal>{{ 'home.toolboxSub' | t }}</h2>
-          </div>
+      <!-- ── Toolbox ────────────────────────────────────────────────────── -->
+      <section class="section container">
+        <div class="section-title">
+          <span class="eyebrow" appReveal>(02) {{ 'home.toolbox' | t }}</span>
+          <h2 appReveal revealSplit="words">{{ 'home.toolboxSub' | t }}</h2>
         </div>
-        <div class="marquee" aria-hidden="true">
-          <div class="marquee-track">
-            @for (s of marquee(); track $index) {
-              <span class="marquee-item">{{ s }}</span>
-            }
-          </div>
-        </div>
-        <ul class="visually-hidden">
-          @for (s of skills(); track s.id) {
-            <li>{{ s.name }}</li>
-          }
-        </ul>
+        <app-toolbox [skills]="profile()?.skills ?? []" />
       </section>
 
       <!-- ── Experience ─────────────────────────────────────────────────── -->
       <section class="section container">
-        <div class="section-head">
-          <div class="stack" style="gap: 0.75rem">
-            <span class="eyebrow" appReveal>{{ 'home.experience' | t }}</span>
+        <div class="section-title">
+          <span class="eyebrow" appReveal>(03) {{ 'home.experience' | t }}</span>
+          <div class="title-row">
             <h2 appReveal revealSplit="words">{{ 'home.experienceSub' | t }}</h2>
+            <a class="btn btn-ghost" [appLink]="i18n.path('about')" [linkLabel]="'nav.about' | t" appReveal>
+              {{ 'home.fullStory' | t }} <app-icon class="arrow" name="arrow-right" [size]="16" />
+            </a>
           </div>
-          <a class="btn btn-ghost" [appLink]="i18n.path('about')" [linkLabel]="'nav.about' | t" appReveal>
-            {{ 'home.fullStory' | t }} <app-icon class="arrow" name="arrow-right" [size]="16" />
-          </a>
         </div>
-        <ol class="timeline">
+        <ol class="rows">
           @for (e of experiences(); track e.id; let i = $index) {
-            <li class="tl-item" appReveal [revealDelay]="i * 80">
-              <span class="tl-date mono">{{ i18n.formatRange(e.startDate, e.endDate) }}</span>
-              <div class="tl-body">
+            <li class="row-item" appReveal [revealDelay]="i * 70">
+              <span class="when mono">{{ i18n.formatRange(e.startDate, e.endDate) }}</span>
+              <div class="what">
                 <h3 class="h3">{{ e.role | l }}</h3>
-                <p class="muted">
-                  {{ e.company }}
-                  @if (e.location) {
-                    <span class="faint"> · {{ e.location }}</span>
-                  }
-                </p>
-                <div class="chips">
-                  @for (s of e.skills.slice(0, 5); track s) {
-                    <span class="chip">{{ s }}</span>
-                  }
-                </div>
+                <p class="muted">{{ e.company }}@if (e.location) {<span class="faint"> · {{ e.location }}</span>}</p>
               </div>
+              <span class="chip chip-outline kind">{{ 'about.contract.' + e.contractType | t }}</span>
             </li>
           }
         </ol>
       </section>
 
       <!-- ── CTA ────────────────────────────────────────────────────────── -->
-      <section class="section container">
-        <div class="cta-band glass" appReveal>
-          <div>
-            <h2 class="h2">{{ 'home.letsTalk' | t }}</h2>
-            <p class="lead">{{ 'home.letsTalkSub' | t }}</p>
-          </div>
-          <a class="btn btn-accent btn-lg" [appLink]="i18n.path('contact')" [linkLabel]="'nav.contact' | t" appMagnetic>
-            {{ 'home.ctaContact' | t }} <app-icon class="arrow" name="arrow-right" [size]="18" />
-          </a>
-        </div>
+      <section class="section container cta-big">
+        <span class="eyebrow" appReveal>(04) {{ 'nav.contact' | t }}</span>
+        <a class="big-link" [appLink]="i18n.path('contact')" [linkLabel]="'nav.contact' | t" appReveal>
+          <span class="mega">{{ 'home.letsTalkBig' | t }}</span>
+          <span class="circle" aria-hidden="true"><app-icon name="arrow-up-right" [size]="40" /></span>
+        </a>
+        <p class="lead" appReveal>{{ 'home.letsTalk' | t }} {{ 'home.letsTalkSub' | t | noDot }}</p>
       </section>
 
       <app-footer [settings]="settings()" />
@@ -152,151 +129,170 @@ import { RevealDirective } from '../../shared/ui/reveal.directive';
   `,
   styles: `
     .hero {
-      position: relative;
-      min-height: 100svh;
+      min-height: calc(100svh - var(--header-h));
       display: grid;
-      align-items: center;
-      /* keep the call-to-action row clear of the floating dock */
-      padding: var(--space-9) 0 calc(var(--dock-gap) + 1.5rem);
-      overflow: clip;
+      grid-template-rows: auto 1fr auto;
+      gap: var(--space-6);
+      padding: var(--space-6) 0 var(--space-7);
     }
-    .hero-scene {
-      position: absolute;
-      inset: 0;
-      z-index: 0;
-      opacity: 0.95;
+    .hero-top {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: var(--space-3);
+      padding-bottom: var(--space-4);
+      border-bottom: 1px solid var(--line-strong);
     }
-    @media (max-width: 719px) {
-      .hero-scene {
-        opacity: 0.5;
-      }
+    .headline {
+      align-self: center;
+      max-width: 15ch;
+      font-size: clamp(3rem, 0.6rem + 9.6vw, 11rem);
     }
-    .hero-inner {
-      position: relative;
-      z-index: 1;
+    .headline .accent-word {
+      letter-spacing: -0.03em;
+    }
+    .hero-foot {
       display: grid;
       gap: var(--space-5);
-      max-width: 980px;
+      align-items: end;
     }
-    .hello {
-      font-size: var(--fs-lead);
+    @media (min-width: 1000px) {
+      .hero-foot {
+        grid-template-columns: minmax(0, 1.3fr) auto auto;
+      }
     }
-    .hello .sep {
-      margin: 0 0.5em;
-      color: var(--fg-3);
-    }
-    .display {
-      max-width: 14ch;
+    .hero-foot .lead strong {
+      color: var(--fg);
+      font-weight: 600;
     }
     .cta {
+      display: flex;
+      flex-wrap: wrap;
       gap: var(--space-3);
-      margin-top: var(--space-2);
     }
-    .scroll-hint {
-      position: absolute;
-      right: var(--gutter);
-      bottom: calc(var(--dock-gap) - 0.5rem);
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5em;
-      font-family: var(--font-mono);
-      font-size: var(--fs-micro);
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      color: var(--fg-3);
-      animation: float 3s ease-in-out infinite;
+    .availability {
+      justify-self: start;
     }
-    @media (max-width: 719px), (max-height: 720px) {
-      .scroll-hint {
-        display: none;
+    .title-row {
+      display: grid;
+      gap: var(--space-5);
+      align-items: end;
+    }
+    @media (min-width: 900px) {
+      .title-row {
+        grid-template-columns: 1fr auto;
       }
     }
     .work-grid {
       display: grid;
-      gap: var(--gutter);
-      grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
+      gap: clamp(3rem, 6vw, 5rem) var(--gutter);
     }
     @media (min-width: 900px) {
       .work-grid {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .work-grid > .wide {
+        grid-column: 1 / -1;
       }
     }
-    .toolbox {
-      overflow: hidden;
-    }
-    .timeline {
-      display: grid;
-      gap: 0;
+    .rows {
       border-top: 1px solid var(--line);
     }
-    .tl-item {
+    .row-item {
       display: grid;
       gap: var(--space-3);
       padding: var(--space-6) 0;
       border-bottom: 1px solid var(--line);
-    }
-    @media (min-width: 720px) {
-      .tl-item {
-        grid-template-columns: 220px 1fr;
-        gap: var(--space-6);
-      }
-    }
-    .tl-date {
-      color: var(--fg-3);
-      font-size: var(--fs-small);
-      padding-top: 0.5rem;
-    }
-    .tl-body {
-      display: grid;
-      gap: 0.5rem;
-    }
-    .chips {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      margin-top: 0.5rem;
-    }
-    .cta-band {
-      display: grid;
-      gap: var(--space-5);
-      padding: clamp(2rem, 5vw, 4rem);
-      border-radius: var(--radius-l);
       align-items: center;
     }
     @media (min-width: 900px) {
-      .cta-band {
-        grid-template-columns: 1fr auto;
+      .row-item {
+        grid-template-columns: minmax(180px, 3fr) 7fr 2fr;
       }
     }
-    .cta-band .lead {
-      margin-top: 0.5rem;
+    .when {
+      color: var(--fg-3);
+      font-size: var(--fs-small);
+    }
+    .what {
+      display: grid;
+      gap: 0.35rem;
+    }
+    .kind {
+      justify-self: start;
+    }
+    @media (min-width: 900px) {
+      .kind {
+        justify-self: end;
+      }
+    }
+    .cta-big {
+      display: grid;
+      gap: var(--space-5);
+      border-top: 1px solid var(--line-strong);
+      padding-top: var(--space-6);
+      margin-top: var(--space-8);
+    }
+    .big-link {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-5);
+    }
+    .big-link .mega {
+      transition: letter-spacing 0.8s var(--ease-out);
+    }
+    .big-link:hover .mega {
+      font-family: var(--font-serif);
+      font-style: italic;
+      font-weight: 400;
+      letter-spacing: -0.02em;
+      color: var(--accent);
+    }
+    .circle {
+      flex: none;
+      display: grid;
+      place-items: center;
+      width: clamp(64px, 10vw, 140px);
+      aspect-ratio: 1;
+      border-radius: 50%;
+      background: var(--fg);
+      color: var(--bg);
+      transition:
+        transform 0.8s var(--ease-spring),
+        background-color var(--dur-2);
+    }
+    .big-link:hover .circle {
+      transform: rotate(45deg);
+      background: var(--accent);
+      color: var(--accent-fg);
     }
   `,
 })
 export class HomePage {
   private readonly seo = inject(SeoService);
   readonly i18n = inject(I18nService);
+  private readonly browser = isPlatformBrowser(inject(PLATFORM_ID));
 
   // resolved by the route (see core/api/resolvers.ts) and bound as inputs
   readonly settings = input<Settings>();
   readonly projects = input<ProjectCard[]>();
   readonly profile = input<Profile>();
-  readonly year = new Date().getFullYear();
+
+  readonly time = signal(this.now());
 
   readonly featured = computed(() => {
     const all = this.projects() ?? [];
     const featured = all.filter((p) => p.featured);
-    return (featured.length ? featured : all).slice(0, 4);
+    return (featured.length ? featured : all).slice(0, 5);
   });
   readonly experiences = computed(() => (this.profile()?.experiences ?? []).slice(0, 3));
-  readonly skills = computed(() => this.profile()?.skills ?? []);
-  readonly marquee = computed(() => {
-    const names = this.skills().map((s) => s.name);
-    const list = names.length ? names : ['Java', 'Spring Boot', 'Angular', 'TypeScript', 'PostgreSQL', 'Docker'];
-    return [...list, ...list];
-  });
 
   constructor() {
+    if (this.browser) {
+      const timer = setInterval(() => this.time.set(this.now()), 15_000);
+      inject(DestroyRef).onDestroy(() => clearInterval(timer));
+    }
     effect(() => {
       const s = this.settings();
       const lang = this.i18n.lang();
@@ -319,5 +315,9 @@ export class HomePage {
       void lang;
       this.seo.set({ title, description, page: 'home', type: 'profile', jsonLd: graph });
     });
+  }
+
+  private now(): string {
+    return new Intl.DateTimeFormat('fr-FR', { timeZone: 'Europe/Paris', hour: '2-digit', minute: '2-digit' }).format(new Date());
   }
 }

@@ -28,7 +28,9 @@ interface FormErrors {
     <main id="main" class="page">
       <header class="container head">
         <span class="eyebrow" appReveal>{{ 'nav.contact' | t }}</span>
-        <h1 class="display" appReveal revealSplit="words">{{ 'home.letsTalk' | t }}</h1>
+        <h1 class="display" appReveal revealSplit="words">
+          {{ 'contact.titleA' | t }} <span class="accent-word">{{ 'contact.titleB' | t }}</span>
+        </h1>
         <p class="lead" appReveal [revealDelay]="200">{{ 'contact.subtitle' | t }}</p>
       </header>
 
@@ -96,8 +98,9 @@ interface FormErrors {
                 <label for="c-website">Website</label>
                 <input id="c-website" name="website" tabindex="-1" autocomplete="off" [(ngModel)]="model.website" />
               </div>
-              <p class="field-hint">
-                {{ privacyPrefix() }}<a class="link" [appLink]="i18n.path('privacy')" [linkLabel]="'footer.privacy' | t">{{ 'contact.form.privacyLink' | t }}</a>{{ privacySuffix() }}
+              <p class="field-hint privacy">
+                <span>{{ 'contact.form.privacy' | t }}</span>
+                <a class="link" [appLink]="i18n.path('privacy')" [linkLabel]="'footer.privacy' | t">{{ 'contact.form.privacyLink' | t }}</a>
               </p>
               @if (state() === 'error') {
                 <p class="field-error" role="alert">{{ 'contact.form.error' | t }}</p>
@@ -147,9 +150,11 @@ interface FormErrors {
       justify-items: start;
     }
     .big-mail {
-      font-family: var(--font-mono);
-      font-size: clamp(1.1rem, 2.1vw, 1.7rem);
-      letter-spacing: -0.01em;
+      font-family: var(--font-display);
+      font-size: clamp(1.5rem, 1rem + 2.4vw, 3rem);
+      font-weight: var(--weight-display);
+      letter-spacing: -0.04em;
+      line-height: 1.05;
       overflow-wrap: anywhere;
       transition: color var(--dur-2);
     }
@@ -157,7 +162,8 @@ interface FormErrors {
       color: var(--accent);
     }
     .form-card {
-      padding: clamp(1.5rem, 4vw, 2.5rem);
+      padding: clamp(1.5rem, 4vw, 2.75rem);
+      background: var(--bg-2);
     }
     form {
       display: grid;
@@ -168,6 +174,12 @@ interface FormErrors {
       gap: var(--space-3);
       justify-items: start;
       padding: var(--space-4) 0;
+    }
+    .privacy {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.25rem 0.75rem;
+      align-items: baseline;
     }
     .check {
       display: grid;
@@ -211,8 +223,6 @@ export class ContactPage {
     return out;
   });
 
-  readonly privacyPrefix = computed(() => this.i18n.t('contact.form.privacy').split('{link}')[0]);
-  readonly privacySuffix = computed(() => this.i18n.t('contact.form.privacy').split('{link}')[1] ?? '');
 
   constructor() {
     effect(() => {

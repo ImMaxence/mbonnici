@@ -75,7 +75,6 @@ export class AnalyticsService {
       projectSlug,
       locale: this.i18n.lang(),
       theme: this.theme.resolved(),
-      style: this.theme.style(),
       referrer: this.initialReferrer || undefined,
       viewportWidth: window.innerWidth,
     });

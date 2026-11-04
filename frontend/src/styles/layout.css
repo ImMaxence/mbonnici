@@ -11,7 +11,7 @@
 
 .page {
   min-height: 100dvh;
-  padding-bottom: var(--dock-gap);
+  padding-top: var(--header-h);
   position: relative;
   z-index: 1;
 }
@@ -35,6 +35,26 @@
     grid-template-columns: minmax(0, 1fr) auto;
     align-items: end;
   }
+}
+
+/* (01) — Section label on the left, title on the right: the editorial grid */
+.section-title {
+  display: grid;
+  gap: var(--space-4);
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--line-strong);
+  margin-bottom: clamp(2.5rem, 6vw, 5rem);
+}
+
+@media (min-width: 900px) {
+  .section-title {
+    grid-template-columns: minmax(180px, 3fr) 9fr;
+    align-items: start;
+  }
+}
+
+.section-title h2 {
+  max-width: 18ch;
 }
 
 .grid {
@@ -100,30 +120,6 @@
   transform: translateY(0);
 }
 
-/* ambient layers */
-.noise {
-  position: fixed;
-  inset: 0;
-  z-index: 100;
-  pointer-events: none;
-  opacity: var(--grain);
-  mix-blend-mode: overlay;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 1 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  background-size: 220px 220px;
-}
-
-.ambient {
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  background: var(--hero-glow);
-  opacity: 0.9;
-}
-
-:root[data-style='editorial'] .ambient {
-  opacity: 0.5;
-}
 
 /* native cursor is hidden while the custom one is alive (fine pointer only) */
 html.has-cursor,

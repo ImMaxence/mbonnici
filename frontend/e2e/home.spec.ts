@@ -1,5 +1,7 @@
 import { expect, test } from '@playwright/test';
 
+const ORIGIN = process.env['E2E_BASE_URL'] ?? 'http://localhost:4000';
+
 test.describe('home', () => {
   test('is server-rendered with real content and metadata', async ({ request }) => {
     const res = await request.get('/fr');
@@ -8,7 +10,7 @@ test.describe('home', () => {
     expect(html).toContain('<h1');
     expect(html).toContain('Maxence Bonnici');
     expect(html).toMatch(/<meta name="description" content="[^"]{40,}"/);
-    expect(html).toContain('<link rel="canonical" href="http://localhost:4000/fr"');
+    expect(html).toContain(`<link rel="canonical" href="${ORIGIN}/fr"`);
     expect(html).toContain('hreflang="en"');
     expect(html).toContain('application/ld+json');
     expect(html).toMatch(/<html[^>]*lang="fr"/);
@@ -17,29 +19,32 @@ test.describe('home', () => {
     expect(res.headers()['content-security-policy']).toContain("script-src 'self' 'nonce-");
   });
 
-  test('shows the hero, featured work and the dock', async ({ page }) => {
+  test('plays the intro once, then shows the hero, the real captures and the text navigation', async ({ page }) => {
     const errors: string[] = [];
     page.on('pageerror', (e) => errors.push(e.message));
     await page.goto('/fr');
+    // first visit of the session: the intro sheet covers the page, then lifts
+    await expect(page.locator('html')).toHaveClass(/intro-play/);
+    await expect(page.locator('html')).not.toHaveClass(/intro-play/, { timeout: 6000 });
     await expect(page.locator('h1')).toContainText('expériences web');
-    await expect(page.locator('app-dock nav')).toBeVisible();
-    await expect(page.locator('app-project-card').first()).toBeVisible();
-    await expect(page.locator('canvas').first()).toBeVisible();
+    await expect(page.locator('app-header .links').getByRole('link', { name: /Projets/ })).toBeVisible();
+    await expect(page.locator('app-project-card app-showcase img').first()).toBeVisible();
+    // no curtain on the first page load
+    await expect(page.locator('.curtain')).toHaveAttribute('data-state', 'idle');
+    // same session: no intro on reload
+    await page.reload();
+    await expect(page.locator('html')).not.toHaveClass(/intro-play/);
     expect(errors).toEqual([]);
   });
 
-  test('switches theme and style from the dock and remembers them', async ({ page }) => {
+  test('there is a single visual style and the theme switch is remembered', async ({ page }) => {
     await page.goto('/fr');
     const html = page.locator('html');
+    expect(await html.getAttribute('data-style')).toBeNull();
     const before = await html.getAttribute('data-theme');
-    await page.getByRole('button', { name: /thème/i }).click();
+    await page.locator('app-header').getByRole('button', { name: /thème/i }).click();
     await expect(html).toHaveAttribute('data-theme', before === 'dark' ? 'light' : 'dark');
-
-    await page.getByRole('button', { name: /style visuel/i }).click();
-    await page.getByRole('radio', { name: /Éditorial/ }).click();
-    await expect(html).toHaveAttribute('data-style', 'editorial');
     await page.reload();
-    await expect(html).toHaveAttribute('data-style', 'editorial');
     await expect(html).toHaveAttribute('data-theme', before === 'dark' ? 'light' : 'dark');
   });
 
@@ -47,7 +52,7 @@ test.describe('home', () => {
     await page.goto('/fr/projets');
     await page.getByRole('button', { name: /Switch to English/ }).click();
     await page.waitForURL('**/en/projects');
-    await expect(page.locator('h1')).toHaveText('Projects');
+    await expect(page.locator('h1')).toContainText('Projects');
     await expect(page.locator('html')).toHaveAttribute('lang', 'en');
   });
 

@@ -1,6 +1,7 @@
 /* ─── Buttons ────────────────────────────────────────────────────────────── */
 .btn {
   --btn-bg: var(--fg);
+  min-height: 44px;
   --btn-fg: var(--bg);
   position: relative;
   display: inline-flex;
@@ -334,46 +335,6 @@ dialog.lightbox img {
   box-shadow: var(--shadow-3);
 }
 
-/* ─── Marquee ─────────────────────────────────────────────────────────────── */
-.marquee {
-  --speed: 40s;
-  overflow: hidden;
-  mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
-  -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
-}
-
-.marquee-track {
-  display: flex;
-  width: max-content;
-  gap: var(--space-6);
-  padding-right: var(--space-6);
-  animation: marquee var(--speed) linear infinite;
-}
-
-.marquee:hover .marquee-track {
-  animation-play-state: paused;
-}
-
-.marquee-item {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-4);
-  font-family: var(--font-display);
-  font-size: clamp(1.4rem, 3vw, 2.6rem);
-  letter-spacing: var(--track-display);
-  color: var(--fg-2);
-  white-space: nowrap;
-}
-
-.marquee-item::after {
-  content: '';
-  width: 0.35em;
-  height: 0.35em;
-  border-radius: 50%;
-  background: var(--accent);
-  margin-left: var(--space-2);
-}
-
 /* ─── Misc ────────────────────────────────────────────────────────────────── */
 .stat {
   display: grid;
@@ -430,7 +391,7 @@ dialog.lightbox img {
 .toast {
   position: fixed;
   left: 50%;
-  bottom: calc(var(--dock-gap) + 8px);
+  bottom: 24px;
   transform: translateX(-50%);
   z-index: 90;
   padding: 0.8rem 1.2rem;

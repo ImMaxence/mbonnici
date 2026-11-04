@@ -1,5 +1,7 @@
 import { expect, test } from '@playwright/test';
 
+const ORIGIN = process.env['E2E_BASE_URL'] ?? 'http://localhost:4000';
+
 test.describe('projects', () => {
   test('lists published projects with category filters', async ({ page }) => {
     await page.goto('/fr/projets');
@@ -20,7 +22,8 @@ test.describe('projects', () => {
     await page.locator('app-project-card a').first().click();
     await page.waitForURL('**/fr/projets/localatscv');
     await expect(page.locator('h1')).toHaveText('LocalATSCV');
-    await expect(page.locator('app-stack-scene, app-scene, app-iphone').first()).toBeVisible();
+    await expect(page.locator('app-showcase img').first()).toBeVisible();
+    await expect(page.locator('app-slider .slide').first()).toBeVisible();
     await expect(page.locator('app-md p').first()).toContainText('ATS');
     // prev / next navigation
     await expect(page.getByRole('link', { name: /Projet suivant/ })).toBeVisible();
@@ -33,8 +36,8 @@ test.describe('projects', () => {
     expect(html).toContain('Meowtrix');
     expect(html).toContain('"@type":"SoftwareSourceCode"');
     expect(html).toContain('"@type":"BreadcrumbList"');
-    expect(html).toContain('<link rel="canonical" href="http://localhost:4000/en/projects/meowtrix"');
-    expect(html).toContain('href="http://localhost:4000/fr/projets/meowtrix"');
+    expect(html).toContain(`<link rel="canonical" href="${ORIGIN}/en/projects/meowtrix"`);
+    expect(html).toContain(`href="${ORIGIN}/fr/projets/meowtrix"`);
   });
 
   test('unknown project answers 404', async ({ request }) => {
@@ -43,7 +46,16 @@ test.describe('projects', () => {
     expect(await res.text()).toContain('404');
   });
 
-  test('device scene renders the iPhone simulator', async ({ page }) => {
+  test('gallery slider moves with the arrows', async ({ page }) => {
+    await page.goto('/fr/projets/localatscv');
+    const slider = page.locator('app-slider');
+    await slider.scrollIntoViewIfNeeded();
+    await expect(slider.locator('.count')).toContainText('01');
+    await slider.getByRole('button', { name: 'Suivant' }).click();
+    await expect(slider.locator('.count')).toContainText('02');
+  });
+
+  test('mobile version is shown in the iPhone simulator', async ({ page }) => {
     await page.goto('/fr/projets/meowtrix');
     await expect(page.locator('app-iphone .phone')).toBeVisible();
     await expect(page.locator('app-iphone .island')).toBeVisible();

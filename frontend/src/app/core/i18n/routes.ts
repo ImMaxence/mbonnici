@@ -3,7 +3,7 @@
  * keep the two in sync (the sitemap is generated from the Java copy).
  */
 export type Lang = 'fr' | 'en';
-export type PageKey = 'home' | 'projects' | 'project' | 'about' | 'contact' | 'legal' | 'privacy' | 'terms';
+export type PageKey = 'home' | 'projects' | 'project' | 'about' | 'contact' | 'legal' | 'privacy' | 'terms' | 'accessibility';
 
 export const LANGS: readonly Lang[] = ['fr', 'en'] as const;
 export const DEFAULT_LANG: Lang = 'fr';
@@ -17,6 +17,7 @@ export const SEGMENTS: Record<Lang, Record<Exclude<PageKey, 'project'>, string>>
     legal: 'mentions-legales',
     privacy: 'confidentialite',
     terms: 'conditions-utilisation',
+    accessibility: 'accessibilite',
   },
   en: {
     home: '',
@@ -26,6 +27,7 @@ export const SEGMENTS: Record<Lang, Record<Exclude<PageKey, 'project'>, string>>
     legal: 'legal-notice',
     privacy: 'privacy-policy',
     terms: 'terms-of-use',
+    accessibility: 'accessibility',
   },
 };
 

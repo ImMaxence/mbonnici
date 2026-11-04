@@ -6,27 +6,33 @@ body {
   color: var(--fg);
   background: var(--bg);
   font-feature-settings: 'ss01', 'cv11', 'calt';
-  font-variation-settings: 'opsz' 32;
 }
 
 h1,
 h2,
 h3,
 .display,
+.mega,
 .h1,
 .h2,
 .h3 {
   font-family: var(--font-display);
   font-weight: var(--weight-display);
   letter-spacing: var(--track-display);
-  line-height: 1.02;
-  text-transform: var(--display-case);
-  font-style: var(--display-style);
+  line-height: 0.98;
+  text-wrap: balance;
+}
+
+.mega {
+  font-size: var(--fs-mega);
+  line-height: 0.86;
+  letter-spacing: -0.055em;
 }
 
 .display {
   font-size: var(--fs-hero);
-  line-height: 0.96;
+  line-height: 0.92;
+  letter-spacing: -0.05em;
 }
 
 h1,
@@ -37,21 +43,35 @@ h1,
 h2,
 .h2 {
   font-size: var(--fs-h2);
-  line-height: 1.05;
+  line-height: 1;
 }
 
 h3,
 .h3 {
   font-size: var(--fs-h3);
-  line-height: 1.2;
-  letter-spacing: -0.015em;
+  line-height: 1.15;
+  letter-spacing: -0.025em;
+}
+
+/* the editorial signature: one or two words set in a serif italic */
+.serif,
+.accent-word {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+}
+
+.accent-word {
+  color: var(--accent);
 }
 
 .lead {
   font-size: var(--fs-lead);
-  line-height: 1.5;
+  line-height: 1.45;
   color: var(--fg-2);
-  max-width: 60ch;
+  max-width: 54ch;
+  text-wrap: pretty;
 }
 
 .small {
@@ -71,25 +91,29 @@ b {
   font-weight: var(--weight-strong);
 }
 
-/* mono micro labels with a leading dot — the signature "eyebrow" of the design */
+/* mono micro labels: (01) Projets */
 .eyebrow {
   display: inline-flex;
   align-items: center;
-  gap: 0.6em;
+  gap: 0.7em;
   font-family: var(--font-mono);
   font-size: var(--fs-micro);
-  letter-spacing: 0.14em;
+  font-weight: 500;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--fg-2);
 }
 
 .eyebrow::before {
   content: '';
-  width: 6px;
-  height: 6px;
+  width: 0.55em;
+  height: 0.55em;
   border-radius: 50%;
   background: var(--accent);
-  box-shadow: 0 0 0 4px var(--accent-soft);
+}
+
+.eyebrow.plain::before {
+  display: none;
 }
 
 .mono {
@@ -99,49 +123,6 @@ b {
 
 .num {
   font-variant-numeric: tabular-nums;
-}
-
-/* gradient text for a few hero words */
-.gradient-text {
-  background: var(--gradient-accent);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  padding-bottom: 0.06em;
-}
-
-/* split-word reveals wrap each word in spans: they must carry the gradient themselves
-   (background is not inherited, and the mask in between has none) */
-.gradient-text .w > span {
-  background: var(--gradient-accent);
-  -webkit-background-clip: text;
-  background-clip: text;
-}
-
-:root[data-style='editorial'] .gradient-text .w > span {
-  background: none;
-}
-
-/* once split, the wrapper has no text of its own: drop its background (avoids a stray sliver) */
-.split .gradient-text {
-  background: none;
-  padding-bottom: 0;
-}
-
-/* editorial style turns these into serif italics */
-.accent-word {
-  color: var(--accent);
-}
-
-:root[data-style='editorial'] .accent-word {
-  font-style: italic;
-  font-weight: 400;
-}
-
-:root[data-style='editorial'] .gradient-text {
-  background: none;
-  color: var(--accent);
-  font-style: italic;
 }
 
 /* prose (project descriptions, legal pages) */
@@ -160,6 +141,12 @@ b {
 .prose h3 {
   color: var(--fg);
   margin-top: 2em;
+}
+
+.prose h2 {
+  font-size: var(--fs-h3);
+  letter-spacing: -0.025em;
+  line-height: 1.15;
 }
 
 .prose strong {
@@ -187,7 +174,9 @@ b {
   background-size: 100% 1px;
   background-repeat: no-repeat;
   background-position: 0 100%;
-  transition: background-size var(--dur-2) var(--ease-out), color var(--dur-1);
+  transition:
+    background-size var(--dur-2) var(--ease-out),
+    color var(--dur-1);
 }
 
 .prose a:hover,

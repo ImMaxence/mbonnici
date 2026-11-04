@@ -6,22 +6,21 @@ test.describe('phone layout', () => {
     await expect(page.locator('h1')).toBeVisible();
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
     expect(overflow).toBeLessThanOrEqual(1);
-    // the dock is a bottom tab bar on phones
-    const dock = page.locator('app-dock .dock');
-    const box = await dock.boundingBox();
-    const viewport = page.viewportSize()!;
-    expect(box).not.toBeNull();
-    expect(box!.y + box!.height).toBeGreaterThan(viewport.height - 40);
-    expect(box!.width).toBeGreaterThan(viewport.width * 0.8);
     // no custom cursor on touch devices
     await expect(page.locator('app-cursor')).toHaveCount(0);
   });
 
-  test('style sheet opens from the dock and applies', async ({ page }) => {
+  test('the menu lists the pages as text and navigates', async ({ page }) => {
     await page.goto('/fr');
-    await page.getByRole('button', { name: /style visuel/i }).tap();
-    await page.getByRole('radio', { name: /Aurora/ }).tap();
-    await expect(page.locator('html')).toHaveAttribute('data-style', 'aurora');
+    await page.getByRole('button', { name: 'Menu' }).tap();
+    const menu = page.getByRole('dialog', { name: 'Menu' });
+    await expect(menu).toBeVisible();
+    for (const label of ['Accueil', 'Projets', 'À propos', 'Contact']) {
+      await expect(menu.getByRole('link', { name: new RegExp(label) })).toBeVisible();
+    }
+    await menu.getByRole('link', { name: /À propos/ }).tap();
+    await page.waitForURL('**/fr/a-propos');
+    await expect(menu).toBeHidden();
   });
 
   test('project cards stack in one column and the detail page works', async ({ page }) => {

@@ -7,6 +7,58 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [1.2.0] — 2026-11-04
+
+### Changed
+
+**Design — one style instead of three**
+- A single editorial look (ink & paper, oversized Inter Tight display, Instrument Serif italics,
+  one ultramarine accent) in light and dark; the Obsidian / Editorial / Aurora switcher, the
+  `data-style` attribute and the style analytics panel are gone (no more flash of another style
+  on load).
+- **Navigation**: the icon-only dock is replaced by a top bar with text links (hidden while
+  scrolling down, back on scroll up) and, below 900 px, a full-screen menu with large labels
+  (modal `<dialog>`: focus trap, Escape).
+- **Intro**: a plain sheet with the name, painted with the first frame and lifted after 1.4 s, once
+  per visit; the page reveals play as it lifts. The first page load no longer triggers the curtain.
+- **Page transition**: one solid sheet (no strips, gaps or rounded corners) with the destination
+  name.
+- **Light ↔ dark**: circular reveal from the button (View Transitions), cross-fade elsewhere.
+- **Projects show the real product**: the landing page in a browser frame and the phone version
+  overlapping it, from the back-office cover / first mobile capture or, by default, from the
+  screenshots published in each GitHub README (`scripts/project-shots.mjs`). The 3D scenes are
+  removed. The project page can load the live site in the frame ("Live", when framing is
+  allowed), and its gallery is a swipe / drag / arrow-key **slider**.
+- Projects filter: cards glide to their new place (View Transitions) or re-enter in cascade.
+- Toolbox grouped by purpose (no more linear marquee); skill levels are no longer shown as
+  bars, level 5 only marks the everyday tools. New "Network & security" family.
+- About: experience rows keep the contract badge on the role line; education introduced as a
+  100 % technical path.
+- House style: no full stop at the end of sentences outside the legal pages (also applied to
+  taglines, descriptions and Markdown typed in the back office).
+
+### Added
+- **Accessibility statement** (`/fr/accessibilite`, `/en/accessibility`, in the sitemap), with the
+  compliance status in the footer.
+- Legal notice: typefaces (SIL OFL, self-hosted through Fontsource, no Google Fonts request),
+  icons and logos, publication director. Privacy policy: contact notifications, third-party frames.
+- **Selective restore**: an archive is staged and compared with the live data row by row (new,
+  modified, conflict, only on the site, identical); pick what to import (a project brings its
+  images and gallery) or replace everything. `POST /api/admin/backups/stage`,
+  `/stage/drive/{id}`, `/stage/{id}/apply`; staged archives expire after an hour.
+- **Contact notifications**: e-mail through any SMTP server (Reply-To = visitor) and/or a webhook
+  (ntfy, Discord, Slack, generic JSON); both optional (`NOTIFY_*`, `SMTP_*`).
+- **Local sign-in** for development (`DEV_LOGIN=true`, refused unless `APP_URL` is localhost) and
+  `GET /api/auth/providers`; the login page explains when Google is not configured.
+- `docker-compose.local.yml` is now self-contained: builds frontend and backend, no `.env` needed.
+- Project cards expose `mobileCover`; the project editor previews the card visual.
+
+### Content (migration V4, only where the seed was untouched)
+- Public and legal e-mail `maxence.bonnici@outlook.fr`; bio rewritten (technical path, agile
+  teamwork, no "no server" claim); Sopra Steria stack (Python, Flask, Redis, HiveMQ, OpenShift,
+  Azure Stack, S3); skills added (C++/ESP32, Dart, Flutter, GitLab CI, Jira & Confluence, Claude
+  Code, Scrum, SEO for AI engines, network & security); "Tests automatisés" removed.
+
 ## [1.1.0] — 2026-11-04
 
 ### Added

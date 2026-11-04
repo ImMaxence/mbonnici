@@ -30,12 +30,6 @@
   }
 }
 
-@keyframes marquee {
-  to {
-    transform: translate3d(-50%, 0, 0);
-  }
-}
-
 @keyframes pulse {
   0% {
     box-shadow: 0 0 0 0 color-mix(in srgb, var(--success) 60%, transparent);
@@ -186,9 +180,120 @@
     transform: none;
   }
 
-  .marquee-track {
-    animation: none;
-    flex-wrap: wrap;
-    width: auto;
+}
+
+/* ─── Intro (first page load of the session) ────────────────────────────────
+   Plain HTML in index.html, painted with the very first frame (no flash of the
+   page underneath), then lifted like a single sheet. Pure CSS: it never waits
+   for JavaScript and does not exist when reduced motion is requested. */
+.intro {
+  display: none;
+}
+
+html.intro-play .intro {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  display: grid;
+  align-content: end;
+  gap: var(--space-5);
+  padding: var(--gutter);
+  padding-bottom: calc(var(--gutter) + env(safe-area-inset-bottom));
+  background: var(--fg);
+  color: var(--bg);
+  pointer-events: none;
+  will-change: transform;
+  animation: intro-lift 1s var(--ease-curtain) 1.45s both;
+}
+
+.intro-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-4);
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0;
+  animation: fade 0.6s var(--ease-out) 0.25s both;
+}
+
+.intro-name {
+  display: grid;
+  font-family: var(--font-display);
+  font-weight: var(--weight-display);
+  font-size: var(--fs-mega);
+  line-height: 0.86;
+  letter-spacing: -0.055em;
+}
+
+.intro-name > span {
+  display: block;
+  overflow: hidden;
+  padding-bottom: 0.06em;
+}
+
+.intro-name > span > span {
+  display: inline-block;
+  transform: translate3d(0, 105%, 0);
+  animation: intro-line 1s var(--ease-out) calc(0.1s + var(--i, 0) * 0.09s) both;
+}
+
+.intro-bar {
+  height: 1px;
+  background: currentColor;
+  opacity: 0.35;
+  transform-origin: 0 50%;
+  animation: intro-bar 1.3s var(--ease-in-out) 0.1s both;
+}
+
+@keyframes intro-line {
+  to {
+    transform: none;
   }
+}
+
+@keyframes intro-bar {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes intro-lift {
+  to {
+    transform: translate3d(0, -100%, 0);
+    visibility: hidden;
+  }
+}
+
+/* list items entering (project filters…) */
+@keyframes enter {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 36px, 0) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.enter {
+  animation: enter 0.8s var(--ease-out) both;
+  animation-delay: calc(var(--i, 0) * 70ms);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.intro-play .intro {
+    display: none;
+  }
+}
+
+/* project filters: cards glide to their new slot */
+::view-transition-group(*) {
+  animation-duration: 0.7s;
+  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
 }

@@ -64,6 +64,14 @@ services:
       FORWARD_HEADERS_STRATEGY: framework
       COOKIE_SECURE: "true"
       GIT_SHA: ${GIT_SHA:-}
+      # contact form notifications (optional, see .env.example)
+      NOTIFY_EMAIL: ${NOTIFY_EMAIL:-}
+      NOTIFY_FROM: ${NOTIFY_FROM:-}
+      NOTIFY_WEBHOOK_URL: ${NOTIFY_WEBHOOK_URL:-}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USERNAME: ${SMTP_USERNAME:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
     depends_on:
       db:
         condition: service_healthy

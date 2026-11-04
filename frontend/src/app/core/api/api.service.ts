@@ -26,6 +26,8 @@ import type {
   SettingsUpdate,
   Skill,
   SkillInput,
+  StagedPreview,
+  ApplyRestore,
 } from './models';
 
 /** Absolute origin of the API during SSR (e.g. http://backend:8080); empty in the browser (same origin). */
@@ -215,6 +217,25 @@ export class ApiService {
     const form = new FormData();
     form.append('file', file, file.name);
     return firstValueFrom(this.http.post<BackupRun>('/api/admin/backups/import', form, { params: { force } }));
+  }
+
+  /** Uploads an archive and compares it with the live data; nothing is changed yet. */
+  stageBackup(file: File): Promise<StagedPreview> {
+    const form = new FormData();
+    form.append('file', file, file.name);
+    return firstValueFrom(this.http.post<StagedPreview>('/api/admin/backups/stage', form));
+  }
+
+  stageDriveBackup(fileId: string, name: string): Promise<StagedPreview> {
+    return firstValueFrom(this.http.post<StagedPreview>(`/api/admin/backups/stage/drive/${fileId}`, null, { params: { name } }));
+  }
+
+  applyStaged(id: string, body: ApplyRestore): Promise<BackupRun> {
+    return firstValueFrom(this.http.post<BackupRun>(`/api/admin/backups/stage/${id}/apply`, body));
+  }
+
+  discardStaged(id: string): Promise<void> {
+    return firstValueFrom(this.http.delete<void>(`/api/admin/backups/stage/${id}`));
   }
 
   disconnectDrive(): Promise<void> {

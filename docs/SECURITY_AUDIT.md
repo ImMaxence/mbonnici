@@ -122,3 +122,17 @@ readable by the authenticated owner.
 - [x] Dependency audit (`npm audit`, managed Maven versions)
 - [x] Privacy / GDPR (cookieless analytics, retention, legal pages, DNT/GPC)
 - [x] Automated regression tests for the security-relevant behaviours (29 backend tests, e2e header and access tests)
+
+## v1.2.0 additions
+
+- **Local sign-in (`/api/auth/dev-login`)**: opens an admin session without Google, for local
+  testing only. It answers 404 unless `DEV_LOGIN=true` **and** `APP_URL` resolves to `localhost`,
+  `127.0.0.1` or `[::1]`, so a production deployment (`APP_URL=https://mbonnici.fr`) cannot expose it
+  even if the variable were set by mistake. Covered by `DevLoginTest`.
+- **Selective restore**: staged archives live in the JVM temp dir for one hour (three at most),
+  media keys are validated against the storage pattern before anything is read, table and column
+  names come from a fixed allow-list / `information_schema` (never from the archive), and the merge
+  runs in one transaction. Endpoints are under `/api/admin/**` (admin session + CSRF).
+- **Contact notifications**: outbound only, off the request thread, short timeouts; the visitor's
+  name is stripped of line breaks before reaching the e-mail subject (header injection), the
+  message body is plain text.

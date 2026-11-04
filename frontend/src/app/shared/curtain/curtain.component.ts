@@ -2,18 +2,20 @@ import { Component, inject } from '@angular/core';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { TransitionService } from './transition.service';
 
-/** Full-screen multi-panel curtain driven by TransitionService. */
+/**
+ * Page transition: one solid sheet rises from the bottom edge, shows the destination's name,
+ * then keeps going up to uncover the new page. No strips, no rounded edges, no gaps.
+ */
 @Component({
   selector: 'app-curtain',
   imports: [TranslatePipe],
   template: `
     <div class="curtain" [attr.data-state]="transition.state()" aria-hidden="true">
-      @for (i of panels; track i) {
-        <div class="panel" [style.--i]="i"></div>
-      }
-      <div class="label">
-        <span class="eyebrow">{{ 'meta.siteName' | t }}</span>
-        <span class="title">{{ transition.label() }}</span>
+      <div class="sheet">
+        <div class="label">
+          <span class="eyebrow plain">{{ 'meta.siteName' | t }}</span>
+          <span class="title"><span>{{ transition.label() }}</span></span>
+        </div>
       </div>
     </div>
   `,
@@ -22,93 +24,73 @@ import { TransitionService } from './transition.service';
       position: fixed;
       inset: 0;
       z-index: 150;
-      display: flex;
       pointer-events: none;
-      --n: 5;
+      overflow: hidden;
     }
     .curtain[data-state='covering'],
     .curtain[data-state='covered'] {
       pointer-events: all;
     }
-    .panel {
-      flex: 1;
-      background: var(--curtain-bg, var(--fg));
-      transform: scaleY(0);
-      transform-origin: 50% 100%;
+    .sheet {
+      position: absolute;
+      inset: 0;
+      background: var(--fg);
+      color: var(--bg);
+      transform: translate3d(0, 100%, 0);
       will-change: transform;
     }
-    .curtain[data-state='covering'] .panel {
-      transform: scaleY(1);
-      transition: transform 0.72s var(--ease-curtain) calc(var(--i) * 45ms);
+    .curtain[data-state='covering'] .sheet {
+      transform: translate3d(0, 0, 0);
+      transition: transform 0.75s var(--ease-curtain);
     }
-    .curtain[data-state='covered'] .panel {
-      transform: scaleY(1);
+    .curtain[data-state='covered'] .sheet {
+      transform: translate3d(0, 0, 0);
       transition: none;
     }
-    .curtain[data-state='revealing'] .panel {
-      transform: scaleY(0);
-      transform-origin: 50% 0%;
-      transition: transform 0.78s var(--ease-curtain) calc((var(--n) - 1 - var(--i)) * 45ms);
+    .curtain[data-state='revealing'] .sheet {
+      transform: translate3d(0, -100%, 0);
+      transition: transform 0.8s var(--ease-curtain);
     }
     .label {
       position: absolute;
-      inset: 0;
+      left: var(--gutter);
+      right: var(--gutter);
+      bottom: calc(var(--gutter) + env(safe-area-inset-bottom));
       display: grid;
-      place-content: center;
-      justify-items: center;
-      gap: 0.6rem;
-      color: var(--bg);
-      opacity: 0;
-      transform: translateY(14px);
-      transition: opacity 0.3s, transform 0.5s var(--ease-out);
+      gap: var(--space-4);
     }
     .label .eyebrow {
       color: inherit;
       opacity: 0.6;
     }
-    .label .eyebrow::before {
-      background: currentColor;
-      box-shadow: none;
-    }
     .title {
+      display: block;
+      overflow: hidden;
       font-family: var(--font-display);
-      font-size: var(--fs-h1);
-      letter-spacing: var(--track-display);
+      font-size: var(--fs-hero);
       font-weight: var(--weight-display);
-      line-height: 1;
+      letter-spacing: -0.05em;
+      line-height: 0.95;
+      padding-bottom: 0.06em;
     }
-    .curtain[data-state='covering'] .label,
-    .curtain[data-state='covered'] .label {
-      opacity: 1;
+    .title > span {
+      display: inline-block;
+      transform: translate3d(0, 105%, 0);
+    }
+    .curtain[data-state='covering'] .title > span,
+    .curtain[data-state='covered'] .title > span {
       transform: none;
-      transition-delay: 0.35s;
+      transition: transform 0.8s var(--ease-out) 0.28s;
     }
-    :host-context([data-style='aurora']) .panel {
-      --curtain-bg: var(--gradient-accent);
-    }
-    :host-context([data-style='aurora']) .label {
-      color: #06061a;
-    }
-    :host-context([data-style='editorial']) .panel {
-      --curtain-bg: var(--accent);
-    }
-    :host-context([data-style='editorial']) .label {
-      color: var(--accent-fg);
-    }
-    :host-context([data-style='editorial']) .title {
-      font-style: italic;
-    }
-    @media (max-width: 719px) {
-      .curtain {
-        --n: 3;
-      }
-      .panel:nth-child(n + 4) {
-        display: none;
-      }
+    .curtain[data-state='revealing'] .title > span {
+      transform: translate3d(0, -40%, 0);
+      opacity: 0;
+      transition:
+        transform 0.6s var(--ease-in-out),
+        opacity 0.3s;
     }
   `,
 })
 export class CurtainComponent {
   readonly transition = inject(TransitionService);
-  readonly panels = [0, 1, 2, 3, 4];
 }

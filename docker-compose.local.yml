@@ -1,18 +1,122 @@
-# Full production-like stack on your machine (builds both images):
+# ──────────────────────────────────────────────────────────────────────────────
+# Full stack on your machine, built from source, no .env and no Google account needed:
 #
-#   cp .env.example .env   # fill the secrets
-#   docker compose -f docker-compose.yml -f docker-compose.local.yml up --build
-#   open http://localhost:4000
+#   docker compose -f docker-compose.local.yml up --build -d --wait
+#   open http://localhost:4000          (site)
+#   open http://localhost:4000/admin    (back office → "Connexion locale")
 #
+# The back office uses the local sign-in shortcut (DEV_LOGIN, refused unless APP_URL is localhost).
+# Google sign-in and Drive also work if GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET are exported.
+# Host ports: 4000 (site, LOCAL_PORT=4100 to change it) and 5434 for psql; nothing clashes with
+# 5432 / 8080 / 8333.
+# ──────────────────────────────────────────────────────────────────────────────
+name: mbonnici-local
+
 services:
   frontend:
-    ports:
-      - "4000:4000"
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
     environment:
-      APP_URL: http://localhost:4000
+      NODE_ENV: production
+      PORT: "4000"
+      PROXY_API: "true"
+      API_BASE_URL: http://backend:8080
+      APP_URL: http://localhost:${LOCAL_PORT:-4000}
+      TRUST_PROXY: "false"
+    ports:
+      - "127.0.0.1:${LOCAL_PORT:-4000}:4000"
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:4000/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 15s
 
   backend:
+    build:
+      context: ./backend
     environment:
-      APP_URL: http://localhost:4000
+      DB_URL: jdbc:postgresql://db:5432/portfolio
+      DB_USER: portfolio
+      DB_PASSWORD: portfolio
+      PORT: "8080"
+      S3_ENDPOINT: http://seaweed:8333
+      S3_BUCKET: portfolio-media
+      S3_ACCESS_KEY: portfolio
+      S3_SECRET_KEY: portfolio-secret
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-not-configured}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-not-configured}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-maxence.bonnici2002@gmail.com}
+      APP_URL: http://localhost:${LOCAL_PORT:-4000}
+      ANALYTICS_SALT_SECRET: local-only-salt
       COOKIE_SECURE: "false"
-      TRUST_PROXY: "true"
+      TRUST_PROXY: "false"
+      DEV_LOGIN: "true"
+      # optional: try the contact notifications locally
+      NOTIFY_EMAIL: ${NOTIFY_EMAIL:-}
+      NOTIFY_WEBHOOK_URL: ${NOTIFY_WEBHOOK_URL:-}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_USERNAME: ${SMTP_USERNAME:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+    depends_on:
+      db:
+        condition: service_healthy
+      seaweed:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/api/actuator/health | grep -q '\"UP\"'"]
+      interval: 10s
+      timeout: 5s
+      retries: 18
+      start_period: 40s
+
+  db:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_DB: portfolio
+      POSTGRES_USER: portfolio
+      POSTGRES_PASSWORD: portfolio
+    ports:
+      - "127.0.0.1:5434:5432"
+    volumes:
+      - local-db:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U portfolio -d portfolio"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  seaweed:
+    image: chrislusf/seaweedfs:4.48
+    command: server -dir=/data -s3 -s3.port=8333 -s3.config=/etc/seaweedfs/s3.json -ip=seaweed -ip.bind=0.0.0.0 -master.volumeSizeLimitMB=512 -volume.max=0
+    configs:
+      - source: s3-identities
+        target: /etc/seaweedfs/s3.json
+    volumes:
+      - local-seaweed:/data
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:9333/cluster/status >/dev/null"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+configs:
+  s3-identities:
+    content: |
+      {
+        "identities": [
+          {
+            "name": "portfolio",
+            "credentials": [{ "accessKey": "portfolio", "secretKey": "portfolio-secret" }],
+            "actions": ["Admin", "Read", "Write", "List", "Tagging"]
+          }
+        ]
+      }
+
+volumes:
+  local-db:
+  local-seaweed:

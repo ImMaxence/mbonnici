@@ -296,6 +296,35 @@ public class BackupService {
         return RunDto.from(runs.save(run));
     }
 
+    /** Runs a restore-like task under the global lock and records it in the history. */
+    public RunDto exclusive(Trigger trigger, String fileName, java.util.concurrent.Callable<String> work) {
+        if (!busy.compareAndSet(false, true)) {
+            throw new ApiException(HttpStatus.CONFLICT, "a backup or restore is already running");
+        }
+        BackupRun run = runs.save(BackupRun.start(Kind.RESTORE, trigger));
+        try {
+            String message = work.call();
+            run.succeed(fileName, null, null, message);
+        } catch (ApiException e) {
+            run.fail(e.getMessage());
+            runs.save(run);
+            throw e;
+        } catch (Exception e) {
+            log.error("Restore failed", e);
+            run.fail(e.getMessage());
+            runs.save(run);
+            throw new ApiException(HttpStatus.BAD_REQUEST, "restore failed: " + e.getMessage());
+        } finally {
+            clearCaches();
+            busy.set(false);
+        }
+        return RunDto.from(runs.save(run));
+    }
+
+    public boolean isBusy() {
+        return busy.get();
+    }
+
     public void deleteDriveFile(String fileId) {
         String token = auth.accessToken().orElseThrow(() -> new ApiException(HttpStatus.CONFLICT, "Google Drive is not connected"));
         drive.delete(token, fileId);
@@ -428,7 +457,7 @@ public class BackupService {
         return bp == null ? "dev" : bp.getVersion();
     }
 
-    private void clearCaches() {
+    public void clearCaches() {
         for (String name : cacheManager.getCacheNames()) {
             Cache cache = cacheManager.getCache(name);
             if (cache != null) {

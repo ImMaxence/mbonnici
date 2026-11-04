@@ -22,8 +22,10 @@ export class ScrollService {
   progress = 0;
   direction: 1 | -1 = 1;
 
-  /** Signal for the few places that need change detection (scroll indicator, dock hide). */
+  /** Signal for the few places that need change detection (scroll indicator, header). */
   readonly scrolled = signal(false);
+  /** the header slides away while reading downwards and comes back as soon as the visitor scrolls up */
+  readonly headerHidden = signal(false);
 
   private started = false;
   private lastY = 0;
@@ -52,10 +54,23 @@ export class ScrollService {
     this.started = false;
   }
 
+  /** forces the header back (menu opened, navigation…) */
+  setHidden(hidden: boolean): void {
+    if (hidden !== this.headerHidden()) this.headerHidden.set(hidden);
+  }
+
   private readonly onScroll = (): void => {
     const y = window.scrollY;
     this.direction = y >= this.y ? 1 : -1;
+    const delta = y - this.y;
     this.y = y;
+    if (y < 160) {
+      this.setHidden(false);
+    } else if (delta > 4) {
+      this.setHidden(true);
+    } else if (delta < -4) {
+      this.setHidden(false);
+    }
     const scrolled = y > 24;
     if (scrolled !== this.scrolled()) {
       this.scrolled.set(scrolled);

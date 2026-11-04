@@ -1,10 +1,15 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
 
-const pages = ['/fr', '/fr/projets', '/fr/projets/localatscv', '/fr/a-propos', '/fr/contact', '/fr/confidentialite', '/en'];
+const pages = ['/fr', '/fr/projets', '/fr/projets/localatscv', '/fr/a-propos', '/fr/contact', '/fr/confidentialite', '/fr/accessibilite', '/en'];
 
+for (const theme of ['light', 'dark'] as const)
 for (const path of pages) {
-  test(`accessibility: ${path} has no serious or critical violations`, async ({ page }) => {
+  test(`accessibility (${theme}): ${path} has no serious or critical violations`, async ({ page }) => {
+    await page.addInitScript((mode) => {
+      sessionStorage.setItem('mb.intro', '1');
+      localStorage.setItem('mb.mode', mode);
+    }, theme);
     await page.goto(path);
     await page.waitForLoadState('networkidle');
     // let the entrance animations finish: axe measures contrast on the final opacity
@@ -26,11 +31,11 @@ test('every image has alternative text and the document has one h1', async ({ pa
   expect(await page.locator('h1').count()).toBe(1);
 });
 
-test('dock items are reachable by keyboard', async ({ page }) => {
+test('header links are reachable by keyboard', async ({ page }) => {
   await page.goto('/fr');
-  const first = page.locator('app-dock .item').first();
-  await first.focus();
-  await expect(first).toBeFocused();
+  const links = page.locator('app-header .links a');
+  await links.first().focus();
+  await expect(links.first()).toBeFocused();
   await page.keyboard.press('Tab');
-  await expect(page.locator('app-dock .item').nth(1)).toBeFocused();
+  await expect(links.nth(1)).toBeFocused();
 });

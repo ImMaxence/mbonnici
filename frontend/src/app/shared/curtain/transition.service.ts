@@ -5,7 +5,7 @@ import { MotionService } from '../../core/motion/motion.service';
 
 export type CurtainState = 'idle' | 'covering' | 'covered' | 'revealing';
 
-const COVER_MS = 780;
+const COVER_MS = 760;
 const REVEAL_MS = 820;
 
 const wait = (ms: number): Promise<void> => new Promise((r) => setTimeout(r, ms));
@@ -34,6 +34,8 @@ export class TransitionService {
   readonly state = signal<CurtainState>('idle');
   readonly label = signal('');
   private ours = false;
+  /** the very first navigation is the server-rendered page itself: nothing to cover */
+  private first = true;
 
   async navigate(url: string, label = ''): Promise<void> {
     if (!this.browser || this.motion.reduced() || this.state() !== 'idle') {
@@ -60,6 +62,10 @@ export class TransitionService {
 
   /** Called by the root component: back/forward navigations get a quick reveal only. */
   onNavigationEnd(): void {
+    if (this.first) {
+      this.first = false;
+      return;
+    }
     if (!this.browser || this.ours || this.motion.reduced()) return;
     if (this.state() !== 'idle') return;
     this.label.set('');

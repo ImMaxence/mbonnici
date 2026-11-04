@@ -6,6 +6,7 @@ import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.not;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -18,6 +19,7 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -49,7 +51,7 @@ class BackupTest extends AbstractIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.drive.connected").value(false))
                 .andExpect(jsonPath("$.settings.keepCount").value(14))
-                .andExpect(jsonPath("$.schemaVersion").value("3"))
+                .andExpect(jsonPath("$.schemaVersion").value("4"))
                 .andExpect(jsonPath("$.running").value(false));
 
         mvc.perform(put("/api/admin/backups/settings").with(csrf()).contentType(MediaType.APPLICATION_JSON)
@@ -128,6 +130,71 @@ class BackupTest extends AbstractIntegrationTest {
         mvc.perform(get("/api/admin/backups"))
                 .andExpect(jsonPath("$.runs[0].kind").value("RESTORE"))
                 .andExpect(jsonPath("$.runs[0].trigger").value("UPLOAD"));
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void stagedArchiveCanBeComparedThenMergedRowByRow() throws Exception {
+        byte[] archive = mvc.perform(get("/api/admin/backups/export")).andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsByteArray();
+
+        // after the snapshot: one project removed, one project added
+        String list = mvc.perform(get("/api/admin/projects")).andReturn().getResponse().getContentAsString();
+        List<String> ids = JsonPath.read(list, "$[?(@.slug == 'meowtrix')].id");
+        String meowtrix = ids.getFirst();
+        mvc.perform(delete("/api/admin/projects/" + meowtrix).with(csrf())).andExpect(status().isNoContent());
+        String created = mvc.perform(post("/api/admin/projects").with(csrf()).contentType(MediaType.APPLICATION_JSON)
+                        .content(NEW_PROJECT)).andExpect(status().isCreated()).andReturn().getResponse().getContentAsString();
+        String extraSlug = JsonPath.read(created, "$.slug");
+
+        // stage: nothing changes yet, the preview tells what differs
+        String preview = mvc.perform(multipart("/api/admin/backups/stage")
+                        .file(new MockMultipartFile("file", "a.zip", "application/zip", archive)).with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.schemaMatches").value(true))
+                .andReturn().getResponse().getContentAsString();
+        String stageId = JsonPath.read(preview, "$.id");
+        List<Integer> added = JsonPath.read(preview, "$.tables[?(@.table == 'project')].added");
+        List<Integer> currentOnly = JsonPath.read(preview, "$.tables[?(@.table == 'project')].currentOnly");
+        assertThat(added).containsExactly(1);
+        assertThat(currentOnly).containsExactly(1);
+        List<String> statuses = JsonPath.read(preview,
+                "$.tables[?(@.table == 'project')].rows[?(@.id == '" + meowtrix + "')].status");
+        assertThat(statuses).containsExactly("NEW");
+        mvc.perform(get("/api/projects/meowtrix")).andExpect(status().isNotFound());
+
+        // merge only the deleted project back: the project added since then stays
+        mvc.perform(post("/api/admin/backups/stage/" + stageId + "/apply").with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"mode\":\"MERGE\",\"rows\":{\"project\":[\"" + meowtrix + "\"]},\"analytics\":false}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("SUCCESS"));
+        mvc.perform(get("/api/projects/meowtrix")).andExpect(status().isOk());
+        mvc.perform(get("/api/projects")).andExpect(jsonPath("$[*].slug", hasItem(extraSlug)));
+        // a staged archive is consumed by apply
+        mvc.perform(get("/api/admin/backups/stage/" + stageId)).andExpect(status().isNotFound());
+
+        // replace mode: back to the exact snapshot
+        String again = mvc.perform(multipart("/api/admin/backups/stage")
+                        .file(new MockMultipartFile("file", "a.zip", "application/zip", archive)).with(csrf()))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+        String againId = JsonPath.read(again, "$.id");
+        mvc.perform(post("/api/admin/backups/stage/" + againId + "/apply").with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"mode\":\"REPLACE\"}"))
+                .andExpect(status().isOk());
+        mvc.perform(get("/api/projects")).andExpect(jsonPath("$[*].slug", not(hasItem(extraSlug))));
+    }
+
+    @Test
+    void pgCsvRoundTripKeepsNullsQuotesAndNewlines() {
+        byte[] csv = "id,a,b\n1,,\"\"\n2,\"x,\"\"y\"\"\nz\",plain\n".getBytes();
+        var t = fr.mbonnici.portfolio.backup.PgCsv.parse(csv);
+        assertThat(t.header()).containsExactly("id", "a", "b");
+        assertThat(t.rows().get(0)).containsExactly("1", null, "");
+        assertThat(t.rows().get(1)).containsExactly("2", "x,\"y\"\nz", "plain");
+        var back = fr.mbonnici.portfolio.backup.PgCsv.parse(
+                fr.mbonnici.portfolio.backup.PgCsv.write(t.header(), t.rows()));
+        assertThat(back.rows()).isEqualTo(t.rows());
     }
 
     @Test

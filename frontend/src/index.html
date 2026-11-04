@@ -1,32 +1,42 @@
 <!doctype html>
-<html lang="fr" data-theme="dark" data-style="obsidian">
+<html lang="fr" data-theme="light">
 <head>
   <meta charset="utf-8">
   <title>Maxence Bonnici</title>
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="color-scheme" content="dark light">
-  <meta name="theme-color" content="#0a0a0c">
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#efede7">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="icon" href="favicon.ico" sizes="32x32">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
   <link rel="manifest" href="manifest.webmanifest">
   <script nonce="__CSP_NONCE__">
     (function () {
+      var d = document.documentElement;
       try {
-        var d = document.documentElement;
-        var style = localStorage.getItem('mb.style');
         var mode = localStorage.getItem('mb.mode');
-        if (style === 'obsidian' || style === 'editorial' || style === 'aurora') d.setAttribute('data-style', style);
         var dark = mode === 'dark' || ((!mode || mode === 'system') && matchMedia('(prefers-color-scheme: dark)').matches);
         d.setAttribute('data-theme', dark ? 'dark' : 'light');
-        // the "js" class (which arms the scroll reveals) is added by the app once hydrated,
-        // so server-rendered content is visible immediately on slow devices
       } catch (e) {}
+      try {
+        // the intro plays once per visit, never for reduced motion, never in the back office
+        if (!sessionStorage.getItem('mb.intro') && !matchMedia('(prefers-reduced-motion: reduce)').matches && location.pathname.indexOf('/admin') !== 0) {
+          d.classList.add('intro-play');
+          sessionStorage.setItem('mb.intro', '1');
+        }
+      } catch (e) {}
+      // the "js" class (which arms the scroll reveals) is added by the app once hydrated,
+      // so server-rendered content is visible immediately on slow devices
     })();
   </script>
 </head>
 <body>
+  <div class="intro" aria-hidden="true">
+    <div class="intro-meta"><span>Portfolio</span><span>Aix-en-Provence</span></div>
+    <div class="intro-bar"></div>
+    <div class="intro-name"><span><span style="--i: 0">Maxence</span></span><span><span style="--i: 1">Bonnici</span></span></div>
+  </div>
   <app-root ngCspNonce="__CSP_NONCE__"></app-root>
 </body>
 </html>

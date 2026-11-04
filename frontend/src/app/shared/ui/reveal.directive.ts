@@ -3,6 +3,8 @@ import { MotionService } from '../../core/motion/motion.service';
 
 /** Hydration later than this after navigation start means a slow device: no entrance choreography. */
 const FAST_HYDRATION_MS = 1800;
+/** The CSS intro (motion.css) lifts at 1.45 s and is gone at ~2.45 s after navigation start. */
+export const INTRO_END_MS = 2300;
 
 /**
  * Reveals the host when it scrolls into view. With `revealSplit="words"` the text is wrapped
@@ -42,8 +44,14 @@ export class RevealDirective {
 
       const rect = el.getBoundingClientRect();
       const inViewport = rect.top < window.innerHeight && rect.bottom > 0;
+      const intro = document.documentElement.classList.contains('intro-play');
       if (inViewport) {
-        if (performance.now() > FAST_HYDRATION_MS) {
+        const now = performance.now();
+        if (intro && now < INTRO_END_MS) {
+          // hidden under the intro sheet: play the entrance as the sheet lifts
+          el.style.setProperty('--reveal-delay', Math.round(INTRO_END_MS - 900 - now + this.revealDelay()) + 'ms');
+          requestAnimationFrame(() => el.classList.add('is-in'));
+        } else if (now > (intro ? INTRO_END_MS + 400 : FAST_HYDRATION_MS)) {
           el.classList.add('is-in', 'no-anim');
         } else {
           // let the hidden state apply for one frame so the entrance animation plays

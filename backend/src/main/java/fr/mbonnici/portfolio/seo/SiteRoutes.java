@@ -10,7 +10,7 @@ public final class SiteRoutes {
 
     public static final List<String> LANGS = List.of("fr", "en");
     public static final String DEFAULT_LANG = "fr";
-    public static final List<String> PAGES = List.of("home", "projects", "about", "contact", "legal", "privacy", "terms");
+    public static final List<String> PAGES = List.of("home", "projects", "about", "contact", "legal", "privacy", "terms", "accessibility");
 
     private static final Map<String, Map<String, String>> SEGMENTS = Map.of(
             "fr", Map.of(
@@ -20,7 +20,8 @@ public final class SiteRoutes {
                     "contact", "contact",
                     "legal", "mentions-legales",
                     "privacy", "confidentialite",
-                    "terms", "conditions-utilisation"),
+                    "terms", "conditions-utilisation",
+                    "accessibility", "accessibilite"),
             "en", Map.of(
                     "home", "",
                     "projects", "projects",
@@ -28,7 +29,8 @@ public final class SiteRoutes {
                     "contact", "contact",
                     "legal", "legal-notice",
                     "privacy", "privacy-policy",
-                    "terms", "terms-of-use"));
+                    "terms", "terms-of-use",
+                    "accessibility", "accessibility"));
 
     public static String path(String lang, String page) {
         String seg = SEGMENTS.get(lang).get(page);

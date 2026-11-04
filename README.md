@@ -6,7 +6,7 @@
 
 ### The portfolio of Maxence Bonnici, full stack developer (Java & Angular).
 
-**Three visual styles · light & dark · French & English · interactive 3D scenes · back office**
+**One editorial style · light & dark · French & English · real project captures · back office**
 
 [**mbonnici.fr**](https://mbonnici.fr) · [Changelog](CHANGELOG.md) · [Architecture](docs/ARCHITECTURE.md) · [Deployment](docs/DEPLOYMENT.md) · [Security audit](docs/SECURITY_AUDIT.md) · [Lighthouse](docs/LIGHTHOUSE.md)
 
@@ -20,7 +20,7 @@
 ![Custom CSS](https://img.shields.io/badge/CSS-100%25%20custom-1572b6?logo=css3&logoColor=white)
 ![License: MIT](https://img.shields.io/badge/license-MIT-blue)
 
-![Home page, Obsidian style, dark](docs/images/home-obsidian-dark.png)
+![Home page, dark](docs/images/home-dark.png)
 
 </div>
 
@@ -32,28 +32,22 @@ A personal site that behaves like a product: server-rendered pages for search en
 assistants, a cinematic front end built without a single UI library, and a private back office
 to publish projects, pictures and career updates without touching the code.
 
-| Obsidian (dark) | Editorial (light) | Aurora (dark) |
+| Home (light) | Projects | Project page |
 | --- | --- | --- |
-| ![Obsidian](docs/images/home-obsidian-dark.png) | ![Editorial](docs/images/home-editorial-light.png) | ![Aurora](docs/images/home-aurora-dark.png) |
+| ![Home, light](docs/images/home-light.png) | ![Projects](docs/images/projects.png) | ![Project](docs/images/project.png) |
 
 ## Highlights
 
 **Experience**
-- **Three complete looks**, switchable from the dock: *Obsidian* (graphite, Apple-Pro precision),
-  *Editorial* (serif, paper and ink, burnt orange) and *Aurora* (glass, cyan → magenta). Each one
-  has its own light and dark scheme, fonts, radii and motion curves. The choice is remembered.
-- **Native JavaScript physics**: magnetic cursor with a morphing ring, springs on every hover,
-  macOS-style dock magnification, frame-rate-independent damping, no animation library.
-- **Cinematic curtain transitions** between pages and masked word-by-word text reveals.
-- **A 3D scene per project**, drawn on canvas or with CSS 3D: particle orb, orbit with floating
-  stack labels, wireframe terrain with a pointer wake, double helix, layered glass stack.
-- **iPhone Pro simulator** in pure CSS (titanium frame, Dynamic Island, live clock) that loads the
-  real site in an iframe or a swipeable, momentum-driven screenshot carousel.
-- **Floating frosted-glass dock** that becomes a tab bar on phones; thorough mobile layout.
-
-| Project page — layered stack scene | Project page — iPhone simulator |
-| --- | --- |
-| ![Stack scene](docs/images/project-stack.png) | ![iPhone simulator](docs/images/project-iphone.png) |
+- **One editorial look**: ink and paper, oversized Inter Tight display, Instrument Serif italics and
+  a single ultramarine accent, in light and dark (circular reveal when switching).
+- **Intro sheet** on the first visit, **one-sheet page transitions**, masked word-by-word reveals.
+- **The real product on every card**: the landing page in a browser frame with the phone version
+  on top, from the back office or by default from the screenshots of each GitHub README
+  (`frontend/scripts/project-shots.mjs`). The project page can load the live site in the frame,
+  has a swipe / drag / keyboard **gallery slider** and an **iPhone Pro simulator** in pure CSS.
+- **Native JavaScript physics**: magnetic cursor, springs, frame-rate-independent damping.
+- **Text navigation** in a top bar that hides while reading; a full-screen menu on phones and tablets.
 
 **Content & SEO**
 - French and English with localised URLs (`/fr/projets/meowtrix`, `/en/projects/meowtrix`),
@@ -66,21 +60,23 @@ to publish projects, pictures and career updates without touching the code.
 
 **Back office** (`/admin`, Google sign-in restricted to one e-mail address)
 - Dashboard with page views, unique visitors, project views, outbound clicks, daily traffic
-  chart, most viewed projects and pages, chosen styles / themes / languages / devices, referrers.
+  chart, most viewed projects and pages, themes / languages / devices, referrers.
 - Frontend and backend versions, build date and commit, Java and Spring Boot versions, database
   and storage health — all on one card.
-- Projects: bilingual editor, scene picker with live previews, accent colour, media picker,
+- Projects: bilingual editor, live card preview, accent colour, media picker (cover, gallery, mobile),
   publish / unpublish, drag-and-drop ordering. Media library with drag-and-drop upload and alt
   texts. Experience, education, skills, site settings and the contact inbox.
 - **Backups**: one archive = the whole database (native `COPY` export) + every image. Download it,
-  restore from a file, or link **Google Drive** (same account, `drive.file` scope only) for
-  one-click and daily backups with retention, restore and offline download from any archive.
+  link **Google Drive** (same account, `drive.file` scope only) for one-click and daily backups
+  with retention. **Restoring compares the archive with the live site row by row**: pick what to
+  bring back (a project comes with its images) or replace everything.
+- **Contact notifications** by e-mail (any SMTP) and/or push (ntfy, Discord, Slack); unread badge.
 - **Server panel**: CPU, memory, Java heap, disk space left, database and media sizes, live.
 - **Releases page** rendering this repository's changelog with the running version highlighted.
 
-| Dock settings | Contact (Aurora, light) | Phone |
+| About (dark) | Contact | Phone menu |
 | --- | --- | --- |
-| ![Dock settings](docs/images/dock-settings.png) | ![Contact](docs/images/contact.png) | ![Mobile](docs/images/mobile-home.png) |
+| ![About](docs/images/about.png) | ![Contact](docs/images/contact.png) | ![Menu](docs/images/mobile-menu.png) |
 
 **Privacy & security**
 - Cookieless first-party analytics: a visitor is a daily-rotating salted hash, the IP is never
@@ -91,9 +87,9 @@ to publish projects, pictures and career updates without touching the code.
   both tiers. Details in [docs/SECURITY_AUDIT.md](docs/SECURITY_AUDIT.md).
 
 **Accessibility**
-- Skip link, keyboard-reachable dock and cards, focus rings, aria labels, live route
-  announcements, `prefers-reduced-motion` (static scenes, no cursor, instant transitions),
-  axe-core checks in the e2e suite.
+- Skip link, keyboard-reachable navigation and cards, focus rings, aria labels, live route
+  announcements, `prefers-reduced-motion` (no intro, no cursor, instant transitions), axe-core
+  checks in light and dark in the e2e suite, and a published accessibility statement.
 
 ## Stack
 
@@ -102,7 +98,7 @@ to publish projects, pictures and career updates without touching the code.
 | Frontend | Angular 22 (zoneless, signals, SSR), Express, TypeScript, hand-written CSS with design tokens, self-hosted fonts |
 | Backend | Spring Boot 4.1, Java 25, Spring Security (OAuth2 client), Spring Data JPA, Flyway, Bean Validation |
 | Data | PostgreSQL 18, SeaweedFS (S3 API) for images — swappable for MinIO, Garage or Cloudflare R2 |
-| Tests | 29 backend integration tests (Testcontainers), Playwright e2e on desktop and phone with axe-core |
+| Tests | 37 backend integration tests (Testcontainers), Playwright e2e on desktop and phone with axe-core |
 | Ops | Docker Compose on [Coolify](https://coolify.io), Cloudflare in front, GitHub Actions CI |
 
 ## Repository
@@ -113,7 +109,7 @@ backend/    Spring Boot API, Flyway migrations (src/main/resources/db/migration)
 docs/       architecture, deployment, security audit, screenshots
 docker-compose.yml        production stack (Coolify)
 docker-compose.dev.yml    PostgreSQL + SeaweedFS for local development
-docker-compose.local.yml  full stack on your machine
+docker-compose.local.yml  full stack built from source, no .env needed
 ```
 
 ## Run it locally
@@ -134,12 +130,13 @@ cd frontend && npm install && npm start                     # http://localhost:4
 The first start runs the migrations and seeds the projects, experience and skills; open
 `/admin` to edit them (Google client needed, see [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)).
 
-Full production-like stack:
+**Everything in Docker, nothing to install but Docker** (builds frontend and backend):
 
 ```bash
-cp .env.example .env     # fill the secrets
-docker compose -f docker-compose.yml -f docker-compose.local.yml up --build
-# http://localhost:4000
+docker compose -f docker-compose.local.yml up --build -d --wait
+# http://localhost:4000         site
+# http://localhost:4000/admin   back office → "Connexion locale" (DEV_LOGIN, localhost only)
+LOCAL_PORT=4100 docker compose -f docker-compose.local.yml up --build -d --wait   # other port
 ```
 
 ## Tests

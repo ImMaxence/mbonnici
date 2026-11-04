@@ -57,6 +57,12 @@ function localized(lang: Lang): Routes {
       data: { page: 'terms' },
     },
     {
+      path: s.accessibility,
+      loadComponent: () => import('./features/legal/legal.page').then((m) => m.LegalPage),
+      resolve: { settings: settingsResolver },
+      data: { page: 'accessibility' },
+    },
+    {
       path: '**',
       loadComponent: () => import('./features/not-found/not-found.page').then((m) => m.NotFoundPage),
       data: { page: 'notFound' },

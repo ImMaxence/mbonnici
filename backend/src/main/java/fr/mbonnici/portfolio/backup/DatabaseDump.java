@@ -51,6 +51,19 @@ public class DatabaseDump {
         }
     }
 
+    /** Current content of one table, in the same CSV dialect as an archive entry. */
+    public byte[] dumpTable(String table) throws SQLException, IOException {
+        if (!TABLES.contains(table)) {
+            throw new IllegalArgumentException("unknown table " + table);
+        }
+        try (Connection c = dataSource.getConnection()) {
+            java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
+            c.unwrap(PGConnection.class).getCopyAPI()
+                    .copyOut("COPY " + table + " TO STDOUT WITH (FORMAT csv, HEADER true)", out);
+            return out.toByteArray();
+        }
+    }
+
     /** Replaces all content with the given CSV payloads (table → csv bytes) atomically. */
     public void restore(Map<String, byte[]> csvByTable) throws SQLException, IOException {
         try (Connection c = dataSource.getConnection()) {

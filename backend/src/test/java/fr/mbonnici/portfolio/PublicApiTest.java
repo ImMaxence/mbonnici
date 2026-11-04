@@ -1,6 +1,7 @@
 package fr.mbonnici.portfolio;
 
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.endsWith;
 import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.hasSize;
@@ -48,7 +49,9 @@ class PublicApiTest extends AbstractIntegrationTest {
         mvc.perform(get("/api/projects/localatscv"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.description.en").value(containsString("ATS")))
-                .andExpect(jsonPath("$.allowIframe").value(true))
+                // the live site forbids framing (frame-ancestors), so the live preview is off (migration V4)
+                .andExpect(jsonPath("$.allowIframe").value(false))
+                .andExpect(jsonPath("$.tagline.fr").value(not(endsWith("."))))
                 .andExpect(jsonPath("$.previous").doesNotExist())
                 .andExpect(jsonPath("$.next.slug").value("localcutvideo"))
                 .andExpect(jsonPath("$.gallery").isArray());

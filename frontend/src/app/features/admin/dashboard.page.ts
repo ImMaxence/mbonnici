@@ -124,10 +124,6 @@ const PAD = { top: 16, right: 16, bottom: 28, left: 36 };
           <ng-container *ngTemplateOutlet="bars; context: { $implicit: o.topPaths }" />
         </div>
         <div class="panel">
-          <h2 class="panel-title">{{ 'admin.dashboard.styles' | t }}</h2>
-          <ng-container *ngTemplateOutlet="bars; context: { $implicit: o.styles }" />
-        </div>
-        <div class="panel">
           <h2 class="panel-title">{{ 'admin.dashboard.themes' | t }}</h2>
           <ng-container *ngTemplateOutlet="bars; context: { $implicit: o.themes }" />
         </div>

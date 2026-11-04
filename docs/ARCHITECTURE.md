@@ -6,20 +6,21 @@
 mbonnici/
 ├── frontend/                 Angular 22 (zoneless, signals, SSR) + Express server
 │   ├── src/app/core/         i18n, theme, motion (physics, rAF, pointer, scroll), api, seo, analytics, auth
-│   ├── src/app/shared/       cursor, curtain, dock, scenes (canvas + CSS 3D), iphone, ui
+│   ├── src/app/shared/       cursor, curtain, header, iphone, ui (showcase, slider, toolbox…)
 │   ├── src/app/features/     home, projects, about, contact, legal, not-found, admin
-│   ├── src/styles/           reset, tokens (3 styles × 2 schemes), typography, layout, components, motion, admin
+│   ├── src/styles/           reset, tokens (one style × 2 schemes), typography, layout, components, motion (intro), admin
 │   ├── src/server.ts         SSR, CSP nonce, API proxy, language redirect, security headers
 │   ├── e2e/                  Playwright specs (desktop + mobile, axe accessibility)
-│   └── scripts/              version.mjs (build stamp), assets.mjs (OG/icons), screenshots.mjs (README)
+│   └── scripts/              version.mjs (build stamp), assets.mjs (OG/icons), screenshots.mjs (README), project-shots.mjs (default project captures)
 ├── backend/                  Spring Boot 4.1 / Java 25
 │   └── src/main/java/fr/mbonnici/portfolio/
 │       ├── config/           SecurityConfig, RateLimitFilter, AppProperties, StorageConfig
-│       ├── auth/             Google OIDC user service (e-mail allow-list), /api/auth/me
+│       ├── auth/             Google OIDC user service (e-mail allow-list), /api/auth/me, local dev sign-in
 │       ├── project/ media/ profile/ settings/ contact/ analytics/ seo/ admin/
 │       └── storage/          StorageService (S3 via AWS SDK v2)
 ├── docker-compose.yml        production (Coolify)
 ├── docker-compose.dev.yml    local PostgreSQL + SeaweedFS
+├── docker-compose.local.yml  full stack built from source (DEV_LOGIN on)
 └── docs/                     this file, DEPLOYMENT.md, SECURITY_AUDIT.md, images/
 ```
 
@@ -42,12 +43,25 @@ in `core/i18n/routes.ts` and mirrored in `seo/SiteRoutes.java` for the sitemap. 
 database is bilingual at the column level (`title_fr`, `title_en` → `{fr, en}` in the API) so the
 language switch never refetches.
 
-## Visual styles
+## Visual style
 
-All colours, fonts, radii and motion curves are CSS custom properties on `:root`, overridden by
-`[data-style]` (obsidian / editorial / aurora) and `[data-theme]` (light / dark). `ThemeService`
-sets both attributes; an inline script in `index.html` applies the stored choice before first
-paint so there is no flash. Fonts are self-hosted (`@fontsource`) — no Google Fonts requests.
+One editorial style. Colours, fonts, radii and motion curves are CSS custom properties on
+`:root` (light) overridden by `[data-theme='dark']`. An inline script in `index.html` applies the
+stored scheme before first paint; `ThemeService` keeps it in sync and animates the switch with a
+View Transition (circular reveal from the button, cross-fade fallback).
+
+- Fonts: Inter (text), Inter Tight (display), Instrument Serif italic (emphasis), JetBrains Mono
+  (labels), all SIL OFL, bundled through `@fontsource` and served by the site itself.
+- Icons: hand-drawn 24 px SVG paths inlined by `IconComponent` — no icon font, no sprite request.
+- Intro: plain HTML in `index.html` (`.intro`), shown when the inline script adds
+  `html.intro-play` (once per session, never with reduced motion), animated in pure CSS so it
+  paints with the first frame. `RevealDirective` delays the entrance of the content it covers.
+- Page transitions: `TransitionService` + `CurtainComponent`, one sheet; the first navigation
+  (the server-rendered page) is never covered.
+- Project visuals: `ShowcaseComponent` (browser frame + phone) reads the cover / first mobile
+  media of the project, else `shots.generated.ts` written by `scripts/project-shots.mjs` from the
+  README screenshots (files in `public/shots/<slug>/`).
+- Copy never ends with a full stop outside `legal.*` (`NoDotPipe`, also applied to Markdown).
 
 ## Motion system
 
@@ -57,19 +71,33 @@ paint so there is no flash. Fonts are self-hosted (`@fontsource`) — no Google 
 - `PointerService` / `ScrollService`: smoothed pointer and scroll values read every frame
   without triggering change detection.
 - Effects are gated by `MotionService` (reduced motion, fine pointer, touch, narrow viewport):
-  the cursor and magnetic effects only exist with a mouse; scenes draw a single static frame
-  when motion is reduced; canvas particle counts scale with the quality budget.
-- Scenes implement `BaseScene.frame(dt, t, pointer, intensity)` and are mounted by
-  `SceneHostComponent`, which handles DPR sizing, visibility (IntersectionObserver) and theme
-  colour changes. STACK (layered CSS 3D cards) and DEVICE (iPhone simulator) are DOM scenes.
+  the cursor and magnetic effects only exist with a mouse; with reduced motion the intro, the
+  transitions and the reveals are skipped.
 
 ## Data model
 
 `site_settings` (single row) · `project` (bilingual texts, status, scene type, accent, stack[],
 tags[]) · `media` (object key, dimensions, blur placeholder, alt texts) · `project_media`
 (gallery / mobile ordering) · `experience` · `education` · `skill` · `contact_message` ·
-`analytics_event` (type, path, project, locale, theme, style, device, referrer host, daily
+`analytics_event` (type, path, project, locale, theme, style (legacy, unused), device, referrer host, daily
 visitor hash). Migrations: `backend/src/main/resources/db/migration` (Flyway, plain SQL).
+
+## Backups and selective restore
+
+An archive is a zip: `manifest.json`, one CSV per content table (`COPY … TO STDOUT`), the media
+objects and their content types. Restoring is two-step: `RestoreStagingService` stages the
+archive (temp file, 1 h) and diffs every table against the live data by primary key (`NEW`,
+`CHANGED` with the differing columns, `CONFLICT` on a unique slug / object key, `CURRENT_ONLY`,
+`SAME`). The admin then replaces everything (`TRUNCATE` + `COPY` in one transaction) or merges a
+selection: `ArchiveMerger` copies the chosen rows into temporary tables and upserts them
+(`INSERT … ON CONFLICT (id) DO UPDATE`) in one transaction; a project brings its gallery links and
+missing images, analytics events can be added without touching existing ones.
+
+## Contact notifications
+
+Every message is stored (`contact_message`) and listed in the back office with an unread badge.
+`ContactNotifier` can also, off the request thread, e-mail it (any SMTP server, Reply-To set to the
+visitor) and/or post it to a webhook (ntfy, Discord, Slack or generic JSON).
 
 ## Security model
 

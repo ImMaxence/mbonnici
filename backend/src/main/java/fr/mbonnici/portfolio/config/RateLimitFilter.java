@@ -137,7 +137,8 @@ public class RateLimitFilter extends OncePerRequestFilter {
         if (path.startsWith("/api/admin/media") && "POST".equals(method)) {
             return upload;
         }
-        if (path.startsWith("/api/auth/")) {
+        // sign-in flows are tightly limited; the read-only session probes run on every page view
+        if (path.startsWith("/api/auth/") && !path.equals("/api/auth/me") && !path.equals("/api/auth/providers")) {
             return auth;
         }
         return api;

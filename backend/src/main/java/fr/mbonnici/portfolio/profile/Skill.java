@@ -13,7 +13,7 @@ import java.util.UUID;
 @Table(name = "skill")
 public class Skill {
 
-    public enum Category { LANGUAGE, FRAMEWORK, DATABASE, DEVOPS, TOOL, PRACTICE }
+    public enum Category { LANGUAGE, FRAMEWORK, DATABASE, DEVOPS, TOOL, PRACTICE, NETWORK }
 
     @Id
     @GeneratedValue

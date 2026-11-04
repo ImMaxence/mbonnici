@@ -1,5 +1,6 @@
 import { NgTemplateOutlet } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
+import { stripDot } from './text';
 
 type Inline =
   | { t: 'text'; v: string }
@@ -80,7 +81,23 @@ type Block =
 })
 export class MarkdownComponent {
   readonly text = input.required<string>();
-  readonly blocks = computed(() => parseMarkdown(this.text()));
+  /** house style: paragraphs and list items do not end with a full stop (off for legal text) */
+  readonly noDot = input(true);
+  readonly blocks = computed(() => {
+    const blocks = parseMarkdown(this.text());
+    if (this.noDot()) {
+      for (const b of blocks) {
+        if (b.t === 'p') dropFinalDot(b.v);
+        else if (b.t === 'ul' || b.t === 'ol') b.items.forEach(dropFinalDot);
+      }
+    }
+    return blocks;
+  });
+}
+
+function dropFinalDot(items: Inline[]): void {
+  const last = items[items.length - 1];
+  if (last?.t === 'text') last.v = stripDot(last.v);
 }
 
 export function parseMarkdown(src: string): Block[] {

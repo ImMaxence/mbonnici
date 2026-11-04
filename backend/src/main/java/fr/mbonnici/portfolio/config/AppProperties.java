@@ -13,7 +13,10 @@ public record AppProperties(
         @DefaultValue("") String gitSha,
         Analytics analytics,
         Storage storage,
-        RateLimit rateLimit) {
+        RateLimit rateLimit,
+        Notify notifications,
+        /** local only: GET /api/auth/dev-login signs in without Google (refused unless app.url is localhost) */
+        @DefaultValue("false") boolean devLogin) {
 
     public record Analytics(String saltSecret, @DefaultValue("400") int retentionDays) {}
 
@@ -24,6 +27,17 @@ public record AppProperties(
             String accessKey,
             String secretKey,
             @DefaultValue("true") boolean pathStyle) {}
+
+    /** Contact-form notifications: e-mail through any SMTP server and/or a webhook (ntfy, Discord, Slack…). */
+    public record Notify(
+            @DefaultValue("") String email,
+            @DefaultValue("") String from,
+            @DefaultValue("") String webhookUrl,
+            @DefaultValue("") String smtpHost,
+            @DefaultValue("587") int smtpPort,
+            @DefaultValue("") String smtpUsername,
+            @DefaultValue("") String smtpPassword,
+            @DefaultValue("true") boolean smtpStarttls) {}
 
     public record RateLimit(
             @DefaultValue("true") boolean enabled,

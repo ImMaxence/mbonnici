@@ -40,7 +40,7 @@ import { IconComponent } from '../../shared/ui/icon.component';
                   }
                   <span class="status-pill" [attr.data-status]="p.status">{{ 'admin.projects.status.' + p.status | t }}</span>
                 </div>
-                <div class="small faint mono">/{{ p.slug }} · {{ 'scenes.' + p.sceneType | t }} · {{ p.year ?? '—' }}</div>
+                <div class="small faint mono">/{{ p.slug }} · {{ 'categories.' + p.category | t }} · {{ p.year ?? '—' }}</div>
               </div>
             </div>
             <div class="row" style="gap: .4rem; flex-wrap: nowrap">

@@ -11,12 +11,12 @@ export type SceneType = 'ORBIT' | 'TERRAIN' | 'HELIX' | 'STACK' | 'DEVICE';
 export type MediaKind = 'GALLERY' | 'MOBILE';
 export type Availability = 'OPEN' | 'LISTENING' | 'BUSY';
 export type ContractType = 'CDI' | 'CDD' | 'ALTERNANCE' | 'STAGE' | 'FREELANCE';
-export type SkillCategory = 'LANGUAGE' | 'FRAMEWORK' | 'DATABASE' | 'DEVOPS' | 'TOOL' | 'PRACTICE';
+export type SkillCategory = 'LANGUAGE' | 'FRAMEWORK' | 'DATABASE' | 'DEVOPS' | 'NETWORK' | 'TOOL' | 'PRACTICE';
 
 export const PROJECT_CATEGORIES: ProjectCategory[] = ['WEB', 'MOBILE', 'GAME', 'TOOL', 'DESIGN', 'DATA', 'OTHER'];
 export const SCENE_TYPES: SceneType[] = ['ORBIT', 'TERRAIN', 'HELIX', 'STACK', 'DEVICE'];
 export const CONTRACT_TYPES: ContractType[] = ['CDI', 'CDD', 'ALTERNANCE', 'STAGE', 'FREELANCE'];
-export const SKILL_CATEGORIES: SkillCategory[] = ['LANGUAGE', 'FRAMEWORK', 'DATABASE', 'DEVOPS', 'TOOL', 'PRACTICE'];
+export const SKILL_CATEGORIES: SkillCategory[] = ['LANGUAGE', 'FRAMEWORK', 'DATABASE', 'DEVOPS', 'NETWORK', 'TOOL', 'PRACTICE'];
 
 export interface MediaDto {
   id: string;
@@ -44,6 +44,8 @@ export interface ProjectCard {
   tags: string[];
   featured: boolean;
   cover: MediaDto | null;
+  /** first portrait capture (cards only) */
+  mobileCover?: MediaDto | null;
   liveUrl: string | null;
   repoUrl: string | null;
 }
@@ -318,6 +320,48 @@ export interface BackupSettings {
   autoEnabled: boolean;
   hourUtc: number;
   keepCount: number;
+}
+
+export type RowStatus = 'NEW' | 'CONFLICT' | 'CHANGED' | 'CURRENT_ONLY' | 'SAME';
+
+export interface RowDiff {
+  id: string;
+  label: string | null;
+  detail: string | null;
+  status: RowStatus;
+  changes: string[];
+}
+
+export interface TableDiff {
+  table: string;
+  archive: number;
+  current: number;
+  added: number;
+  changed: number;
+  same: number;
+  currentOnly: number;
+  conflicts: number;
+  /** null for analytics (counts only) */
+  rows: RowDiff[] | null;
+}
+
+export interface StagedPreview {
+  id: string;
+  source: string;
+  manifest: { format: number; appVersion: string; schemaVersion: string; createdAt: string; tables: number; mediaCount: number; mediaBytes: number };
+  currentSchema: string | null;
+  schemaMatches: boolean;
+  expiresAt: string;
+  tables: TableDiff[];
+  mediaObjects: number;
+  mediaBytes: number;
+}
+
+export interface ApplyRestore {
+  mode: 'REPLACE' | 'MERGE';
+  rows?: Record<string, string[]>;
+  analytics?: boolean;
+  force?: boolean;
 }
 
 export interface BackupOverview {

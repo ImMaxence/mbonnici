@@ -44,7 +44,7 @@ import { APP_VERSION } from '../../../environments/version';
           <div class="row" style="gap: 0.4rem">
             <a class="chip" href="/fr" target="_blank" rel="noopener"><app-icon name="external" [size]="12" /> {{ 'admin.nav.site' | t }}</a>
             <button type="button" class="chip" (click)="toggleLang()">{{ i18n.other() | uppercase }}</button>
-            <button type="button" class="chip" (click)="theme.toggleMode()"><app-icon [name]="theme.isDark() ? 'sun' : 'moon'" [size]="12" /></button>
+            <button type="button" class="chip" (click)="theme.toggleMode($any($event.currentTarget))"><app-icon [name]="theme.isDark() ? 'sun' : 'moon'" [size]="12" /></button>
             <button type="button" class="chip" (click)="logout()"><app-icon name="logout" [size]="12" /> {{ 'admin.nav.logout' | t }}</button>
           </div>
           <div class="faint small mono meta">v{{ version.version }}{{ version.commit ? ' · ' + version.commit : '' }}</div>

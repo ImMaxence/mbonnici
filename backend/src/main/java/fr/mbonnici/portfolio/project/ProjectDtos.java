@@ -29,13 +29,20 @@ public final class ProjectDtos {
             List<String> tags,
             boolean featured,
             MediaDto cover,
+            /** first portrait capture, shown in the phone of the card mock-up */
+            MediaDto mobileCover,
             String liveUrl,
             String repoUrl) {
 
         static Card from(Project p) {
+            MediaDto mobile = p.getMedia().stream()
+                    .filter(pm -> pm.getKind() == ProjectMedia.Kind.MOBILE)
+                    .min(java.util.Comparator.comparingInt(ProjectMedia::getSortOrder))
+                    .map(pm -> MediaDto.from(pm.getMedia()))
+                    .orElse(null);
             return new Card(p.getId(), p.getSlug(), p.getTitle().filled(), p.getTagline().filled(), p.getCategory(),
                     p.getSceneType(), p.getAccentColor(), p.getYear(), List.copyOf(p.getStack()), List.copyOf(p.getTags()),
-                    p.isFeatured(), MediaDto.from(p.getCoverMedia()), p.getLiveUrl(), p.getRepoUrl());
+                    p.isFeatured(), MediaDto.from(p.getCoverMedia()), mobile, p.getLiveUrl(), p.getRepoUrl());
         }
     }
 

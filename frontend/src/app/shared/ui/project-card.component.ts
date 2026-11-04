@@ -4,85 +4,57 @@ import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { LinkDirective } from '../curtain/link.directive';
 import { CursorDirective } from '../cursor/cursor.directive';
-import { IphoneComponent } from '../iphone/iphone.component';
-import { HostedSceneType, SceneHostComponent } from '../scenes/scene-host.component';
-import { StackSceneComponent } from '../scenes/stack-scene.component';
 import { IconComponent } from './icon.component';
-import { ImgComponent } from './img.component';
+import { ShowcaseComponent } from './showcase.component';
+import { stripDot } from './text';
 
-/** Project tile: the 3D scene wakes up on hover, the cover (if any) floats above it. */
+/** Project tile: the real landing page (desktop + phone) with title, year and stack underneath. */
 @Component({
   selector: 'app-project-card',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [TranslatePipe, LinkDirective, CursorDirective, IconComponent, ImgComponent, SceneHostComponent, StackSceneComponent, IphoneComponent],
+  imports: [TranslatePipe, LinkDirective, CursorDirective, IconComponent, ShowcaseComponent],
   template: `
     <a
-      class="card pc"
+      class="pc"
       [appLink]="path()"
       [linkLabel]="title()"
       appCursor="label"
       [cursorLabel]="'cursor.view' | t"
-      [style.--accent]="project().accentColor"
       [class.is-hover]="hover()"
       (pointerenter)="hover.set(true)"
       (pointerleave)="hover.set(false)"
       (focus)="hover.set(true)"
       (blur)="hover.set(false)"
     >
-      <div class="visual">
-        @switch (project().sceneType) {
-          @case ('STACK') {
-            <app-stack-scene class="fill" [accent]="project().accentColor" [labels]="project().stack" [image]="project().cover" />
-          }
-          @case ('DEVICE') {
-            <div class="device fill">
-              <app-iphone
-                [images]="project().cover ? [project().cover!] : []"
-                [title]="title()"
-                [tagline]="tagline()"
-                [accent]="project().accentColor"
-              />
-            </div>
-          }
-          @default {
-            <app-scene
-              class="fill"
-              [type]="hostedType()"
-              [accent]="project().accentColor"
-              [labels]="project().stack"
-              [seed]="project().slug"
-              [active]="hover()"
-              [ariaLabel]="title()"
-            />
-            @if (project().cover; as cover) {
-              <app-img class="cover" [media]="cover" sizes="(max-width: 720px) 90vw, 40vw" />
-            }
-          }
-        }
-        @if (project().featured) {
-          <span class="featured chip chip-accent"><app-icon name="star" [size]="12" /> {{ 'projects.featured' | t }}</span>
-        }
-      </div>
+      <app-showcase
+        [slug]="project().slug"
+        [title]="title()"
+        [accent]="project().accentColor"
+        [cover]="project().cover"
+        [mobileMedia]="project().mobileCover"
+        [site]="project().liveUrl"
+        [priority]="priority()"
+      />
       <div class="body">
-        <span class="eyebrow">
-          {{ 'categories.' + project().category | t }}
-          @if (project().year) {
-            <span class="dot-sep">·</span>{{ project().year }}
+        <div class="line">
+          @if (headingLevel() === 'h2') {
+            <h2 class="h3">{{ title() }}</h2>
+          } @else {
+            <h3 class="h3">{{ title() }}</h3>
           }
-        </span>
-        @if (headingLevel() === 'h2') {
-          <h2 class="h3">{{ title() }}</h2>
-        } @else {
-          <h3 class="h3">{{ title() }}</h3>
-        }
-        <p class="muted">{{ tagline() }}</p>
-        <div class="chips">
-          @for (s of project().stack.slice(0, 4); track s) {
-            <span class="chip">{{ s }}</span>
-          }
+          <span class="arrow" aria-hidden="true"><app-icon name="arrow-up-right" [size]="18" /></span>
         </div>
+        <p class="tagline">{{ tagline() }}</p>
+        <p class="meta mono">
+          <span>{{ 'categories.' + project().category | t }}</span>
+          @if (project().year) {
+            <span>{{ project().year }}</span>
+          }
+          @for (s of project().stack.slice(0, 3); track s) {
+            <span>{{ s }}</span>
+          }
+        </p>
       </div>
-      <span class="arrow" aria-hidden="true"><app-icon name="arrow-up-right" [size]="18" /></span>
     </a>
   `,
   styles: `
@@ -92,107 +64,65 @@ import { ImgComponent } from './img.component';
     }
     .pc {
       display: grid;
-      grid-template-rows: auto 1fr;
+      gap: var(--space-5);
+      align-content: start;
       height: 100%;
       color: inherit;
     }
-    .visual {
-      position: relative;
-      aspect-ratio: 16 / 11;
-      background:
-        radial-gradient(80% 70% at 50% 100%, color-mix(in srgb, var(--accent) 18%, transparent), transparent 70%),
-        var(--bg-3);
-      overflow: hidden;
-    }
-    .fill {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-    }
-    .device {
-      display: grid;
-      place-items: center;
-      --phone-w: 170px;
-    }
-    .device app-iphone {
-      transform: translateY(14%);
-      transition: transform 0.9s var(--ease-out);
-    }
-    .is-hover .device app-iphone {
-      transform: translateY(8%);
-    }
-    .cover {
-      position: absolute;
-      left: 12%;
-      right: 12%;
-      bottom: -6%;
-      border-radius: var(--radius-s);
-      box-shadow: var(--shadow-3);
-      transform: perspective(900px) rotateX(8deg) translateY(10px);
-      transition: transform 0.9s var(--ease-out);
-      border: 1px solid var(--glass-border);
-    }
-    .is-hover .cover {
-      transform: perspective(900px) rotateX(2deg) translateY(-6px);
-    }
-    .featured {
-      position: absolute;
-      top: 14px;
-      left: 14px;
-      z-index: 2;
-      backdrop-filter: blur(10px);
-    }
     .body {
       display: grid;
-      gap: 0.6rem;
-      padding: var(--space-5);
-      align-content: start;
+      gap: 0.55rem;
     }
-    .body h2,
-    .body h3 {
-      transition: color var(--dur-2);
-    }
-    .is-hover .body h2,
-    .is-hover .body h3 {
-      color: var(--accent);
-    }
-    .dot-sep {
-      margin: 0 0.4em;
-    }
-    .chips {
+    .line {
       display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      margin-top: 0.4rem;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-4);
+    }
+    .line h2,
+    .line h3 {
+      font-size: clamp(1.4rem, 1rem + 1.4vw, 2.2rem);
+      letter-spacing: -0.04em;
+      background-image: linear-gradient(currentColor, currentColor);
+      background-size: 0 1.5px;
+      background-repeat: no-repeat;
+      background-position: 0 96%;
+      transition: background-size 0.7s var(--ease-out);
+    }
+    .is-hover .line h2,
+    .is-hover .line h3 {
+      background-size: 100% 1.5px;
     }
     .arrow {
-      position: absolute;
-      top: var(--space-4);
-      right: var(--space-4);
-      z-index: 2;
-      width: 40px;
-      height: 40px;
+      flex: none;
       display: grid;
       place-items: center;
+      width: 42px;
+      height: 42px;
       border-radius: 50%;
-      background: var(--fg);
-      color: var(--bg);
-      opacity: 0;
-      transform: translate(-6px, 6px) scale(0.8);
+      border: 1px solid var(--line-strong);
       transition:
-        opacity var(--dur-2),
-        transform var(--dur-3) var(--ease-spring);
+        background-color var(--dur-2),
+        color var(--dur-2),
+        transform 0.6s var(--ease-spring);
     }
     .is-hover .arrow {
-      opacity: 1;
-      transform: none;
+      background: var(--fg);
+      color: var(--bg);
+      transform: rotate(45deg);
     }
-    @media (hover: none) {
-      .arrow {
-        opacity: 1;
-        transform: none;
-      }
+    .tagline {
+      color: var(--fg-2);
+      max-width: 52ch;
+    }
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem 1rem;
+      font-size: var(--fs-micro);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--fg-3);
     }
   `,
 })
@@ -200,15 +130,12 @@ export class ProjectCardComponent {
   readonly project = input.required<ProjectCard>();
   /** h2 on listing pages (directly under the page h1), h3 inside a titled section */
   readonly headingLevel = input<'h2' | 'h3'>('h3');
+  readonly priority = input(false);
   private readonly i18n = inject(I18nService);
 
   readonly hover = signal(false);
-  /** STACK and DEVICE are DOM scenes; everything else is a canvas scene. */
-  readonly hostedType = computed<HostedSceneType>(() => {
-    const t = this.project().sceneType;
-    return t === 'STACK' || t === 'DEVICE' ? 'ORBIT' : t;
-  });
   readonly title = computed(() => this.i18n.l(this.project().title));
-  readonly tagline = computed(() => this.i18n.l(this.project().tagline));
+  readonly tagline = computed(() => stripDot(this.i18n.l(this.project().tagline)));
   readonly path = computed(() => this.i18n.path('project', this.project().slug));
 }
+

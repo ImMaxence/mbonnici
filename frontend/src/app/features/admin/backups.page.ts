@@ -3,14 +3,15 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { ApiService } from '../../core/api/api.service';
-import type { BackupOverview, BackupSettings, DriveFile } from '../../core/api/models';
+import type { BackupOverview, BackupRun, BackupSettings, DriveFile, StagedPreview } from '../../core/api/models';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { IconComponent } from '../../shared/ui/icon.component';
+import { RestoreReviewComponent } from './restore-review.component';
 
 @Component({
   selector: 'app-admin-backups',
-  imports: [FormsModule, TranslatePipe, IconComponent],
+  imports: [FormsModule, TranslatePipe, IconComponent, RestoreReviewComponent],
   template: `
     <div class="admin-head">
       <div>
@@ -27,6 +28,12 @@ import { IconComponent } from '../../shared/ui/icon.component';
     }
     @if (error()) {
       <p class="field-error" role="alert">{{ error() }}</p>
+    }
+    @if (staged(); as st) {
+      <app-restore-review [preview]="st" (done)="restored($event)" (cancelled)="staged.set(null)" />
+    }
+    @if (staging()) {
+      <p class="chip chip-accent" style="margin-bottom: 1rem"><app-icon name="refresh" [size]="12" /> {{ 'admin.backups.review.analysing' | t }}</p>
     }
     @if (overview()?.running) {
       <p class="chip chip-accent" style="margin-bottom: 1rem"><app-icon name="refresh" [size]="12" /> {{ 'admin.backups.running' | t }}</p>
@@ -79,9 +86,6 @@ import { IconComponent } from '../../shared/ui/icon.component';
               <input type="file" accept=".zip,application/zip" hidden (change)="importFile($event)" [disabled]="importing()" />
             </label>
             <p class="small faint" style="margin-top: .4rem">{{ 'admin.backups.actions.importHint' | t }}</p>
-            <label class="row small" style="gap: .5rem; margin-top: .4rem">
-              <input type="checkbox" [(ngModel)]="force" name="force" /> {{ 'admin.backups.actions.force' | t }}
-            </label>
           </div>
         </div>
       </section>
@@ -127,7 +131,7 @@ import { IconComponent } from '../../shared/ui/icon.component';
                     <div class="faint small">{{ f.createdTime ? i18n.formatDate(f.createdTime, { dateStyle: 'medium', timeStyle: 'short' }) : '' }} · {{ size(f.size ?? 0) }}</div>
                   </td>
                   <td class="num" style="white-space: nowrap">
-                    <button type="button" class="chip" (click)="restore(f)" [disabled]="overview()?.running"><app-icon name="refresh" [size]="12" /> {{ 'admin.backups.files.restore' | t }}</button>
+                    <button type="button" class="chip" (click)="restore(f)" [disabled]="overview()?.running || staging()"><app-icon name="refresh" [size]="12" /> {{ 'admin.backups.files.restore' | t }}</button>
                     <a class="chip" [href]="api.backupDownloadUrl(f.id)"><app-icon name="arrow-down" [size]="12" /> {{ 'admin.backups.files.download' | t }}</a>
                     <button type="button" class="chip" (click)="remove(f)"><app-icon name="trash" [size]="12" /></button>
                   </td>
@@ -200,7 +204,8 @@ export class BackupsPage {
   readonly error = signal('');
   readonly importing = signal(false);
   readonly hours = Array.from({ length: 24 }, (_, i) => i);
-  force = false;
+  readonly staged = signal<StagedPreview | null>(null);
+  readonly staging = signal(false);
 
   readonly connected = computed(() => this.overview()?.drive.connected ?? false);
 
@@ -252,15 +257,24 @@ export class BackupsPage {
     }
   }
 
+  /** Drive archive → comparison with the live data, nothing is changed yet */
   async restore(f: DriveFile): Promise<void> {
-    if (!confirm(this.i18n.t('admin.backups.files.restoreConfirm', { name: f.name }))) return;
+    this.staging.set(true);
+    this.error.set('');
     try {
-      await this.api.restoreBackup(f.id, this.force);
-      this.notify(this.i18n.t('admin.backups.actions.restoreStarted'));
-      await this.load(true);
+      this.staged.set(await this.api.stageDriveBackup(f.id, f.name));
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (e) {
       this.fail(e);
+    } finally {
+      this.staging.set(false);
     }
+  }
+
+  restored(run: BackupRun): void {
+    this.staged.set(null);
+    this.notify(this.i18n.t('admin.backups.actions.restored') + (run.message ? ' — ' + run.message : ''));
+    void this.load(true);
   }
 
   async remove(f: DriveFile): Promise<void> {
@@ -278,13 +292,11 @@ export class BackupsPage {
     const file = input.files?.[0];
     input.value = '';
     if (!file) return;
-    if (!confirm(this.i18n.t('admin.backups.files.restoreConfirm', { name: file.name }))) return;
     this.importing.set(true);
     this.error.set('');
     try {
-      await this.api.importBackup(file, this.force);
-      this.notify(this.i18n.t('admin.backups.actions.restored'));
-      await this.load(true);
+      this.staged.set(await this.api.stageBackup(file));
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (e) {
       this.fail(e);
     } finally {

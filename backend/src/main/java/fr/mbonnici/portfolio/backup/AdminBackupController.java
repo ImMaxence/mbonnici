@@ -42,10 +42,49 @@ public class AdminBackupController {
 
     private final BackupService service;
     private final DriveAuthService auth;
+    private final RestoreStagingService staging;
 
-    public AdminBackupController(BackupService service, DriveAuthService auth) {
+    public AdminBackupController(BackupService service, DriveAuthService auth, RestoreStagingService staging) {
         this.service = service;
         this.auth = auth;
+        this.staging = staging;
+    }
+
+    // ── two-step restore: stage + compare, then replace all or merge a selection ──
+
+    /** Uploads an archive and compares it with the live data (nothing is changed yet). */
+    @PostMapping(value = "/stage", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public RestoreStagingService.Preview stageUpload(@RequestPart("file") MultipartFile file) throws IOException {
+        if (file.isEmpty()) {
+            throw ApiException.badRequest("file is required");
+        }
+        try (InputStream in = file.getInputStream()) {
+            return staging.stageUpload(in, file.getOriginalFilename());
+        }
+    }
+
+    /** Fetches a Drive archive and compares it with the live data. */
+    @PostMapping("/stage/drive/{fileId}")
+    public RestoreStagingService.Preview stageDrive(@PathVariable String fileId,
+            @RequestParam(required = false) String name) throws IOException {
+        checkFileId(fileId);
+        return staging.stageDrive(fileId, name);
+    }
+
+    @GetMapping("/stage/{id}")
+    public RestoreStagingService.Preview staged(@PathVariable String id) {
+        return staging.preview(id);
+    }
+
+    @PostMapping("/stage/{id}/apply")
+    public RunDto apply(@PathVariable String id, @RequestBody RestoreStagingService.ApplyRequest request) {
+        return staging.apply(id, request);
+    }
+
+    @DeleteMapping("/stage/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void discard(@PathVariable String id) {
+        staging.discard(id);
     }
 
     @GetMapping

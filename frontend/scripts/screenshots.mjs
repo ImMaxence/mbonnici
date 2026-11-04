@@ -10,16 +10,13 @@ const out = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'docs', 'i
 mkdirSync(out, { recursive: true });
 
 const shots = [
-  { name: 'home-obsidian-dark', path: '/fr', style: 'obsidian', mode: 'dark' },
-  { name: 'home-editorial-light', path: '/fr', style: 'editorial', mode: 'light' },
-  { name: 'home-aurora-dark', path: '/en', style: 'aurora', mode: 'dark' },
-  { name: 'projects', path: '/fr/projets', style: 'obsidian', mode: 'dark' },
-  { name: 'project-stack', path: '/fr/projets/localatscv', style: 'obsidian', mode: 'dark' },
-  { name: 'project-iphone', path: '/en/projects/meowtrix', style: 'obsidian', mode: 'dark', scroll: 420 },
-  { name: 'about', path: '/fr/a-propos', style: 'editorial', mode: 'dark' },
-  { name: 'contact', path: '/en/contact', style: 'aurora', mode: 'light' },
-  { name: 'dock-settings', path: '/fr', style: 'obsidian', mode: 'dark', openDock: true },
-  { name: 'admin-login', path: '/admin/login', style: 'obsidian', mode: 'dark' },
+  { name: 'home-dark', path: '/fr', mode: 'dark' },
+  { name: 'home-light', path: '/fr', mode: 'light' },
+  { name: 'projects', path: '/fr/projets', mode: 'light', scroll: 520 },
+  { name: 'project', path: '/fr/projets/localatscv', mode: 'light', scroll: 560 },
+  { name: 'about', path: '/fr/a-propos', mode: 'dark', scroll: 1500 },
+  { name: 'contact', path: '/en/contact', mode: 'light' },
+  { name: 'admin-login', path: '/admin/login', mode: 'light' },
 ];
 
 const browser = await chromium.launch();
@@ -27,35 +24,35 @@ try {
   const desktop = await browser.newContext({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 1, locale: 'fr-FR' });
   for (const s of shots) {
     const page = await desktop.newPage();
-    await page.addInitScript(
-      ([style, mode]) => {
-        localStorage.setItem('mb.style', style);
-        localStorage.setItem('mb.mode', mode);
-      },
-      [s.style, s.mode],
-    );
+    await page.addInitScript((mode) => {
+      sessionStorage.setItem('mb.intro', '1'); // the intro plays once per visit, not in screenshots
+      localStorage.setItem('mb.mode', mode);
+    }, s.mode);
     await page.goto(base + s.path, { waitUntil: 'networkidle' });
-    await page.waitForTimeout(1400); // let reveals and scenes settle
-    if (s.scroll) await page.mouse.wheel(0, s.scroll);
-    if (s.openDock) {
-      await page.getByRole('button', { name: /style visuel/i }).click();
-      await page.waitForTimeout(500);
+    await page.waitForTimeout(1400); // let the reveals settle
+    if (s.scroll) {
+      await page.mouse.wheel(0, s.scroll);
+      await page.waitForTimeout(1300);
     }
-    await page.mouse.move(900, 420);
-    await page.waitForTimeout(400);
     await page.screenshot({ path: join(out, `${s.name}.png`), fullPage: false });
     await page.close();
     console.log('✓', s.name);
   }
 
   const mobile = await browser.newContext({ ...devices['Pixel 7'], locale: 'fr-FR' });
-  for (const [name, path] of [
-    ['mobile-home', '/fr'],
-    ['mobile-project', '/fr/projets/localcutvideo'],
+  for (const [name, path, menu] of [
+    ['mobile-home', '/fr', false],
+    ['mobile-menu', '/fr', true],
+    ['mobile-project', '/fr/projets/localcutvideo', false],
   ]) {
     const page = await mobile.newPage();
+    await page.addInitScript(() => sessionStorage.setItem('mb.intro', '1'));
     await page.goto(base + path, { waitUntil: 'networkidle' });
     await page.waitForTimeout(1200);
+    if (menu) {
+      await page.getByRole('button', { name: 'Menu' }).click();
+      await page.waitForTimeout(1100);
+    }
     await page.screenshot({ path: join(out, `${name}.png`), fullPage: false });
     await page.close();
     console.log('✓', name);

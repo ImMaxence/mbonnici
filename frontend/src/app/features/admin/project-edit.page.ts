@@ -11,15 +11,11 @@ import {
   type MediaKind,
   PROJECT_CATEGORIES,
   type ProjectUpsert,
-  SCENE_TYPES,
-  type SceneType,
 } from '../../core/api/models';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { Lang } from '../../core/i18n/routes';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
-import { IphoneComponent } from '../../shared/iphone/iphone.component';
-import { SceneHostComponent } from '../../shared/scenes/scene-host.component';
-import { StackSceneComponent } from '../../shared/scenes/stack-scene.component';
+import { ShowcaseComponent } from '../../shared/ui/showcase.component';
 import { IconComponent } from '../../shared/ui/icon.component';
 import { MediaPickerComponent } from './media-picker.component';
 
@@ -53,7 +49,7 @@ function emptyForm(): ProjectUpsert {
 
 @Component({
   selector: 'app-admin-project-edit',
-  imports: [FormsModule, RouterLink, TranslatePipe, UpperCasePipe, IconComponent, SceneHostComponent, StackSceneComponent, IphoneComponent, MediaPickerComponent],
+  imports: [FormsModule, RouterLink, TranslatePipe, UpperCasePipe, IconComponent, ShowcaseComponent, MediaPickerComponent],
   template: `
     <div class="admin-head">
       <div>
@@ -170,24 +166,17 @@ function emptyForm(): ProjectUpsert {
       </div>
 
       <div class="panel">
-        <h2 class="panel-title">{{ 'admin.projectForm.scene' | t }}</h2>
-        <div class="scene-picker" role="radiogroup">
-          @for (s of scenes; track s) {
-            <button type="button" class="scene-option" role="radio" [attr.aria-checked]="form.sceneType === s" (click)="form.sceneType = s; bump()">
-              @switch (s) {
-                @case ('STACK') {
-                  <app-stack-scene class="fill" [accent]="form.accentColor" [labels]="form.stack" />
-                }
-                @case ('DEVICE') {
-                  <div class="fill mini-phone"><app-iphone [title]="form.title[lang()] || 'App'" [accent]="form.accentColor" /></div>
-                }
-                @default {
-                  <app-scene class="fill" [type]="s" [accent]="form.accentColor" [labels]="form.stack" [seed]="s" [active]="form.sceneType === s" />
-                }
-              }
-              <span>{{ 'scenes.' + s | t }}</span>
-            </button>
-          }
+        <h2 class="panel-title">{{ 'admin.projectForm.preview' | t }}</h2>
+        <p class="small faint" style="margin-bottom: 1rem; max-width: 70ch">{{ 'admin.projectForm.previewHint' | t }}</p>
+        <div style="max-width: 640px">
+          <app-showcase
+            [slug]="form.slug || ''"
+            [title]="form.title[lang()]"
+            [accent]="form.accentColor"
+            [cover]="cover()"
+            [mobileMedia]="firstMobile()"
+            [site]="form.liveUrl || null"
+          />
         </div>
       </div>
 
@@ -226,18 +215,6 @@ function emptyForm(): ProjectUpsert {
     }
   `,
   styles: `
-    .fill {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-    }
-    .mini-phone {
-      display: grid;
-      place-items: center;
-      --phone-w: 70px;
-      overflow: hidden;
-    }
     .color {
       width: 44px;
       height: 44px;
@@ -261,7 +238,6 @@ export class ProjectEditPage {
   readonly i18n = inject(I18nService);
 
   readonly categories = PROJECT_CATEGORIES;
-  readonly scenes: SceneType[] = SCENE_TYPES;
   readonly lang = signal<Lang>('fr');
   readonly saving = signal(false);
   readonly saved = signal(false);
@@ -271,6 +247,7 @@ export class ProjectEditPage {
   readonly rows = signal<MediaRow[]>([]);
   private readonly tick = signal(0);
   private coverMedia = signal<MediaDto | null>(null);
+  readonly firstMobile = computed(() => this.rows().find((r) => r.kind === 'MOBILE')?.media ?? null);
   readonly cover = computed(() => {
     this.tick();
     return this.form.coverMediaId ? this.coverMedia() : null;

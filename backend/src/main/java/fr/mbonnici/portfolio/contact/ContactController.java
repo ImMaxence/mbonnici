@@ -29,10 +29,12 @@ public class ContactController {
 
     private final ContactRepository repository;
     private final VisitorHasher hasher;
+    private final ContactNotifier notifier;
 
-    public ContactController(ContactRepository repository, VisitorHasher hasher) {
+    public ContactController(ContactRepository repository, VisitorHasher hasher, ContactNotifier notifier) {
         this.repository = repository;
         this.hasher = hasher;
+        this.notifier = notifier;
     }
 
     /** Rate limited by {@code RateLimitFilter} (contact policy). */
@@ -43,7 +45,8 @@ public class ContactController {
             log.info("Contact honeypot triggered, dropping message");
             return;
         }
-        repository.save(ContactMessage.create(in.name().trim(), in.email().trim(), in.message().trim(),
+        ContactMessage saved = repository.save(ContactMessage.create(in.name().trim(), in.email().trim(), in.message().trim(),
                 in.locale() == null ? null : in.locale().toLowerCase(), hasher.hash(request)));
+        notifier.messageReceived(saved);
     }
 }

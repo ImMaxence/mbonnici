@@ -6,14 +6,14 @@ import { SeoService } from '../../core/seo/seo.service';
 import { FooterComponent } from '../../shared/ui/footer.component';
 import { RevealDirective } from '../../shared/ui/reveal.directive';
 
-type LegalKey = 'legal' | 'privacy' | 'terms';
+type LegalKey = 'legal' | 'privacy' | 'terms' | 'accessibility';
 
 interface Section {
   h: string;
   p: string[];
 }
 
-/** Mentions légales · politique de confidentialité · conditions d'utilisation (one component, three keys). */
+/** Mentions légales · confidentialité · conditions d'utilisation · déclaration d'accessibilité (one component, four keys). */
 @Component({
   selector: 'app-legal',
   imports: [TranslatePipe, FooterComponent, RevealDirective],
@@ -43,7 +43,10 @@ interface Section {
     .head {
       display: grid;
       gap: var(--space-4);
-      padding: var(--space-9) 0 var(--space-6);
+      padding: var(--space-8) 0 var(--space-6);
+    }
+    .head h1 {
+      font-size: var(--fs-h1);
     }
     article section + section {
       margin-top: var(--space-6);
@@ -61,7 +64,7 @@ export class LegalPage {
 
   readonly key = computed<LegalKey>(() => {
     const p = this.page();
-    return p === 'privacy' || p === 'terms' ? p : 'legal';
+    return p === 'privacy' || p === 'terms' || p === 'accessibility' ? p : 'legal';
   });
 
   readonly updated = computed(() => this.i18n.formatDate(this.settings()?.updatedAt ?? '2026-11-04', { day: 'numeric', month: 'long', year: 'numeric' }));

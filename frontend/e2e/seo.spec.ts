@@ -1,5 +1,7 @@
 import { expect, test } from '@playwright/test';
 
+const ORIGIN = process.env['E2E_BASE_URL'] ?? 'http://localhost:4000';
+
 test.describe('seo & ai feeds', () => {
   test('sitemap lists both languages with hreflang alternates', async ({ request }) => {
     const res = await request.get('/sitemap.xml');
@@ -41,7 +43,7 @@ test.describe('seo & ai feeds', () => {
       expect(title.length).toBeGreaterThan(5);
       titles.add(path.startsWith('/fr') ? 'fr:' + title : 'en:' + title);
       expect(html).toMatch(/<meta property="og:title" content="[^"]+"/);
-      expect(html).toMatch(/<meta property="og:url" content="http:\/\/localhost:4000[^"]*"/);
+      expect(html).toContain(`<meta property="og:url" content="${ORIGIN}`);
       expect(html).toMatch(/<meta name="twitter:card" content="summary_large_image"/);
     }
     expect(titles.size).toBe(6);

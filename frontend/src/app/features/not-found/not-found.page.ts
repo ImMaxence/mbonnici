@@ -4,15 +4,14 @@ import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { SeoService } from '../../core/seo/seo.service';
 import { LinkDirective } from '../../shared/curtain/link.directive';
 import { MagneticDirective } from '../../shared/cursor/magnetic.directive';
-import { SceneHostComponent } from '../../shared/scenes/scene-host.component';
 import { IconComponent } from '../../shared/ui/icon.component';
 
 @Component({
   selector: 'app-not-found',
-  imports: [TranslatePipe, LinkDirective, MagneticDirective, SceneHostComponent, IconComponent],
+  imports: [TranslatePipe, LinkDirective, MagneticDirective, IconComponent],
   template: `
     <main id="main" class="page nf">
-      <app-scene class="bg" type="HELIX" seed="404" [autoplay]="true" />
+      <span class="bg mega" aria-hidden="true">404</span>
       <div class="container inner">
         <span class="eyebrow">404</span>
         <h1 class="display">{{ 'notFound.title' | t }}</h1>
@@ -28,13 +27,17 @@ import { IconComponent } from '../../shared/ui/icon.component';
       position: relative;
       display: grid;
       align-items: center;
-      min-height: 100svh;
+      min-height: calc(100svh - var(--header-h));
       overflow: clip;
     }
     .bg {
       position: absolute;
-      inset: 0;
-      opacity: 0.7;
+      right: -0.05em;
+      bottom: -0.12em;
+      font-size: clamp(10rem, 40vw, 34rem);
+      color: var(--bg-3);
+      pointer-events: none;
+      user-select: none;
     }
     .inner {
       position: relative;

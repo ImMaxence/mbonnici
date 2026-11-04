@@ -13,20 +13,19 @@ import { ThemeService } from './core/theme/theme.service';
 import { CurtainComponent } from './shared/curtain/curtain.component';
 import { TransitionService } from './shared/curtain/transition.service';
 import { CursorComponent } from './shared/cursor/cursor.component';
-import { DockComponent } from './shared/dock/dock.component';
+import { INTRO_END_MS } from './shared/ui/reveal.directive';
+import { HeaderComponent } from './shared/header/header.component';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, CursorComponent, CurtainComponent, DockComponent, TranslatePipe],
+  imports: [RouterOutlet, CursorComponent, CurtainComponent, HeaderComponent, TranslatePipe],
   template: `
     <a class="skip-link" href="#main">{{ 'common.skipToContent' | t }}</a>
     @if (!isAdmin()) {
-      <div class="ambient" aria-hidden="true"></div>
-      <div class="noise" aria-hidden="true"></div>
+      <app-header />
     }
     <router-outlet />
     @if (!isAdmin()) {
-      <app-dock />
       <app-curtain />
     }
     @if (showCursor()) {
@@ -74,6 +73,10 @@ export class App {
     afterNextRender(() => {
       // arms the scroll reveals only now: before hydration the server HTML stays fully visible
       document.documentElement.classList.add('js');
+      // the intro sheet is pure CSS; drop its class once it has lifted
+      if (document.documentElement.classList.contains('intro-play')) {
+        setTimeout(() => document.documentElement.classList.remove('intro-play'), Math.max(0, INTRO_END_MS - performance.now()) + 200);
+      }
       this.pointer.start();
       this.scroll.start();
       this.analytics.init();

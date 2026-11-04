@@ -1,30 +1,30 @@
 /* ─── Design tokens ──────────────────────────────────────────────────────────
-   Three visual styles (obsidian · editorial · aurora) × two schemes (dark · light).
-   The <html> element carries data-style and data-theme; everything else reads
-   these custom properties, so switching style is a pure attribute change.
+   One editorial style — ink & paper, oversized grotesk display, a serif italic
+   for emphasis and a single ultramarine accent — in a light and a dark scheme.
+   <html data-theme> switches the scheme; everything reads these properties.
    ──────────────────────────────────────────────────────────────────────────── */
 
 :root {
   /* type */
-  --font-display: 'Inter Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-display: 'Inter Tight Variable', 'Inter Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-body: 'Inter Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-serif: 'Instrument Serif', 'Iowan Old Style', Georgia, serif;
   --font-mono: 'JetBrains Mono Variable', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
-  --track-display: -0.035em;
-  --track-body: -0.005em;
-  --weight-display: 640;
+  --track-display: -0.045em;
+  --track-body: -0.006em;
+  --weight-display: 520;
   --weight-strong: 600;
-  --display-case: none;
-  --display-style: normal;
 
-  /* fluid type scale */
-  --fs-hero: clamp(2.75rem, 1rem + 8.2vw, 8rem);
-  --fs-h1: clamp(2.25rem, 1.2rem + 4.6vw, 5rem);
-  --fs-h2: clamp(1.75rem, 1rem + 2.8vw, 3.2rem);
-  --fs-h3: clamp(1.25rem, 1rem + 1.1vw, 1.75rem);
-  --fs-lead: clamp(1.08rem, 1rem + 0.55vw, 1.375rem);
+  /* fluid type scale (the hero goes edge to edge) */
+  --fs-mega: clamp(3.4rem, 0.6rem + 13.2vw, 15rem);
+  --fs-hero: clamp(2.9rem, 0.8rem + 8.4vw, 9.6rem);
+  --fs-h1: clamp(2.4rem, 1rem + 5.6vw, 6.4rem);
+  --fs-h2: clamp(1.9rem, 1rem + 3.4vw, 4.2rem);
+  --fs-h3: clamp(1.25rem, 1rem + 1.05vw, 1.85rem);
+  --fs-lead: clamp(1.08rem, 1rem + 0.5vw, 1.4rem);
   --fs-body: 1rem;
   --fs-small: 0.875rem;
-  --fs-micro: 0.74rem;
+  --fs-micro: 0.72rem;
 
   /* spacing */
   --space-1: 0.25rem;
@@ -36,16 +36,17 @@
   --space-7: 3rem;
   --space-8: 4.5rem;
   --space-9: 7rem;
-  --section: clamp(4.5rem, 10vw, 9rem);
-  --gutter: clamp(1.1rem, 4.2vw, 3.25rem);
-  --container: 1320px;
+  --section: clamp(5rem, 11vw, 10rem);
+  --gutter: clamp(1rem, 3.6vw, 3rem);
+  --container: 1440px;
   --container-narrow: 820px;
+  --header-h: 76px;
 
-  /* shape */
-  --radius-xs: 6px;
-  --radius-s: 12px;
-  --radius-m: 20px;
-  --radius-l: 32px;
+  /* shape: crisp, almost square */
+  --radius-xs: 4px;
+  --radius-s: 8px;
+  --radius-m: 12px;
+  --radius-l: 20px;
   --radius-pill: 999px;
   --border-w: 1px;
 
@@ -59,232 +60,99 @@
   --dur-3: 640ms;
   --dur-4: 1100ms;
 
-  /* effects */
-  --glass-blur: 22px;
-  --grain: 0;
-  --dock-h: 72px;
-  --dock-gap: calc(var(--dock-h) + 2.5rem);
-
   /* back-office chart series (validated for CVD separation on both surfaces) */
+  --chart-1: #3f7fe0;
+  --chart-2: #c97a1f;
+
+  /* ── light: warm paper, black ink ── */
+  color-scheme: light;
+  --bg: #efede7;
+  --bg-2: #f7f6f2;
+  --bg-3: #e4e1d9;
+  --bg-4: #d6d2c8;
+  --fg: #121211;
+  --fg-2: #46453f;
+  --fg-3: #67655d;
+  --line: rgba(18, 18, 17, 0.12);
+  --line-strong: rgba(18, 18, 17, 0.26);
+  --accent: #2b3bea;
+  --accent-fg: #ffffff;
+  --accent-soft: rgba(43, 59, 234, 0.1);
+  --success: #23803a;
+  --warning: #a86a00;
+  --danger: #c4231b;
+  --glass: rgba(239, 237, 231, 0.78);
+  --glass-strong: rgba(239, 237, 231, 0.94);
+  --glass-border: rgba(18, 18, 17, 0.1);
+  --glass-highlight: rgba(255, 255, 255, 0.6);
+  --glass-blur: 18px;
+  --shadow-1: 0 1px 2px rgba(18, 18, 17, 0.06), 0 4px 14px rgba(18, 18, 17, 0.06);
+  --shadow-2: 0 20px 50px -12px rgba(18, 18, 17, 0.22);
+  --shadow-3: 0 40px 90px -20px rgba(18, 18, 17, 0.35);
+  --device: #1a1a19;
+}
+
+/* ── dark: night ink, paper-white type ── */
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: #0d0d0c;
+  --bg-2: #151514;
+  --bg-3: #1d1d1b;
+  --bg-4: #2a2a27;
+  --fg: #eceae3;
+  --fg-2: #aaa89f;
+  --fg-3: #8b897f;
+  --line: rgba(236, 234, 227, 0.11);
+  --line-strong: rgba(236, 234, 227, 0.24);
+  --accent: #8c96ff;
+  --accent-fg: #0d0d0c;
+  --accent-soft: rgba(140, 150, 255, 0.14);
+  --success: #6fd38a;
+  --warning: #f0b54a;
+  --danger: #ff7a70;
+  --glass: rgba(13, 13, 12, 0.72);
+  --glass-strong: rgba(13, 13, 12, 0.92);
+  --glass-border: rgba(236, 234, 227, 0.12);
+  --glass-highlight: rgba(236, 234, 227, 0.06);
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4), 0 4px 14px rgba(0, 0, 0, 0.3);
+  --shadow-2: 0 20px 50px -12px rgba(0, 0, 0, 0.6);
+  --shadow-3: 0 40px 90px -20px rgba(0, 0, 0, 0.75);
+  --device: #050505;
   --chart-1: #3f7fe0;
   --chart-2: #c97a1f;
 }
 
-:root[data-theme='light'] {
+:root:not([data-theme='dark']) {
   --chart-1: #1f6fe8;
   --chart-2: #d9710c;
 }
 
-/* ─── Obsidian (default) — Apple Pro: graphite, precise, blue/violet accents ── */
-:root,
-:root[data-style='obsidian'] {
-  color-scheme: dark;
-  --bg: #0a0a0c;
-  --bg-2: #121216;
-  --bg-3: #1a1a20;
-  --bg-4: #24242c;
-  --fg: #f5f5f7;
-  --fg-2: #a8a8b3;
-  --fg-3: #8b8b95;
-  --line: rgba(255, 255, 255, 0.08);
-  --line-strong: rgba(255, 255, 255, 0.16);
-  --accent: #5b9dff;
-  --accent-2: #b48bff;
-  --accent-fg: #06070c;
-  --accent-soft: rgba(91, 157, 255, 0.14);
-  --success: #34d399;
-  --warning: #fbbf24;
-  --danger: #fb7185;
-  --glass: rgba(18, 18, 22, 0.58);
-  --glass-strong: rgba(18, 18, 22, 0.85);
-  --glass-border: rgba(255, 255, 255, 0.12);
-  --glass-highlight: rgba(255, 255, 255, 0.08);
-  --shadow-1: 0 2px 12px rgba(0, 0, 0, 0.35);
-  --shadow-2: 0 20px 60px rgba(0, 0, 0, 0.55);
-  --shadow-3: 0 40px 120px rgba(0, 0, 0, 0.7);
-  --hero-glow: radial-gradient(60% 50% at 50% 40%, rgba(91, 157, 255, 0.22), transparent 70%);
-  --gradient-accent: linear-gradient(120deg, #5b9dff, #b48bff 55%, #ff8ad6);
-}
-
-:root[data-theme='light'],
-:root[data-theme='light'][data-style='obsidian'] {
-  color-scheme: light;
-  --bg: #f5f5f7;
-  --bg-2: #ffffff;
-  --bg-3: #ececf1;
-  --bg-4: #e1e1e8;
-  --fg: #1d1d1f;
-  --fg-2: #515158;
-  --fg-3: #6e6e73;
-  --line: rgba(0, 0, 0, 0.08);
-  --line-strong: rgba(0, 0, 0, 0.16);
-  --accent: #0a66ff;
-  --accent-2: #7c3aed;
-  --accent-fg: #ffffff;
-  --accent-soft: rgba(10, 102, 255, 0.1);
-  --success: #059669;
-  --warning: #d97706;
-  --danger: #e11d48;
-  --glass: rgba(255, 255, 255, 0.62);
-  --glass-strong: rgba(255, 255, 255, 0.9);
-  --glass-border: rgba(255, 255, 255, 0.8);
-  --glass-highlight: rgba(255, 255, 255, 0.9);
-  --shadow-1: 0 2px 12px rgba(20, 20, 40, 0.08);
-  --shadow-2: 0 20px 60px rgba(20, 20, 40, 0.14);
-  --shadow-3: 0 40px 120px rgba(20, 20, 40, 0.18);
-  --hero-glow: radial-gradient(60% 50% at 50% 40%, rgba(10, 102, 255, 0.14), transparent 70%);
-  --gradient-accent: linear-gradient(120deg, #0a66ff, #7c3aed 55%, #db2777);
-}
-
-/* ─── Editorial — Locomotive / Awwwards: serif display, ink & paper, burnt orange ── */
-:root[data-style='editorial'] {
-  --font-display: 'Instrument Serif', 'Iowan Old Style', Georgia, serif;
-  --font-body: 'Manrope Variable', ui-sans-serif, system-ui, sans-serif;
-  --track-display: -0.015em;
-  --track-body: 0;
-  --weight-display: 400;
-  --weight-strong: 700;
-  --fs-hero: clamp(3.2rem, 1rem + 9.6vw, 9.5rem);
-  --fs-h1: clamp(2.6rem, 1.2rem + 5.4vw, 6rem);
-  --fs-h2: clamp(2rem, 1rem + 3.2vw, 3.8rem);
-  --radius-xs: 2px;
-  --radius-s: 4px;
-  --radius-m: 6px;
-  --radius-l: 10px;
-  --grain: 0.07;
-  --glass-blur: 16px;
-  color-scheme: dark;
-  --bg: #141311;
-  --bg-2: #1b1a17;
-  --bg-3: #24221e;
-  --bg-4: #2e2b26;
-  --fg: #efe9dc;
-  --fg-2: #b3ac9c;
-  --fg-3: #8f8878;
-  --line: rgba(239, 233, 220, 0.12);
-  --line-strong: rgba(239, 233, 220, 0.26);
-  --accent: #ff4d1c;
-  --accent-2: #f5c044;
-  --accent-fg: #141311;
-  --accent-soft: rgba(255, 77, 28, 0.14);
-  --success: #8bd17c;
-  --warning: #f5c044;
-  --danger: #ff6b6b;
-  --glass: rgba(20, 19, 17, 0.7);
-  --glass-strong: rgba(20, 19, 17, 0.92);
-  --glass-border: rgba(239, 233, 220, 0.16);
-  --glass-highlight: rgba(239, 233, 220, 0.06);
-  --shadow-1: 0 2px 10px rgba(0, 0, 0, 0.3);
-  --shadow-2: 0 18px 50px rgba(0, 0, 0, 0.45);
-  --shadow-3: 0 40px 100px rgba(0, 0, 0, 0.6);
-  --hero-glow: radial-gradient(55% 45% at 50% 45%, rgba(255, 77, 28, 0.16), transparent 70%);
-  --gradient-accent: linear-gradient(120deg, #ff4d1c, #f5c044);
-}
-
-:root[data-theme='light'][data-style='editorial'] {
-  color-scheme: light;
-  --bg: #f3efe6;
-  --bg-2: #faf7f0;
-  --bg-3: #e9e3d6;
-  --bg-4: #ddd6c6;
-  --fg: #141311;
-  --fg-2: #4e4a42;
-  --fg-3: #68625a;
-  --line: rgba(20, 19, 17, 0.12);
-  --line-strong: rgba(20, 19, 17, 0.28);
-  --accent: #e63b0d;
-  --accent-2: #b88900;
-  --accent-fg: #faf7f0;
-  --accent-soft: rgba(230, 59, 13, 0.1);
-  --success: #2f8f3a;
-  --warning: #b88900;
-  --danger: #c81e1e;
-  --glass: rgba(250, 247, 240, 0.72);
-  --glass-strong: rgba(250, 247, 240, 0.94);
-  --glass-border: rgba(20, 19, 17, 0.1);
-  --glass-highlight: rgba(255, 255, 255, 0.7);
-  --shadow-1: 0 2px 10px rgba(40, 30, 10, 0.08);
-  --shadow-2: 0 18px 50px rgba(40, 30, 10, 0.14);
-  --shadow-3: 0 40px 100px rgba(40, 30, 10, 0.18);
-  --hero-glow: radial-gradient(55% 45% at 50% 45%, rgba(230, 59, 13, 0.12), transparent 70%);
-  --gradient-accent: linear-gradient(120deg, #e63b0d, #b88900);
-}
-
-/* ─── Aurora — vivid, glassy, playful: cyan → magenta on deep navy ── */
-:root[data-style='aurora'] {
-  --font-display: 'Syne Variable', 'Inter Variable', system-ui, sans-serif;
-  --font-body: 'Manrope Variable', ui-sans-serif, system-ui, sans-serif;
-  --track-display: -0.02em;
-  --weight-display: 760;
-  --radius-xs: 10px;
-  --radius-s: 16px;
-  --radius-m: 26px;
-  --radius-l: 40px;
-  --glass-blur: 30px;
-  color-scheme: dark;
-  --bg: #06061a;
-  --bg-2: #0d0d26;
-  --bg-3: #151535;
-  --bg-4: #1e1e44;
-  --fg: #eef0ff;
-  --fg-2: #a9adcf;
-  --fg-3: #8e92b8;
-  --line: rgba(238, 240, 255, 0.1);
-  --line-strong: rgba(238, 240, 255, 0.22);
-  --accent: #22d3ee;
-  --accent-2: #f472b6;
-  --accent-fg: #06061a;
-  --accent-soft: rgba(34, 211, 238, 0.14);
-  --success: #4ade80;
-  --warning: #facc15;
-  --danger: #fb7185;
-  --glass: rgba(13, 13, 38, 0.5);
-  --glass-strong: rgba(13, 13, 38, 0.85);
-  --glass-border: rgba(238, 240, 255, 0.16);
-  --glass-highlight: rgba(238, 240, 255, 0.12);
-  --shadow-1: 0 2px 12px rgba(0, 0, 20, 0.4);
-  --shadow-2: 0 20px 60px rgba(0, 0, 20, 0.55);
-  --shadow-3: 0 40px 120px rgba(34, 211, 238, 0.12), 0 40px 120px rgba(0, 0, 20, 0.6);
-  --hero-glow: radial-gradient(50% 45% at 35% 40%, rgba(34, 211, 238, 0.22), transparent 70%),
-    radial-gradient(45% 40% at 70% 55%, rgba(244, 114, 182, 0.2), transparent 70%);
-  --gradient-accent: linear-gradient(120deg, #22d3ee, #818cf8 50%, #f472b6);
-}
-
-:root[data-theme='light'][data-style='aurora'] {
-  color-scheme: light;
-  --bg: #f3f5ff;
-  --bg-2: #ffffff;
-  --bg-3: #e8ebff;
-  --bg-4: #d9ddfb;
-  --fg: #0c0b2a;
-  --fg-2: #474a73;
-  --fg-3: #5f6390;
-  --line: rgba(12, 11, 42, 0.09);
-  --line-strong: rgba(12, 11, 42, 0.2);
-  --accent: #0891b2;
-  --accent-2: #db2777;
-  --accent-fg: #ffffff;
-  --accent-soft: rgba(8, 145, 178, 0.1);
-  --success: #16a34a;
-  --warning: #ca8a04;
-  --danger: #e11d48;
-  --glass: rgba(255, 255, 255, 0.6);
-  --glass-strong: rgba(255, 255, 255, 0.92);
-  --glass-border: rgba(255, 255, 255, 0.9);
-  --glass-highlight: rgba(255, 255, 255, 1);
-  --shadow-1: 0 2px 12px rgba(30, 30, 90, 0.08);
-  --shadow-2: 0 20px 60px rgba(30, 30, 90, 0.14);
-  --shadow-3: 0 40px 120px rgba(30, 30, 90, 0.2);
-  --hero-glow: radial-gradient(50% 45% at 35% 40%, rgba(8, 145, 178, 0.16), transparent 70%),
-    radial-gradient(45% 40% at 70% 55%, rgba(219, 39, 119, 0.14), transparent 70%);
-  --gradient-accent: linear-gradient(120deg, #0891b2, #6366f1 50%, #db2777);
-}
-
-/* Every style, when reduced motion is requested: no springy overshoot */
 @media (prefers-reduced-motion: reduce) {
   :root {
     --ease-spring: var(--ease-out);
     --dur-3: 1ms;
     --dur-4: 1ms;
   }
+}
+
+/* ─── Light ↔ dark: a circular reveal from the toggle (View Transitions), or a cross-fade ── */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+::view-transition-new(root) {
+  z-index: 2;
+}
+
+html.theming,
+html.theming *,
+html.theming *::before,
+html.theming *::after {
+  transition:
+    background-color 0.6s var(--ease-out),
+    color 0.6s var(--ease-out),
+    border-color 0.6s var(--ease-out),
+    fill 0.6s var(--ease-out) !important;
 }
