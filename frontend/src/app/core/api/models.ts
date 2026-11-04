@@ -380,7 +380,6 @@ export interface AdminInfo {
   backend: {
     version: string;
     buildTime: string | null;
-    gitSha: string | null;
     javaVersion: string;
     springBootVersion: string;
     uptimeSeconds: number;

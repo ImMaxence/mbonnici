@@ -150,8 +150,7 @@ readable by the authenticated owner.
   project (GET, 8 s timeout, redirects followed) and `api.github.com` for repositories on
   `github.com`. Both come from back-office data (admin only, `http(s)` URLs validated); responses are
   reduced to a status code, a latency and a few numbers, never forwarded. A malicious admin could
-  point a project at an internal address: accepted (single trusted admin), can be switched off with
-  `INSIGHTS_ENABLED=false`.
+  point a project at an internal address: accepted (single trusted admin).
 - **`/api/analytics/vitals`**: anonymous beacon like the audience events (CSRF-exempt, analytics rate
   limit, DNT / GPC honoured). Values are bounded per metric, paths starting with `/admin` or `/api`
   are dropped, nothing identifies the visitor (no hash, no IP).

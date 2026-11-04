@@ -600,7 +600,6 @@ export const en: Dictionary = {
       storage: 'Storage',
       uptime: 'Started',
       built: 'Build',
-      commit: 'Commit',
       java: 'Java',
       springBoot: 'Spring Boot',
       memory: 'Memory',

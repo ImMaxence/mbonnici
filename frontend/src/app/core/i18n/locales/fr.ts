@@ -607,7 +607,6 @@ export const fr = {
       storage: 'Stockage',
       uptime: 'Démarré il y a',
       built: 'Build',
-      commit: 'Commit',
       java: 'Java',
       springBoot: 'Spring Boot',
       memory: 'Mémoire',

@@ -10,7 +10,6 @@ public record AppProperties(
         String url,
         List<String> adminEmails,
         @DefaultValue("false") boolean trustProxy,
-        @DefaultValue("") String gitSha,
         Analytics analytics,
         Storage storage,
         RateLimit rateLimit,

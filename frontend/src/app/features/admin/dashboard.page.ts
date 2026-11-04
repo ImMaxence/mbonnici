@@ -338,9 +338,9 @@ const PAD = { top: 16, right: 16, bottom: 28, left: 36 };
         <div class="panel">
           <div class="panel-head"><h2>{{ 'admin.dashboard.versions' | t }}</h2></div>
           <ul class="health">
-            <li><span>{{ 'admin.dashboard.frontend' | t }}</span><span class="mono">v{{ version.version }}{{ version.commit ? ' · ' + version.commit : '' }}</span></li>
+            <li><span>{{ 'admin.dashboard.frontend' | t }}</span><span class="mono">v{{ version.version }}</span></li>
             @if (info(); as inf) {
-              <li><span>{{ 'admin.dashboard.backend' | t }}</span><span class="mono">v{{ inf.backend.version }}{{ inf.backend.gitSha ? ' · ' + inf.backend.gitSha : '' }}</span></li>
+              <li><span>{{ 'admin.dashboard.backend' | t }}</span><span class="mono">v{{ inf.backend.version }}</span></li>
               <li><span>{{ 'admin.dashboard.database' | t }}</span><span><span class="status-pill" [attr.data-status]="inf.database.status === 'ok' ? 'PUBLISHED' : 'DRAFT'">{{ inf.database.status }}</span> <span class="mono small faint">{{ inf.database.version }}</span></span></li>
               <li><span>{{ 'admin.dashboard.storage' | t }}</span><span><span class="status-pill" [attr.data-status]="inf.storage.status === 'ok' ? 'PUBLISHED' : 'DRAFT'">{{ inf.storage.status }}</span></span></li>
               <li><span>{{ 'admin.dashboard.springBoot' | t }} · {{ 'admin.dashboard.java' | t }}</span><span class="mono">{{ inf.backend.springBootVersion }} · {{ inf.backend.javaVersion }}</span></li>

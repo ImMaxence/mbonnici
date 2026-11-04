@@ -63,7 +63,6 @@ public class InsightsService {
     private final ObjectMapper mapper;
     private final JdbcTemplate jdbc;
     private final boolean enabled;
-    private final String githubToken;
     private final HttpClient http = HttpClient.newBuilder()
             .connectTimeout(Duration.ofSeconds(5))
             .followRedirects(HttpClient.Redirect.NORMAL)
@@ -72,13 +71,11 @@ public class InsightsService {
     private final Map<String, Cached> repos = new ConcurrentHashMap<>();
 
     public InsightsService(ProjectService projects, ObjectMapper mapper, JdbcTemplate jdbc,
-            @Value("${app.insights.enabled:true}") boolean enabled,
-            @Value("${app.insights.github-token:}") String githubToken) {
+            @Value("${app.insights.enabled:true}") boolean enabled) {
         this.projects = projects;
         this.mapper = mapper;
         this.jdbc = jdbc;
         this.enabled = enabled;
-        this.githubToken = githubToken == null ? "" : githubToken.trim();
     }
 
     /** slug → what is known about the project (only published projects, only known facts). */
@@ -237,9 +234,6 @@ public class InsightsService {
                 .header("X-GitHub-Api-Version", "2022-11-28");
         if (etag != null) {
             b.header("If-None-Match", etag);
-        }
-        if (!githubToken.isEmpty()) {
-            b.header("Authorization", "Bearer " + githubToken);
         }
         return http.send(b.GET().build(), HttpResponse.BodyHandlers.ofString());
     }

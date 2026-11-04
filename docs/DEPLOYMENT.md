@@ -23,7 +23,7 @@ over the private Docker network.
 3. Authorised redirect URI: `https://mbonnici.fr/api/auth/oauth2/code/google`
    (add `http://localhost:4200/api/auth/oauth2/code/google` and
    `http://localhost:8081/api/auth/oauth2/code/google` for local development).
-4. Keep the client ID and secret for the `.env` below.
+4. Keep the client ID and secret for Coolify's environment variables below.
 
 Only the address in `ADMIN_EMAIL` can sign in; every other Google account is rejected before a
 session is created.
@@ -36,9 +36,11 @@ folder named *mbonnici.fr backups*).
 
 1. In the Google Cloud console open **APIs & Services → Library** and enable the **Google Drive
    API** for the project.
-2. **OAuth consent screen → Data access**: add the scope `…/auth/drive.file`. While the app stays in
-   *Testing* mode, add your own address under *Test users*; no verification is needed for a
-   single-user app (Google shows an "unverified app" warning only to you).
+2. **OAuth consent screen → Data access**: add the scope `…/auth/drive.file`. Then **Audience →
+   Publish app** (publishing status *In production*): in *Testing* mode Google makes every refresh
+   token expire after 7 days as soon as a scope beyond name / e-mail / profile is asked, so the
+   scheduled backups would stop after a week. `drive.file` is a non-sensitive scope: publishing needs
+   no verification (at most an "unverified app" notice, shown only to you when you connect).
 3. The redirect URI is the same as the login (`/api/auth/oauth2/code/google`), nothing to add.
 4. In the back office open **Sauvegardes → Connecter Google Drive** and accept. Google issues a
    refresh token (offline access) that the backend stores in the `oauth2_authorized_client` table;
@@ -50,11 +52,11 @@ Without Drive you can still download archives and restore from a file from the s
 
 1. **Projects → New resource → Docker Compose** (from the Git repository, branch `main`).
    Coolify reads `docker-compose.yml` at the repository root.
-2. **Environment variables**: paste the content of `.env.example` and fill every secret
-   (`openssl rand -hex 32` makes good values for `POSTGRES_PASSWORD`, `S3_SECRET_KEY` and
-   `ANALYTICS_SALT_SECRET`). Set `APP_URL=https://mbonnici.fr`. Optional: `GITHUB_TOKEN` (a
-   fine-grained token, public repositories read-only) for the GitHub figures of the project pages,
-   `INSIGHTS_ENABLED=false` to stop the status checks of the project sites.
+2. **Environment variables**: only `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` are entered by hand.
+   The database and storage users and passwords and the analytics secret are Coolify magic variables
+   (`SERVICE_USER_*`, `SERVICE_PASSWORD_64_*`): generated on the first deployment, kept after. Never
+   regenerate the `POSTGRES` ones: the database keeps the user and password it was created with.
+   Everything else (domain, admin e-mail, proxy settings) is written in `docker-compose.yml`.
 3. **Domains**: on the `frontend` service set `https://mbonnici.fr` and port `4000`.
    Leave the other services without a domain; they are not exposed.
 4. Deploy. The first start runs the Flyway migrations; the backend waits for PostgreSQL and
@@ -69,8 +71,8 @@ Back them up with Coolify's volume backups or `pg_dump` + a copy of the SeaweedF
 
 ### Updating
 
-Push to `main` (or click *Redeploy*). Images are rebuilt with `GIT_SHA` so the back-office
-dashboard shows which commit is running on each tier.
+Push to `main` (or click *Redeploy*): Coolify rebuilds the images; the back-office dashboard shows
+the version of each tier.
 
 ## 3. Cloudflare
 
@@ -91,17 +93,19 @@ dashboard shows which commit is running on each tier.
   `/api/cv` (the uploaded resume) stays in the bypass rule: it is revalidated so a new upload shows at
   once.
 - The backend reads the real visitor IP from `CF-Connecting-IP` (`TRUST_PROXY=true`), so rate
-  limits and analytics work behind the proxy.
+  limits and analytics work behind the proxy. That header is trusted as is: let ports 80 / 443 of the
+  server accept **Cloudflare's addresses only** (<https://www.cloudflare.com/ips/>, firewall or the
+  hosting provider's), or use a Cloudflare Tunnel; otherwise a client reaching the server directly
+  could pick its own IP and slip past the rate limits.
 
 ## Pre-production checklist
 
 1. **Dependencies**: `npm audit` in `frontend` (0 vulnerabilities at 1.5.0) and the Maven versions
    (Spring Boot 4.1.2 and AWS SDK 2.57.8 were the latest at 1.5.0; libraries managed by the Spring Boot
    BOM follow Spring Boot, do not bump them by hand).
-2. **Secrets** in Coolify: `POSTGRES_PASSWORD`, `S3_SECRET_KEY`, `ANALYTICS_SALT_SECRET` (long random
-   values), `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`, `ADMIN_EMAIL`, `APP_URL=https://mbonnici.fr`;
-   optional `GITHUB_TOKEN`. `DEV_LOGIN` must **not** be set (it is refused anyway unless `APP_URL`
-   is localhost).
+2. **Secrets** in Coolify: `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`; the `SERVICE_*` values are
+   generated. `DEV_LOGIN` must **not** be set (it is refused anyway unless the site URL is
+   localhost).
 3. **Google console**: authorised redirect URI `https://mbonnici.fr/api/auth/oauth2/code/google`
    (and the Drive scope if backups go to Drive).
 4. **Cloudflare**: DNS proxied, Full (strict), the cache rules above.
@@ -128,21 +132,15 @@ cd backend  && ./mvnw spring-boot:run                     # API on :8081
 cd frontend && npm install && npm start                   # http://localhost:4200 (proxies /api)
 ```
 
-Full production-like stack on your machine:
+Full production-like stack on your machine (local sign-in, no Google client needed):
 
 ```bash
-cp .env.example .env            # fill the secrets
-docker compose -f docker-compose.yml -f docker-compose.local.yml up --build
-# http://localhost:4000
+docker compose -f docker-compose.local.yml up --build -d --wait
+# http://localhost:4000, back office at /admin
 ```
 
-`docker-compose.yml` refuses to start (or even build) without the required secrets (`:?` guards).
-To only check that the images build, pass placeholders:
-
-```bash
-POSTGRES_PASSWORD=x S3_SECRET_KEY=x ANALYTICS_SALT_SECRET=x GOOGLE_CLIENT_ID=x GOOGLE_CLIENT_SECRET=x \
-  docker compose build
-```
+`docker-compose.yml` is the Coolify one: it refuses to start without the Google client (`:?`
+guards) and expects the `SERVICE_*` values Coolify generates (see `.env.example`).
 
 ## 6. Health and observability
 

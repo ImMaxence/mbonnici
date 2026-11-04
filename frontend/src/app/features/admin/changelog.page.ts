@@ -23,7 +23,7 @@ interface Release {
         <h1>{{ 'admin.changelog.title' | t }}</h1>
         <p class="muted small">{{ 'admin.changelog.intro' | t }}</p>
       </div>
-      <span class="chip mono">v{{ version.version }}{{ version.commit ? ' · ' + version.commit : '' }}</span>
+      <span class="chip mono">v{{ version.version }}</span>
     </div>
 
     @if (error()) {

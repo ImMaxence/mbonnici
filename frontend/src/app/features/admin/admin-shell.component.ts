@@ -87,7 +87,7 @@ interface NavLink {
             </button>
             <button type="button" class="icon-btn" (click)="logout()" [appTip]="'admin.nav.logout' | t"><app-icon name="logout" [size]="16" /></button>
           </div>
-          <span class="version mono">v{{ version.version }}{{ version.commit ? ' · ' + version.commit : '' }}</span>
+          <span class="version mono">v{{ version.version }}</span>
         </div>
       </aside>
       <main class="admin-main" id="main">

@@ -7,8 +7,6 @@ COPY frontend/package.json frontend/package-lock.json ./
 RUN npm ci --no-audit --no-fund
 COPY CHANGELOG.md /app/CHANGELOG.md
 COPY frontend/ ./
-ARG GIT_SHA=
-ENV GIT_SHA=$GIT_SHA
 RUN npm run build
 
 # ── runtime (SSR server + static assets, no node_modules needed) ──────────────

@@ -56,7 +56,6 @@ services:
       COOKIE_SECURE: "false"
       TRUST_PROXY: "false"
       DEV_LOGIN: "true"
-      GITHUB_TOKEN: ${GITHUB_TOKEN:-}
     depends_on:
       db:
         condition: service_healthy

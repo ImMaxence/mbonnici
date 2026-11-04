@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class AdminInfoController {
 
-    public record Backend(String version, String buildTime, String gitSha, String javaVersion,
+    public record Backend(String version, String buildTime, String javaVersion,
             String springBootVersion, long uptimeSeconds, Instant startedAt, String profiles) {}
 
     public record Database(String status, String version) {}
@@ -50,7 +50,6 @@ public class AdminInfoController {
         Backend backend = new Backend(
                 bp == null ? "dev" : bp.getVersion(),
                 bp == null || bp.getTime() == null ? null : bp.getTime().toString(),
-                props.gitSha().isBlank() ? null : props.gitSha(),
                 Runtime.version().toString(),
                 SpringBootVersion.getVersion(),
                 runtime.getUptime() / 1000,
