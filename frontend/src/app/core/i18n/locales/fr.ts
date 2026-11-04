@@ -499,7 +499,11 @@ export const fr = {
       java: 'Java',
       springBoot: 'Spring Boot',
       memory: 'Mémoire',
+      view: 'vue',
+      click: 'clic',
       clicks: 'clics',
+      rankViews: 'vues de la page projet',
+      rankClicks: 'clics vers le site en ligne ou le dépôt',
     },
     projects: {
       title: 'Projets',

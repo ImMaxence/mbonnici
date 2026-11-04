@@ -67,7 +67,7 @@ import { ToolboxComponent } from '../../shared/ui/toolbox.component';
       @if (featured().length) {
       <section class="section container" id="work">
         <div class="section-title">
-          <span class="eyebrow" appReveal>(01) {{ 'home.selected' | t }}</span>
+          <span class="eyebrow" appReveal>{{ 'home.selected' | t }}</span>
           <div class="title-row">
             <h2 appReveal revealSplit="words">{{ 'home.selectedSub' | t }}</h2>
             <a class="btn btn-ghost" [appLink]="i18n.path('projects')" [linkLabel]="'nav.projects' | t" appReveal>
@@ -89,7 +89,7 @@ import { ToolboxComponent } from '../../shared/ui/toolbox.component';
       <!-- ── Toolbox ────────────────────────────────────────────────────── -->
       <section class="section container">
         <div class="section-title">
-          <span class="eyebrow" appReveal>(02) {{ 'home.toolbox' | t }}</span>
+          <span class="eyebrow" appReveal>{{ 'home.toolbox' | t }}</span>
           <h2 appReveal revealSplit="words">{{ 'home.toolboxSub' | t }}</h2>
         </div>
         <app-toolbox [skills]="profile()?.skills ?? []" />
@@ -100,7 +100,7 @@ import { ToolboxComponent } from '../../shared/ui/toolbox.component';
       <!-- ── Experience ─────────────────────────────────────────────────── -->
       <section class="section container">
         <div class="section-title">
-          <span class="eyebrow" appReveal>(03) {{ 'home.experience' | t }}</span>
+          <span class="eyebrow" appReveal>{{ 'home.experience' | t }}</span>
           <div class="title-row">
             <h2 appReveal revealSplit="words">{{ 'home.experienceSub' | t }}</h2>
             <a class="btn btn-ghost" [appLink]="i18n.path('about')" [linkLabel]="'nav.about' | t" appReveal>
@@ -125,7 +125,7 @@ import { ToolboxComponent } from '../../shared/ui/toolbox.component';
 
       <!-- ── CTA ────────────────────────────────────────────────────────── -->
       <section class="section container cta-big">
-        <span class="eyebrow" appReveal>(04) {{ 'nav.contact' | t }}</span>
+        <span class="eyebrow" appReveal>{{ 'nav.contact' | t }}</span>
         <a class="big-link roll-trigger" [appLink]="i18n.path('contact')" [linkLabel]="'nav.contact' | t" appReveal>
           <app-roll-text class="mega" [text]="'home.letsTalkBig' | t" />
           <span class="circle" aria-hidden="true"><app-icon name="arrow-up-right" [size]="40" /></span>

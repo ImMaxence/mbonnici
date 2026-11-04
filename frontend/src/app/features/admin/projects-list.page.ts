@@ -7,10 +7,11 @@ import { LocalizedPipe, TranslatePipe } from '../../core/i18n/translate.pipe';
 import { IconComponent } from '../../shared/ui/icon.component';
 import { ConfirmService } from '../../shared/ui/confirm.service';
 import { TooltipDirective } from '../../shared/ui/tooltip.directive';
+import { SortMove, SortableDirective, moveItem } from '../../shared/ui/sortable.directive';
 
 @Component({
   selector: 'app-admin-projects',
-  imports: [RouterLink, TranslatePipe, LocalizedPipe, IconComponent, TooltipDirective],
+  imports: [RouterLink, TranslatePipe, LocalizedPipe, IconComponent, TooltipDirective, SortableDirective],
   template: `
     <div class="admin-head">
       <div>
@@ -28,10 +29,10 @@ import { TooltipDirective } from '../../shared/ui/tooltip.directive';
       @if (!projects().length && !loading()) {
         <p class="muted">{{ 'admin.projects.empty' | t }}</p>
       }
-      <div class="rows" (pointermove)="dragMove($event)" (pointerup)="dragEnd()" (pointercancel)="dragEnd()">
-        @for (p of projects(); track p.id; let i = $index) {
-          <div class="list-row" [class.is-dragging]="dragIndex() === i" [attr.data-index]="i">
-            <button type="button" class="drag-handle" (pointerdown)="dragStart($event, i)" [appTip]="'admin.projects.dragTip' | t"><app-icon name="drag" [size]="18" /></button>
+      <div class="rows" appSortable (sortMove)="move($event)" (sortDrop)="saveOrder()">
+        @for (p of projects(); track p.id) {
+          <div class="list-row" data-sort-item>
+            <button type="button" class="drag-handle" data-sort-handle [appTip]="'admin.projects.dragTip' | t"><app-icon name="drag" [size]="18" /></button>
             <div class="row" style="gap: 1rem; min-width: 0">
               <span class="swatch" [style.background]="p.accentColor"></span>
               <div style="min-width: 0">
@@ -77,8 +78,6 @@ export class ProjectsListPage {
   readonly projects = signal<AdminProject[]>([]);
   readonly loading = signal(true);
   readonly error = signal('');
-  readonly dragIndex = signal<number | null>(null);
-  private pointerY = 0;
 
   constructor() {
     afterNextRender(() => this.load());
@@ -112,35 +111,12 @@ export class ProjectsListPage {
     this.projects.update((list) => list.filter((x) => x.id !== p.id));
   }
 
-  // ── pointer-based reordering ───────────────────────────────────────────────
-  dragStart(e: PointerEvent, i: number): void {
-    e.preventDefault();
-    this.dragIndex.set(i);
-    this.pointerY = e.clientY;
+  // ── reordering (SortableDirective) ─────────────────────────────────────────
+  move(m: SortMove): void {
+    this.projects.update((list) => moveItem(list, m.from, m.to));
   }
 
-  dragMove(e: PointerEvent): void {
-    const from = this.dragIndex();
-    if (from === null) return;
-    const rows = Array.from((e.currentTarget as HTMLElement).querySelectorAll<HTMLElement>('.list-row'));
-    const over = rows.findIndex((r) => {
-      const b = r.getBoundingClientRect();
-      return e.clientY >= b.top && e.clientY <= b.bottom;
-    });
-    if (over >= 0 && over !== from) {
-      this.projects.update((list) => {
-        const next = [...list];
-        const [moved] = next.splice(from, 1);
-        next.splice(over, 0, moved);
-        return next;
-      });
-      this.dragIndex.set(over);
-    }
-  }
-
-  async dragEnd(): Promise<void> {
-    if (this.dragIndex() === null) return;
-    this.dragIndex.set(null);
+  async saveOrder(): Promise<void> {
     try {
       await this.api.reorderProjects(this.projects().map((p) => p.id));
     } catch (e) {

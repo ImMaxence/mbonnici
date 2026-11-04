@@ -217,11 +217,6 @@ type Section = 'experience' | 'education' | 'skill';
     .skill-chip:hover {
       border-color: var(--fg);
     }
-    .skill-chip.is-dragging,
-    [data-sort-item].is-dragging {
-      opacity: 0.55;
-      box-shadow: var(--shadow-2);
-    }
     .grip {
       display: grid;
       place-items: center;

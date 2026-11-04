@@ -41,7 +41,8 @@ import { IconComponent } from './icon.component';
           </div>
         </div>
 
-        <p class="wordmark" aria-hidden="true">{{ settings()?.ownerName ?? 'Maxence Bonnici' }}</p>
+        <!-- the domain name, sized to fill the column exactly (see .wordmark) -->
+        <p class="wordmark" aria-hidden="true">MBONNICI</p>
 
         <div class="bottom">
           <p class="small faint">{{ 'footer.rights' | t: { year: year, owner: settings()?.ownerName ?? 'Maxence Bonnici' } }}</p>
@@ -59,6 +60,9 @@ import { IconComponent } from './icon.component';
     </footer>
   `,
   styles: `
+    .footer > .container {
+      container-type: inline-size;
+    }
     .footer {
       margin-top: var(--section);
       padding: var(--space-7) 0 var(--space-5);
@@ -114,14 +118,17 @@ import { IconComponent } from './icon.component';
     .links a:hover {
       opacity: 1;
     }
+    /* "MBONNICI" in Inter Tight 600 at -0.04em: the ink is 4.44 × the font size wide and starts
+       0.05em after the origin, so 22.5cqi fills the container from edge to edge at any width */
     .wordmark {
       font-family: var(--font-display);
       font-weight: 600;
-      font-size: clamp(3rem, 14.2vw, 16rem);
-      letter-spacing: -0.065em;
-      line-height: 0.8;
+      font-size: 22.5cqi;
+      letter-spacing: -0.04em;
+      line-height: 0.74;
       white-space: nowrap;
-      margin: 0 0 var(--space-5) -0.04em;
+      margin: 0 0 var(--space-5) -0.05em;
+      padding-top: 0.04em;
     }
     .bottom {
       display: flex;

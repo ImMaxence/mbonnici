@@ -1,9 +1,18 @@
-import { Directive, ElementRef, inject, output } from '@angular/core';
+import { Directive, ElementRef, Injector, afterNextRender, inject, output } from '@angular/core';
 
 export interface SortMove {
   from: number;
   to: number;
 }
+
+interface Box {
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+}
+
+const EASE = 'cubic-bezier(0.2, 0.75, 0.25, 1)';
 
 /**
  * Drag-to-reorder for back-office lists and grids, with pointer (mouse, touch, pen) and keyboard.
@@ -14,10 +23,11 @@ export interface SortMove {
  *     }
  *   </div>
  *
- * The component owns the array: `sortMove` asks it to move one item (it re-renders, the dragged
- * element follows the pointer), `sortDrop` says the gesture is over (persist the order). Works for
- * vertical lists and wrapped grids alike (the target is the item under the pointer). On a focused
- * handle, ArrowUp / ArrowLeft and ArrowDown / ArrowRight move the item by one.
+ * The component owns the array: `sortMove` asks it to move one item, `sortDrop` says the gesture is
+ * over (persist the order). The picked item is lifted and follows the pointer; the others glide to
+ * their new place (FLIP with the Web Animations API) and the item settles into its slot on drop.
+ * Works for vertical lists and wrapped grids alike. On a focused handle, ArrowUp / ArrowLeft and
+ * ArrowDown / ArrowRight move the item by one. No animation with reduced motion.
  */
 @Directive({
   selector: '[appSortable]',
@@ -34,8 +44,16 @@ export class SortableDirective {
   readonly sortDrop = output<void>();
 
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
+  private readonly injector = inject(Injector);
   private index: number | null = null;
   private dragged: HTMLElement | null = null;
+  /** pointer position inside the item when it was picked up */
+  private grab = { x: 0, y: 0 };
+  private pointer = { x: 0, y: 0 };
+  /** translation currently applied to the dragged item */
+  private offset = { x: 0, y: 0 };
+  /** the item just swapped with: ignored until the pointer enters another item (no ping-pong) */
+  private cooldown: HTMLElement | null = null;
 
   private items(): HTMLElement[] {
     // items of this list only (a sortable can contain other sortables, e.g. skill groups)
@@ -44,41 +62,56 @@ export class SortableDirective {
     );
   }
 
+  private get reduced(): boolean {
+    return typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  }
+
   down(e: PointerEvent): void {
     const handle = (e.target as HTMLElement).closest('[data-sort-handle]');
     if (!handle || !this.host.nativeElement.contains(handle) || e.button !== 0) return;
     const item = handle.closest<HTMLElement>('[data-sort-item]');
     const index = item ? this.items().indexOf(item) : -1;
-    if (index < 0) return;
+    if (!item || index < 0) return;
     e.preventDefault();
+    item.getAnimations().forEach((a) => a.cancel());
+    const box = layoutBox(item);
     this.index = index;
     this.dragged = item;
-    item!.classList.add('is-dragging');
+    this.cooldown = null;
+    this.grab = { x: e.clientX - box.left, y: e.clientY - box.top };
+    this.pointer = { x: e.clientX, y: e.clientY };
+    this.offset = { x: 0, y: 0 };
+    item.classList.add('is-dragging');
     this.host.nativeElement.classList.add('is-sorting');
     this.host.nativeElement.setPointerCapture(e.pointerId);
   }
 
   move(e: PointerEvent): void {
-    if (this.index === null) return;
+    if (this.index === null || !this.dragged) return;
+    this.pointer = { x: e.clientX, y: e.clientY };
+    this.follow();
+
     const items = this.items();
-    let over = items.findIndex((el) => {
-      const r = el.getBoundingClientRect();
-      return e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
-    });
+    const boxes = items.map(layoutBox);
+    const inside = (b: Box) =>
+      e.clientX >= b.left && e.clientX <= b.left + b.width && e.clientY >= b.top && e.clientY <= b.top + b.height;
+    const hit = boxes.findIndex(inside);
+    if (hit >= 0 && items[hit] !== this.cooldown) this.cooldown = null;
+    let over = hit;
     if (over < 0) {
-      // between rows: the nearest item centre
+      // between rows: the nearest item centre (the dragged item's own slot included)
       let best = Infinity;
-      items.forEach((el, i) => {
-        const r = el.getBoundingClientRect();
-        const d = Math.hypot(e.clientX - (r.left + r.width / 2), e.clientY - (r.top + r.height / 2));
+      boxes.forEach((b, i) => {
+        const d = Math.hypot(e.clientX - (b.left + b.width / 2), e.clientY - (b.top + b.height / 2));
         if (d < best) {
           best = d;
           over = i;
         }
       });
     }
-    if (over >= 0 && over !== this.index) {
-      this.sortMove.emit({ from: this.index, to: over });
+    if (over >= 0 && over !== this.index && items[over] !== this.cooldown) {
+      this.cooldown = items[over];
+      this.reorder(this.index, over);
       this.index = over;
     }
   }
@@ -86,17 +119,25 @@ export class SortableDirective {
   up(): void {
     if (this.index === null) return;
     this.index = null;
-    this.dragged?.classList.remove('is-dragging');
+    const el = this.dragged;
     this.dragged = null;
-    // the element may have been re-created: clear any leftover state
-    this.items().forEach((el) => el.classList.remove('is-dragging'));
+    this.cooldown = null;
+    if (el) {
+      const { x, y } = this.offset;
+      el.style.transform = '';
+      el.classList.remove('is-dragging');
+      if (!this.reduced && (Math.abs(x) > 0.5 || Math.abs(y) > 0.5)) {
+        el.animate([{ transform: `translate(${x}px, ${y}px)` }, { transform: 'translate(0, 0)' }], { duration: 240, easing: EASE });
+      }
+    }
+    this.offset = { x: 0, y: 0 };
     this.host.nativeElement.classList.remove('is-sorting');
     this.sortDrop.emit();
   }
 
   key(e: KeyboardEvent): void {
     const handle = (e.target as HTMLElement).closest('[data-sort-handle]');
-    if (!handle) return;
+    if (!handle || this.index !== null) return;
     const back = e.key === 'ArrowUp' || e.key === 'ArrowLeft';
     const fwd = e.key === 'ArrowDown' || e.key === 'ArrowRight';
     if (!back && !fwd) return;
@@ -105,11 +146,53 @@ export class SortableDirective {
     const to = from + (back ? -1 : 1);
     if (from < 0 || to < 0 || to >= items.length) return;
     e.preventDefault();
-    this.sortMove.emit({ from, to });
+    this.reorder(from, to, () => this.items()[to]?.querySelector<HTMLElement>('[data-sort-handle]')?.focus());
     this.sortDrop.emit();
-    // keep the focus on the moved item's handle once it re-renders
-    setTimeout(() => this.items()[to]?.querySelector<HTMLElement>('[data-sort-handle]')?.focus());
   }
+
+  /** asks the component to move the item, then animates every other item from where it was */
+  private reorder(from: number, to: number, done?: () => void): void {
+    const before = new Map(this.items().map((el) => [el, el.getBoundingClientRect()]));
+    this.sortMove.emit({ from, to });
+    afterNextRender(
+      () => {
+        for (const [el, prev] of before) {
+          if (el === this.dragged || !el.isConnected) continue;
+          el.getAnimations().forEach((a) => a.cancel());
+          const now = el.getBoundingClientRect();
+          const dx = prev.left - now.left;
+          const dy = prev.top - now.top;
+          if (this.reduced || (Math.abs(dx) < 0.5 && Math.abs(dy) < 0.5)) continue;
+          el.animate([{ transform: `translate(${dx}px, ${dy}px)` }, { transform: 'translate(0, 0)' }], { duration: 260, easing: EASE });
+        }
+        this.follow();
+        done?.();
+      },
+      { injector: this.injector },
+    );
+  }
+
+  /** keeps the dragged item under the pointer, wherever its slot is now */
+  private follow(): void {
+    const el = this.dragged;
+    if (!el) return;
+    const slot = layoutBox(el);
+    this.offset = { x: this.pointer.x - this.grab.x - slot.left, y: this.pointer.y - this.grab.y - slot.top };
+    el.style.transform = `translate(${this.offset.x}px, ${this.offset.y}px)`;
+  }
+}
+
+/** Where the element sits in the layout (viewport coordinates), ignoring transforms and animations. */
+function layoutBox(el: HTMLElement): Box {
+  const parent = el.offsetParent as HTMLElement | null;
+  let left = el.offsetLeft;
+  let top = el.offsetTop;
+  if (parent) {
+    const r = parent.getBoundingClientRect();
+    left += r.left + parent.clientLeft - parent.scrollLeft;
+    top += r.top + parent.clientTop - parent.scrollTop;
+  }
+  return { left, top, width: el.offsetWidth, height: el.offsetHeight };
 }
 
 /** Moves one element of an array (immutable). */

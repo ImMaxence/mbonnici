@@ -144,5 +144,6 @@ export function parseChangelog(markdown: string, current: string): Release[] {
     if (active) buffer.push(line);
   }
   flush();
-  return out;
+  // an empty "Unreleased" section is only a placeholder
+  return out.filter((r) => !(r.unreleased && !r.body));
 }

@@ -148,6 +148,10 @@ const PAD = { top: 16, right: 16, bottom: 28, left: 36 };
 
         <div class="panel">
           <div class="panel-head"><h2>{{ 'admin.dashboard.topProjects' | t }}</h2></div>
+          <p class="rank-legend small">
+            <span><i class="sw s1"></i>{{ 'admin.dashboard.rankViews' | t }}</span>
+            <span><app-icon name="arrow-up-right" [size]="13" />{{ 'admin.dashboard.rankClicks' | t }}</span>
+          </p>
           @if (!o.topProjects.length) {
             <div class="empty"><app-icon name="layers" [size]="22" /><p>{{ 'admin.dashboard.noData' | t }}</p></div>
           } @else {
@@ -156,9 +160,12 @@ const PAD = { top: 16, right: 16, bottom: 28, left: 36 };
                 <li>
                   <span class="rank mono">{{ i + 1 }}</span>
                   <span class="r-body">
-                    <span class="r-line"><strong>{{ p.title | l }}</strong><span class="num">{{ p.views }}</span></span>
+                    <span class="r-line">
+                      <strong>{{ p.title | l }}</strong>
+                      <span class="r-views"><b class="num">{{ p.views }}</b> {{ (p.views > 1 ? 'admin.dashboard.views' : 'admin.dashboard.view') | t }}</span>
+                    </span>
                     <span class="r-bar"><i [style.--w.%]="barShare(p.views, o.topProjects[0].views)"></i></span>
-                    <span class="faint small">{{ p.clicks }} {{ 'admin.dashboard.clicks' | t }}</span>
+                    <span class="r-clicks faint small"><app-icon name="arrow-up-right" [size]="12" />{{ p.clicks }} {{ (p.clicks > 1 ? 'admin.dashboard.clicks' : 'admin.dashboard.click') | t }}</span>
                   </span>
                 </li>
               }
@@ -508,6 +515,34 @@ const PAD = { top: 16, right: 16, bottom: 28, left: 36 };
     .table-scroll {
       max-height: 300px;
       overflow: auto;
+    }
+    .rank-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.3rem 1rem;
+      margin: -0.35rem 0 1rem;
+      color: var(--fg-3);
+    }
+    .rank-legend span,
+    .r-clicks {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+    .rank-legend .sw {
+      width: 10px;
+      height: 4px;
+      border-radius: 99px;
+    }
+    .r-views {
+      flex: none;
+      color: var(--fg-3);
+      font-size: 0.8rem;
+    }
+    .r-views b {
+      color: var(--fg);
+      font-weight: 600;
+      font-size: 0.88rem;
     }
     .ranking {
       display: grid;

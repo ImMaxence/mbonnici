@@ -492,7 +492,11 @@ export const en: Dictionary = {
       java: 'Java',
       springBoot: 'Spring Boot',
       memory: 'Memory',
+      view: 'view',
+      click: 'click',
       clicks: 'clicks',
+      rankViews: 'project page views',
+      rankClicks: 'clicks to the live site or repository',
     },
     projects: {
       title: 'Projects',

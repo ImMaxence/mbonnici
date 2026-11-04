@@ -247,9 +247,6 @@ function emptyForm(): ProjectUpsert {
       cursor: grab;
       touch-action: none;
     }
-    .media-item.is-dragging {
-      opacity: 0.5;
-    }
     .media-item .remove {
       position: absolute;
       top: 6px;

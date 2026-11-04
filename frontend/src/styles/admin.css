@@ -242,6 +242,47 @@
   margin-inline: auto;
 }
 
+/* page transition: every routed page rises in (the outlet inserts it right after itself) */
+.admin-content > router-outlet + * {
+  display: block;
+  animation: admin-page-in 0.42s var(--ease-out) both;
+}
+
+.admin-content > router-outlet + * .panel {
+  animation: admin-panel-in 0.5s var(--ease-out) both;
+}
+
+.admin-content > router-outlet + * .panel:nth-of-type(2) { animation-delay: 40ms; }
+.admin-content > router-outlet + * .panel:nth-of-type(3) { animation-delay: 80ms; }
+.admin-content > router-outlet + * .panel:nth-of-type(n + 4) { animation-delay: 120ms; }
+
+@keyframes admin-page-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes admin-panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-content > router-outlet + *,
+  .admin-content > router-outlet + * .panel {
+    animation: none;
+  }
+}
+
 .admin-head {
   position: sticky;
   top: 0;
@@ -634,8 +675,23 @@
   border-bottom: 0;
 }
 
-.list-row.is-dragging {
-  opacity: 0.4;
+/* picked item: lifted above the others, follows the pointer (SortableDirective) */
+[data-sort-item] {
+  transition: box-shadow 0.25s var(--ease-out), background-color var(--dur-1);
+}
+
+[data-sort-item].is-dragging {
+  position: relative;
+  z-index: 5;
+  background: var(--bg-2);
+  box-shadow: 0 18px 40px -12px rgba(10, 10, 20, 0.28), 0 4px 12px -4px rgba(10, 10, 20, 0.16);
+  cursor: grabbing;
+}
+
+.is-sorting,
+.is-sorting * {
+  cursor: grabbing !important;
+  user-select: none;
 }
 
 .drag-handle {
@@ -989,4 +1045,24 @@ dialog.lightbox {
   .admin-aside .nav-toggle {
     display: inline-grid;
   }
+}
+
+/* changelog (Versions page): "### Added / Changed / Removed" as small labels */
+.release .prose h2,
+.release .prose h3 {
+  margin: 1.6rem 0 0.6rem;
+  font: 600 0.72rem/1.2 var(--font-mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--fg-3);
+}
+
+.release .prose > :first-child {
+  margin-top: 0.4rem;
+}
+
+.release .prose p > strong:only-child {
+  display: block;
+  margin-top: 0.8rem;
+  font-size: 0.9rem;
 }

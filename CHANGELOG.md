@@ -7,6 +7,24 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [1.3.1] — 2026-11-04
+
+### Changed
+- **Drag and drop feels physical**: the picked row, chip or tile is lifted and follows the pointer,
+  the others glide to their new place (FLIP, Web Animations) and it settles into its slot on drop;
+  the projects list uses the same mechanism.
+- Back-office pages fade in and their panels rise in turn when navigating.
+- Dashboard ranking: legend (project page views, clicks to the live site or repository) and units.
+- Footer wordmark reads **MBONNICI** and always fits the column exactly (sized in container units).
+- Home and About sections are no longer numbered: their (01)…(04) clashed with the page numbers of
+  the header.
+
+### Fixed
+- The footer wordmark was cut on wide screens.
+- Markdown (project texts, Versions page): headings no longer need a blank line around them, list
+  items can wrap on several lines, no stray spaces around bold, code and links; an empty
+  Unreleased section is hidden.
+
 ## [1.3.0] — 2026-11-04
 
 ### Added

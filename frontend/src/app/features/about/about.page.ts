@@ -37,7 +37,7 @@ import { ToolboxComponent } from '../../shared/ui/toolbox.component';
 
       <!-- ── Bio ─────────────────────────────────────────────────────── -->
       <section class="container bio-row">
-        <span class="eyebrow" appReveal>(01) {{ 'about.bio' | t }}</span>
+        <span class="eyebrow" appReveal>{{ 'about.bio' | t }}</span>
         <div class="bio">
           <app-md class="bio-text" [text]="settings()?.bio | l" appReveal />
           <div class="row" appReveal [revealDelay]="100">
@@ -56,7 +56,7 @@ import { ToolboxComponent } from '../../shared/ui/toolbox.component';
       <!-- ── Experience ─────────────────────────────────────────────── -->
       <section class="section container">
         <div class="section-title">
-          <span class="eyebrow" appReveal>(02) {{ 'about.experience' | t }}</span>
+          <span class="eyebrow" appReveal>{{ 'about.experience' | t }}</span>
           <h2 appReveal revealSplit="words">{{ 'home.experienceSub' | t }}</h2>
         </div>
         <ol class="rows">
@@ -99,7 +99,7 @@ import { ToolboxComponent } from '../../shared/ui/toolbox.component';
       <!-- ── Education ──────────────────────────────────────────────── -->
       <section class="section container">
         <div class="section-title">
-          <span class="eyebrow" appReveal>(03) {{ 'about.education' | t }}</span>
+          <span class="eyebrow" appReveal>{{ 'about.education' | t }}</span>
           <h2 appReveal revealSplit="words">{{ 'about.educationSub' | t }}</h2>
         </div>
         <ol class="rows">
@@ -129,7 +129,7 @@ import { ToolboxComponent } from '../../shared/ui/toolbox.component';
       <!-- ── Skills ─────────────────────────────────────────────────── -->
       <section class="section container">
         <div class="section-title">
-          <span class="eyebrow" appReveal>(04) {{ 'about.skills' | t }}</span>
+          <span class="eyebrow" appReveal>{{ 'about.skills' | t }}</span>
           <h2 appReveal revealSplit="words">{{ 'about.skillsSub' | t }}</h2>
         </div>
         <app-toolbox [skills]="profile()?.skills ?? []" />

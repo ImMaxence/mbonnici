@@ -29,7 +29,8 @@ type Block =
       @for (n of items; track $index) {
         @switch (n.t) {
           @case ('text') {
-            {{ n.v }}
+            <!-- in a container: a bare interpolation on its own line would get a space on each side -->
+            <ng-container>{{ n.v }}</ng-container>
           }
           @case ('strong') {
             <strong><ng-container *ngTemplateOutlet="inline; context: { $implicit: n.v }" /></strong>
@@ -100,27 +101,55 @@ function dropFinalDot(items: Inline[]): void {
   if (last?.t === 'text') last.v = stripDot(last.v);
 }
 
+/**
+ * Line-based: a heading is a block of its own even without blank lines around it, list items may
+ * wrap on indented continuation lines, a blank line ends a paragraph or a list.
+ */
 export function parseMarkdown(src: string): Block[] {
   const blocks: Block[] = [];
-  const chunks = src.replace(/\r\n?/g, '\n').split(/\n{2,}/);
-  for (const chunk of chunks) {
-    const lines = chunk.split('\n').map((l) => l.trimEnd()).filter((l) => l.trim().length);
-    if (!lines.length) continue;
-    if (lines.every((l) => /^\s*[-*•]\s+/.test(l))) {
-      blocks.push({ t: 'ul', items: lines.map((l) => parseInline(l.replace(/^\s*[-*•]\s+/, ''))) });
+  let para: string[] = [];
+  let list: { t: 'ul' | 'ol'; items: string[] } | null = null;
+  const flushPara = (): void => {
+    if (para.length) blocks.push({ t: 'p', v: parseInline(para.join(' ')) });
+    para = [];
+  };
+  const flushList = (): void => {
+    if (list) blocks.push({ t: list.t, items: list.items.map(parseInline) });
+    list = null;
+  };
+  for (const raw of src.replace(/\r\n?/g, '\n').split('\n')) {
+    const line = raw.trimEnd();
+    if (!line.trim()) {
+      flushPara();
+      flushList();
       continue;
     }
-    if (lines.every((l) => /^\s*\d+[.)]\s+/.test(l))) {
-      blocks.push({ t: 'ol', items: lines.map((l) => parseInline(l.replace(/^\s*\d+[.)]\s+/, ''))) });
+    const heading = /^\s{0,3}(#{1,6})\s+(.*?)\s*#*$/.exec(line);
+    if (heading) {
+      flushPara();
+      flushList();
+      blocks.push({ t: 'h', level: heading[1].length <= 2 ? 2 : 3, v: parseInline(heading[2]) });
       continue;
     }
-    const heading = /^(#{2,3})\s+(.*)$/.exec(lines[0]);
-    if (heading && lines.length === 1) {
-      blocks.push({ t: 'h', level: heading[1].length === 2 ? 2 : 3, v: parseInline(heading[2]) });
+    const item = /^\s*(?:([-*•])|\d+[.)])\s+(.*)$/.exec(line);
+    if (item) {
+      const t = item[1] ? 'ul' : 'ol';
+      flushPara();
+      if (list && list.t !== t) flushList();
+      list ??= { t, items: [] };
+      list.items.push(item[2]);
       continue;
     }
-    blocks.push({ t: 'p', v: parseInline(lines.join(' ')) });
+    if (list && /^\s/.test(raw)) {
+      // wrapped list item
+      list.items[list.items.length - 1] += ' ' + line.trim();
+      continue;
+    }
+    flushList();
+    para.push(line.trim());
   }
+  flushPara();
+  flushList();
   return blocks;
 }
 
