@@ -46,7 +46,7 @@ const clamp = (v: number, min: number, max: number): number => Math.min(max, Mat
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [IconComponent, TranslatePipe],
   template: `
-    <dialog class="viewer" #dialog [attr.aria-label]="label()" (cancel)="$event.preventDefault(); close()" (keydown)="key($event)">
+    <dialog class="viewer" #dialog [class.is-zoomed]="zoomed()" [attr.aria-label]="label()" (cancel)="$event.preventDefault(); close()" (keydown)="key($event)">
       <div class="shade" #shade></div>
       <div
         class="stage"
@@ -159,6 +159,7 @@ const clamp = (v: number, min: number, max: number): number => Math.min(max, Mat
     }
     .chrome {
       position: absolute;
+      z-index: 1;
       inset: 0;
       pointer-events: none;
     }
@@ -180,6 +181,15 @@ const clamp = (v: number, min: number, max: number): number => Math.min(max, Mat
       letter-spacing: 0.08em;
       color: rgba(244, 242, 236, 0.75);
     }
+    /* over a zoomed picture the counter and the caption sit on a dark pill too */
+    .is-zoomed .lb-count,
+    .is-zoomed .caption {
+      padding: 0.35rem 0.7rem;
+      border-radius: 99px;
+      background: rgba(16, 16, 18, 0.72);
+      backdrop-filter: blur(8px);
+      color: rgba(244, 242, 236, 0.92);
+    }
     .lb-count i {
       font-style: normal;
       opacity: 0.45;
@@ -191,8 +201,9 @@ const clamp = (v: number, min: number, max: number): number => Math.min(max, Mat
       width: 48px;
       height: 48px;
       border-radius: 50%;
-      border: 1px solid rgba(255, 255, 255, 0.16);
-      background: rgba(255, 255, 255, 0.08);
+      /* dark and nearly opaque: readable over the shade and over a zoomed picture alike */
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      background: rgba(16, 16, 18, 0.72);
       color: inherit;
       backdrop-filter: blur(8px);
       cursor: pointer;
@@ -203,15 +214,16 @@ const clamp = (v: number, min: number, max: number): number => Math.min(max, Mat
         transform 0.35s var(--ease-out);
     }
     .ctl:hover:not(:disabled) {
-      background: rgba(255, 255, 255, 0.18);
+      background: rgba(44, 44, 48, 0.86);
       border-color: rgba(255, 255, 255, 0.32);
     }
     .ctl:focus-visible {
       outline: 2px solid #fff;
       outline-offset: 3px;
     }
+    /* dimmed icon, solid knob: still reads as a button over a light picture */
     .ctl:disabled {
-      opacity: 0.25;
+      color: rgba(244, 242, 236, 0.3);
       cursor: default;
     }
     .side {
@@ -560,7 +572,7 @@ export class LightboxComponent {
     this.apply({ s: 1, x: 0, y: 0 }, animate);
   }
 
-  /** applies a zoom within bounds: a zoomed picture always covers its fitted box */
+  /** applies a zoom within the screen's bounds */
   private apply(z: { s: number; x: number; y: number }, animate: boolean): void {
     const pic = this.pic()?.nativeElement;
     if (!pic) {
@@ -569,10 +581,20 @@ export class LightboxComponent {
       return;
     }
     const s = clamp(z.s, 1, MAX_ZOOM);
-    const w = pic.offsetWidth;
-    const h = pic.offsetHeight;
-    const x = clamp(z.x, w - w * s, 0);
-    const y = clamp(z.y, h - h * s, 0);
+    const base = this.base();
+    const view = this.dialog().nativeElement;
+    let x = 0;
+    let y = 0;
+    if (base && s > 1.001) {
+      // the zoomed picture may use the whole screen: smaller than the screen on an axis, it is
+      // centred on it; larger, it can be panned until its edge meets the screen's edge
+      const axis = (t: number, start: number, size: number, screen: number): number => {
+        const scaled = size * s;
+        return scaled <= screen ? (screen - scaled) / 2 - start : clamp(t, screen - scaled - start, -start);
+      };
+      x = axis(z.x, base.left, base.width, view.clientWidth);
+      y = axis(z.y, base.top, base.height, view.clientHeight);
+    }
     this.z = { s, x, y };
     this.zoomed.set(s > 1.001);
     pic.style.transition = animate && !this.reduced ? `transform 0.35s ${EASE}` : '';
