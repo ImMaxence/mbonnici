@@ -179,6 +179,9 @@ export class SliderComponent {
   private readonly viewer = viewChild.required(LightboxComponent);
   private drag: { x: number; left: number; id: number; moved: boolean } | null = null;
   private suppressClick = false;
+  /** while a smooth scroll runs towards the slide go() chose, the counter keeps that target */
+  private settling = false;
+  private settleTimer: ReturnType<typeof setTimeout> | undefined;
 
   constructor() {
     afterNextRender(() => this.onScroll());
@@ -192,13 +195,18 @@ export class SliderComponent {
       }
       untracked(() => {
         this.drag = null;
+        this.settling = false;
+        clearTimeout(this.settleTimer);
         this.index.set(0);
         const el = this.track().nativeElement;
         el.classList.remove('is-dragging');
         el.scrollTo({ left: 0, behavior: 'instant' });
       });
     });
-    inject(DestroyRef).onDestroy(() => (this.drag = null));
+    inject(DestroyRef).onDestroy(() => {
+      this.drag = null;
+      clearTimeout(this.settleTimer);
+    });
   }
 
   pad(n: number): string {
@@ -208,13 +216,22 @@ export class SliderComponent {
   go(i: number, instant = false): void {
     const el = this.track().nativeElement;
     const slides = el.querySelectorAll<HTMLElement>('.slide');
-    const target = slides[Math.max(0, Math.min(slides.length - 1, i))];
+    const to = Math.max(0, Math.min(slides.length - 1, i));
+    const target = slides[to];
     if (!target) return;
+    // a second click during the scroll goes one further, from the slide already chosen
+    this.index.set(to);
+    this.settle(700);
     const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
     el.scrollTo({ left: target.offsetLeft - el.offsetLeft - parseFloat(getComputedStyle(el).paddingLeft), behavior: reduced || instant ? 'instant' : 'smooth' });
   }
 
   onScroll(): void {
+    if (this.settling) {
+      // still travelling: decide once the scroll has been quiet for a moment
+      this.settle(150);
+      return;
+    }
     const el = this.track().nativeElement;
     const slides = Array.from(el.querySelectorAll<HTMLElement>('.slide'));
     if (!slides.length) return;
@@ -230,6 +247,15 @@ export class SliderComponent {
     });
     if (el.scrollLeft + el.clientWidth >= el.scrollWidth - 4) best = slides.length - 1;
     if (best !== this.index()) this.index.set(best);
+  }
+
+  private settle(ms: number): void {
+    this.settling = true;
+    clearTimeout(this.settleTimer);
+    this.settleTimer = setTimeout(() => {
+      this.settling = false;
+      this.onScroll();
+    }, ms);
   }
 
   down(e: PointerEvent): void {
@@ -259,6 +285,7 @@ export class SliderComponent {
     this.suppressClick = true;
     setTimeout(() => (this.suppressClick = false), 50);
     // snap to the slide closest to where the drag ended
+    this.settling = false;
     this.onScroll();
     this.go(this.index());
   }

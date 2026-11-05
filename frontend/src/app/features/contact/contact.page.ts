@@ -78,7 +78,7 @@ interface FormErrors {
               <span class="check"><app-icon name="check" [size]="28" /></span>
               <h2 class="h3">{{ 'contact.form.sent' | t }}</h2>
               <p class="muted">{{ 'contact.form.sentSub' | t }}</p>
-              <button type="button" class="btn btn-ghost" (click)="reset()">{{ 'contact.form.another' | t }}</button>
+              <button type="button" class="btn btn-ghost" (click)="reset()" appMagnetic>{{ 'contact.form.another' | t }}</button>
             </div>
           } @else {
             <form (ngSubmit)="submit()" novalidate>

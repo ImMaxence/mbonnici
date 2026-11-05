@@ -78,6 +78,8 @@
   --accent: #2b3bea;
   --accent-fg: #ffffff;
   --accent-soft: rgba(43, 59, 234, 0.1);
+  /* section marks (the dot before the small capitals labels) */
+  --mark: #e0651a;
   --success: #17652c;
   --warning: #7a4b00;
   --danger: #b01e17;
@@ -107,6 +109,7 @@
   --accent: #8c96ff;
   --accent-fg: #0d0d0c;
   --accent-soft: rgba(140, 150, 255, 0.14);
+  --mark: #ff8a3d;
   --success: #6fd38a;
   --warning: #f0b54a;
   --danger: #ff7a70;

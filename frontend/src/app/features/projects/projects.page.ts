@@ -4,7 +4,10 @@ import {
   DestroyRef,
   ElementRef,
   PLATFORM_ID,
+  REQUEST,
+  TransferState,
   afterNextRender,
+  makeStateKey,
   computed,
   effect,
   inject,
@@ -22,6 +25,7 @@ import { RafService } from '../../core/motion/raf.service';
 import { SeoService } from '../../core/seo/seo.service';
 import { LinkDirective } from '../../shared/curtain/link.directive';
 import { CursorDirective } from '../../shared/cursor/cursor.directive';
+import { MagneticDirective } from '../../shared/cursor/magnetic.directive';
 import { FooterComponent } from '../../shared/ui/footer.component';
 import { IconComponent } from '../../shared/ui/icon.component';
 import { ProjectCardComponent } from '../../shared/ui/project-card.component';
@@ -31,10 +35,15 @@ import { usesTech } from '../../shared/ui/tech';
 
 type View = 'grid' | 'list';
 const VIEW_KEY = 'mb.projectsView';
+/** the view the server rendered, so the browser hydrates the same markup */
+const SSR_VIEW = makeStateKey<View>('projectsView');
+/** a computer: the list (one line per project, picture on hover); a phone or a tablet: the cards */
+const WIDE = '(min-width: 900px) and (hover: hover)';
+const MOBILE_UA = /Mobi|Android|iPhone|iPad|iPod/i;
 
 @Component({
   selector: 'app-projects',
-  imports: [TranslatePipe, LocalizedPipe, FooterComponent, ProjectCardComponent, RevealDirective, IconComponent, LinkDirective, CursorDirective],
+  imports: [TranslatePipe, LocalizedPipe, FooterComponent, ProjectCardComponent, RevealDirective, IconComponent, LinkDirective, CursorDirective, MagneticDirective],
   template: `
     <main id="main" class="page">
       <header class="container page-head">
@@ -51,21 +60,21 @@ const VIEW_KEY = 'mb.projectsView';
       <section class="container">
         <div class="toolbar" appReveal [revealDelay]="260">
           <div class="filters" role="group" [attr.aria-label]="'common.category' | t">
-            <button type="button" class="filter" [attr.aria-pressed]="filter() === null" (click)="choose(null)">
+            <button type="button" class="filter" [attr.aria-pressed]="filter() === null" (click)="choose(null)" appMagnetic [magneticStrength]="0.25" [magneticRadius]="99">
               {{ 'projects.filterAll' | t }} <sup>{{ byTech().length }}</sup>
             </button>
             @for (c of categories(); track c.key) {
-              <button type="button" class="filter" [attr.aria-pressed]="filter() === c.key" (click)="choose(c.key)">
+              <button type="button" class="filter" [attr.aria-pressed]="filter() === c.key" (click)="choose(c.key)" appMagnetic [magneticStrength]="0.25" [magneticRadius]="99">
                 {{ 'categories.' + c.key | t }} <sup>{{ c.count }}</sup>
               </button>
             }
             @if (tech(); as t) {
-              <a class="filter tech" [appLink]="i18n.path('projects')" [linkLabel]="'nav.projects' | t" [attr.aria-label]="'projects.clearTech' | t: { tech: t }">
+              <a class="filter tech" appMagnetic [magneticStrength]="0.25" [magneticRadius]="99" [appLink]="i18n.path('projects')" [linkLabel]="'nav.projects' | t" [attr.aria-label]="'projects.clearTech' | t: { tech: t }">
                 <span class="faint">{{ 'projects.with' | t }}</span> {{ t }} <app-icon name="close" [size]="14" />
               </a>
             }
           </div>
-          <div class="views" role="group" [attr.aria-label]="'projects.view' | t">
+          <div class="views" role="group" [attr.aria-label]="'projects.view' | t" appMagnetic [magneticStrength]="0.2" [magneticRadius]="99">
             <button type="button" class="view-btn" [attr.aria-pressed]="view() === 'grid'" (click)="setView('grid')" [attr.aria-label]="'projects.viewGrid' | t">
               <app-icon name="grid" [size]="16" /> <span>{{ 'projects.viewGrid' | t }}</span>
             </button>
@@ -235,9 +244,6 @@ const VIEW_KEY = 'mb.projectsView';
       .grid-projects {
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
-      .grid-projects .cell:nth-child(even) {
-        margin-top: clamp(0px, 8vw, 8rem);
-      }
     }
 
     /* ── list ── */
@@ -406,7 +412,7 @@ export class ProjectsPage {
   /** ?tech=Spring Boot (from a skill of the toolbox) */
   readonly tech = input<string | undefined>();
   readonly filter = signal<ProjectCategory | null>(null);
-  readonly view = signal<View>('grid');
+  readonly view = signal<View>(this.initialView());
   readonly hovered = signal<ProjectCard | null>(null);
   private readonly grid = viewChild<ElementRef<HTMLElement>>('grid');
   private readonly preview = viewChild<ElementRef<HTMLElement>>('preview');
@@ -431,12 +437,13 @@ export class ProjectsPage {
 
   constructor() {
     afterNextRender(() => {
+      let v: string | null = null;
       try {
-        const v = localStorage.getItem(VIEW_KEY);
-        if (v === 'list' || v === 'grid') this.view.set(v);
+        v = localStorage.getItem(VIEW_KEY);
       } catch {
-        // storage blocked: grid
+        // storage blocked: the default for this screen
       }
+      this.view.set(v === 'list' || v === 'grid' ? v : matchMedia(WIDE).matches ? 'list' : 'grid');
     });
     inject(DestroyRef).onDestroy(() => this.stopFrame?.());
 
@@ -474,6 +481,19 @@ export class ProjectsPage {
 
   thumb(p: ProjectCard) {
     return fromMedia(p.cover, '');
+  }
+
+  /**
+   * The server guesses from the user agent (phones get the cards) and hands its choice to the
+   * browser, which hydrates that, then applies the visitor's own choice or its real screen.
+   */
+  private initialView(): View {
+    const state = inject(TransferState);
+    if (isPlatformBrowser(inject(PLATFORM_ID))) return state.get(SSR_VIEW, 'list');
+    const ua = inject(REQUEST, { optional: true })?.headers.get('user-agent') ?? '';
+    const v: View = MOBILE_UA.test(ua) ? 'grid' : 'list';
+    state.set(SSR_VIEW, v);
+    return v;
   }
 
   setView(v: View): void {

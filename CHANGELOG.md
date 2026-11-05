@@ -27,6 +27,15 @@ All notable changes to this project are documented here. The format follows
   that is not a skill can still be added as typed (dashed border).
 
 ### Changed
+- **Projects page**: the cards stand in a straight grid (every other one was shifted down), and a
+  computer opens the list view by default (a phone or a tablet keeps the cards). The server picks
+  the view from the browser, so there is no flash; the visitor's own choice still wins.
+- **Home**: the selected projects are all the same size (the first one was full width), in an
+  even number so the two columns end level.
+- Section labels (PROJETS, CONTACT…) carry an orange mark instead of the blue dot.
+- Every public button moves towards the pointer with the cursor ring around it: "All projects",
+  "Full story", the project filters, the grid / list switch, the header language and theme
+  switches, the screenshot / live switch and "Send another message" did not.
 - Real-user performance explains what the figure is (the value 75% of visits reach or beat), shows
   the good / poor thresholds under each metric and has a legend for the green, yellow and red bars.
 - The database schema line on Backups is plain text under the import help, not a chip that looked
@@ -38,6 +47,8 @@ All notable changes to this project are documented here. The format follows
   column; older archives still restore, their tags are ignored.
 
 ### Fixed
+- Two quick clicks on the gallery's "Next" moved one picture only: the second click started from
+  the picture the smooth scroll had not reached yet.
 - The project gallery kept the previous project's position (picture 4 of project A → picture 4 of
   project B): it now starts at the first picture on every project.
 - Dashboard: the database status and the PostgreSQL version were stuck together; the Drive archive

@@ -112,7 +112,7 @@ import { PreviewBannerComponent } from '../../shared/ui/preview-banner.component
         <!-- ── The product ─────────────────────────────────────────── -->
         <section class="container hero-shot" appReveal [revealDelay]="120">
           @if (canLive()) {
-            <div class="view-switch" role="radiogroup" [attr.aria-label]="'project.view' | t">
+            <div class="view-switch" role="radiogroup" [attr.aria-label]="'project.view' | t" appMagnetic [magneticStrength]="0.2" [magneticRadius]="99">
               <button type="button" role="radio" [attr.aria-checked]="!live()" (click)="live.set(false)">{{ 'project.viewShot' | t }}</button>
               <button type="button" role="radio" [attr.aria-checked]="live()" (click)="live.set(true)">
                 <i class="rec" aria-hidden="true"></i>{{ 'project.viewLive' | t }}

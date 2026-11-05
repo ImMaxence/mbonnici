@@ -70,14 +70,16 @@ import { ToolboxComponent } from '../../shared/ui/toolbox.component';
           <span class="eyebrow" appReveal>{{ 'home.selected' | t }}</span>
           <div class="title-row">
             <h2 appReveal revealSplit="words">{{ 'home.selectedSub' | t }}</h2>
-            <a class="btn btn-ghost" [appLink]="i18n.path('projects')" [linkLabel]="'nav.projects' | t" appReveal>
-              {{ 'home.allProjects' | t }} <app-icon class="arrow" name="arrow-right" [size]="16" />
-            </a>
+            <span class="title-cta" appReveal>
+              <a class="btn btn-ghost" [appLink]="i18n.path('projects')" [linkLabel]="'nav.projects' | t" appMagnetic>
+                {{ 'home.allProjects' | t }} <app-icon class="arrow" name="arrow-right" [size]="16" />
+              </a>
+            </span>
           </div>
         </div>
         <div class="work-grid">
           @for (p of featured(); track p.id; let i = $index) {
-            <div appReveal [revealDelay]="(i % 2) * 90" [class.wide]="i === 0">
+            <div appReveal [revealDelay]="(i % 2) * 90">
               <app-project-card [project]="p" />
             </div>
           }
@@ -103,9 +105,11 @@ import { ToolboxComponent } from '../../shared/ui/toolbox.component';
           <span class="eyebrow" appReveal>{{ 'home.experience' | t }}</span>
           <div class="title-row">
             <h2 appReveal revealSplit="words">{{ 'home.experienceSub' | t }}</h2>
-            <a class="btn btn-ghost" [appLink]="i18n.path('about')" [linkLabel]="'nav.about' | t" appReveal>
-              {{ 'home.fullStory' | t }} <app-icon class="arrow" name="arrow-right" [size]="16" />
-            </a>
+            <span class="title-cta" appReveal>
+              <a class="btn btn-ghost" [appLink]="i18n.path('about')" [linkLabel]="'nav.about' | t" appMagnetic>
+                {{ 'home.fullStory' | t }} <app-icon class="arrow" name="arrow-right" [size]="16" />
+              </a>
+            </span>
           </div>
         </div>
         <ol class="rows">
@@ -196,6 +200,10 @@ import { ToolboxComponent } from '../../shared/ui/toolbox.component';
         grid-template-columns: 1fr auto;
       }
     }
+    /* the reveal moves this wrapper; the magnetic pull moves the button inside */
+    .title-cta {
+      display: inline-block;
+    }
     .work-grid {
       display: grid;
       gap: clamp(3rem, 6vw, 5rem) var(--gutter);
@@ -203,9 +211,6 @@ import { ToolboxComponent } from '../../shared/ui/toolbox.component';
     @media (min-width: 900px) {
       .work-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-      .work-grid > .wide {
-        grid-column: 1 / -1;
       }
     }
     .rows {
@@ -288,7 +293,9 @@ export class HomePage {
   readonly featured = computed(() => {
     const all = this.projects() ?? [];
     const featured = all.filter((p) => p.featured);
-    return (featured.length ? featured : all).slice(0, 5);
+    // two equal columns: an even number of cards (up to six), so no row is left half empty
+    const list = (featured.length ? featured : all).slice(0, 6);
+    return list.length > 1 && list.length % 2 ? list.slice(0, -1) : list;
   });
   readonly experiences = computed(() => (this.profile()?.experiences ?? []).slice(0, 3));
 

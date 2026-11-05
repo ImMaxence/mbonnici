@@ -11,6 +11,7 @@ import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { ScrollService } from '../../core/motion/scroll.service';
 import { ThemeMode, ThemeService } from '../../core/theme/theme.service';
 import { TransitionService } from '../curtain/transition.service';
+import { MagneticDirective } from '../cursor/magnetic.directive';
 import { IconComponent } from '../ui/icon.component';
 
 interface NavItem {
@@ -28,7 +29,7 @@ interface NavItem {
  */
 @Component({
   selector: 'app-header',
-  imports: [IconComponent, TranslatePipe],
+  imports: [IconComponent, TranslatePipe, MagneticDirective],
   template: `
     <header class="bar" [class.is-scrolled]="scroll.scrolled()" [class.is-hidden]="scroll.headerHidden() && !open()">
       <div class="inner">
@@ -52,11 +53,11 @@ interface NavItem {
         </nav>
 
         <div class="tools">
-          <button type="button" class="lang" (click)="switchLang()">
+          <button type="button" class="lang" (click)="switchLang()" appMagnetic [magneticStrength]="0.25" [magneticRadius]="99">
             <span [class.on]="i18n.lang() === 'fr'">FR</span><i>/</i><span [class.on]="i18n.lang() === 'en'">EN</span>
             <span class="visually-hidden"> · {{ 'nav.switchLanguage' | t }}</span>
           </button>
-          <div class="theme" role="radiogroup" [attr.aria-label]="'dock.modeLabel' | t">
+          <div class="theme" role="radiogroup" [attr.aria-label]="'dock.modeLabel' | t" appMagnetic [magneticStrength]="0.2" [magneticRadius]="99">
             @for (m of modes; track m.id) {
               <button
                 type="button"
@@ -75,7 +76,7 @@ interface NavItem {
             }
           </div>
           @if (auth.isAdmin()) {
-            <a class="round" href="/admin" [attr.aria-label]="'nav.admin' | t" [attr.title]="'nav.admin' | t"><app-icon name="settings" [size]="18" /></a>
+            <a class="round" appMagnetic [magneticRadius]="99" href="/admin" [attr.aria-label]="'nav.admin' | t" [attr.title]="'nav.admin' | t"><app-icon name="settings" [size]="18" /></a>
           }
           <button type="button" class="menu-btn" (click)="openMenu()" aria-haspopup="dialog" [attr.aria-expanded]="open()">
             <span>{{ 'nav.menu' | t }}</span>

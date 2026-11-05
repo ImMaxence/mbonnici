@@ -109,7 +109,7 @@ b {
   width: 0.55em;
   height: 0.55em;
   border-radius: 50%;
-  background: var(--accent);
+  background: var(--mark);
 }
 
 .eyebrow.plain::before {

@@ -53,6 +53,8 @@ test.describe('phone layout', () => {
 
   test('project cards stack in one column and the detail page works', async ({ page }) => {
     await page.goto('/fr/projets');
+    // a phone gets the cards, from the server already
+    await expect(page.getByRole('button', { name: 'Grille' })).toHaveAttribute('aria-pressed', 'true');
     const first = page.locator('app-project-card').first();
     const second = page.locator('app-project-card').nth(1);
     const a = await first.boundingBox();

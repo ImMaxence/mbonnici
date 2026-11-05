@@ -3,16 +3,25 @@ import { expect, test } from '@playwright/test';
 const ORIGIN = process.env['E2E_BASE_URL'] ?? 'http://localhost:4000';
 
 test.describe('projects', () => {
+  test('a computer gets the list by default, rendered by the server', async ({ page, request }) => {
+    const html = await (await request.get('/fr/projets')).text();
+    expect(html).toContain('class="rows');
+    await page.goto('/fr/projets');
+    await expect(page.getByRole('button', { name: 'Liste' })).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.locator('app-project-card')).toHaveCount(0);
+  });
+
   test('lists published projects with category filters', async ({ page }) => {
     await page.goto('/fr/projets');
-    const cards = page.locator('app-project-card');
+    // one row per project in the list view
+    const cards = page.locator('.rows .row');
     await expect(cards.first()).toBeVisible();
     expect(await cards.count()).toBeGreaterThanOrEqual(10);
     // the draft project is never listed
     await expect(page.getByText('Nails by Anastasie')).toHaveCount(0);
 
     await page.getByRole('button', { name: /^Outil/ }).click();
-    await expect(page.locator('app-project-card')).toHaveCount(2);
+    await expect(page.locator('.rows .row')).toHaveCount(2);
     await page.getByRole('button', { name: /^Tous/ }).click();
     await expect.poll(() => cards.count()).toBeGreaterThanOrEqual(10);
   });
@@ -24,13 +33,13 @@ test.describe('projects', () => {
     await tool.click();
     await all.click({ delay: 0 });
     await tool.click({ delay: 0 });
-    await expect(page.locator('app-project-card')).toHaveCount(2);
+    await expect(page.locator('.rows .row')).toHaveCount(2);
     await expect(tool).toHaveAttribute('aria-pressed', 'true');
   });
 
   test('opens a project through the curtain transition', async ({ page }) => {
     await page.goto('/fr/projets');
-    await page.locator('app-project-card a').first().click();
+    await page.locator('.rows .row').first().click();
     await page.waitForURL('**/fr/projets/localatscv');
     await expect(page.locator('h1')).toHaveText('LocalATSCV');
     await expect(page.locator('app-showcase img').first()).toBeVisible();

@@ -38,7 +38,7 @@ test.describe('projects', () => {
     await link.click();
     await expect(page).toHaveURL(/\/fr\/projets\?tech=Angular/);
     await expect(page.locator('.filter.tech')).toContainText('Angular');
-    const cards = page.locator('app-project-card');
+    const cards = page.locator('.rows .row');
     await expect(cards.first()).toBeVisible();
     expect(await cards.count()).toBeLessThan(11);
   });
