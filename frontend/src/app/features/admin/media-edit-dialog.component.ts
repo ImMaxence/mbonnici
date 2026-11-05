@@ -1,4 +1,5 @@
-import { Component, ElementRef, effect, inject, input, output, signal, viewChild } from '@angular/core';
+import { Component, ElementRef, computed, effect, inject, input, output, signal, viewChild } from '@angular/core';
+import { isVideo } from '../../shared/ui/shots';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../core/api/api.service';
 import type { MediaDto } from '../../core/api/models';
@@ -33,7 +34,11 @@ const ALT_ADVICE = 150;
             <div class="visual">
               <div class="stage">
               <button type="button" class="focal" (click)="pick($event)" [attr.aria-label]="'admin.media.focal' | t">
-                <img [src]="m.url" [attr.srcset]="m.srcset || null" sizes="(max-width: 900px) 90vw, 560px" alt="" />
+                @if (video()) {
+                  <video class="focal-media" [src]="m.url" muted loop autoplay playsinline aria-hidden="true"></video>
+                } @else {
+                  <img class="focal-media" [src]="m.url" [attr.srcset]="m.srcset || null" sizes="(max-width: 900px) 90vw, 560px" alt="" />
+                }
                 <i class="dot" [style.left.%]="focalX() * 100" [style.top.%]="focalY() * 100" aria-hidden="true"></i>
               </button>
               </div>
@@ -42,7 +47,7 @@ const ALT_ADVICE = 150;
                 <dt>{{ 'admin.media.dimensions' | t }}</dt>
                 <dd class="mono">{{ m.width ?? '?' }} × {{ m.height ?? '?' }}</dd>
                 <dt>{{ 'admin.media.weight' | t }}</dt>
-                <dd class="mono">{{ kb(m.sizeBytes) }} ko · {{ m.contentType.replace('image/', '') }}</dd>
+                <dd class="mono">{{ kb(m.sizeBytes) }} ko · {{ m.contentType.replace('image/', '').replace('video/', 'vidéo ') }}</dd>
                 @if (m.originalFilename) {
                   <dt>{{ 'admin.media.file' | t }}</dt>
                   <dd class="mono ellipsis" [title]="m.originalFilename">{{ m.originalFilename }}</dd>
@@ -175,7 +180,7 @@ const ALT_ADVICE = 150;
       cursor: crosshair;
       background: var(--bg-3);
     }
-    .focal img {
+    .focal .focal-media {
       display: block;
       width: auto;
       max-width: 100%;
@@ -183,7 +188,7 @@ const ALT_ADVICE = 150;
       max-height: 50dvh;
     }
     @media (max-width: 819px) {
-      .focal img {
+      .focal .focal-media {
         max-height: 30dvh;
       }
     }
@@ -259,6 +264,7 @@ export class MediaEditDialogComponent {
   readonly closed = output<void>();
 
   readonly advice = ALT_ADVICE;
+  readonly video = computed(() => isVideo(this.media()));
   readonly focalX = signal(0.5);
   readonly focalY = signal(0);
   readonly saving = signal(false);
@@ -289,7 +295,7 @@ export class MediaEditDialogComponent {
 
   /** click on the picture: that point stays in view when a frame crops it */
   pick(e: MouseEvent): void {
-    const r = (e.currentTarget as HTMLElement).querySelector('img')!.getBoundingClientRect();
+    const r = (e.currentTarget as HTMLElement).querySelector<HTMLElement>('.focal-media')!.getBoundingClientRect();
     this.focalX.set(Math.round(Math.min(1, Math.max(0, (e.clientX - r.left) / r.width)) * 100) / 100);
     this.focalY.set(Math.round(Math.min(1, Math.max(0, (e.clientY - r.top) / r.height)) * 100) / 100);
   }

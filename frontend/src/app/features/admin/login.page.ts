@@ -16,7 +16,7 @@ import { TooltipDirective } from '../../shared/ui/tooltip.directive';
     <main class="login" id="main">
       <section class="side" aria-hidden="true">
         <span class="eyebrow plain">mbonnici.fr · {{ 'admin.title' | t }}</span>
-        <p class="big">Maxence<br />Bonnici</p>
+        <p class="big">MBONNICI.FR</p>
         <ul>
           <li>{{ 'admin.nav.projects' | t }}</li>
           <li>{{ 'admin.nav.media' | t }}</li>
@@ -83,6 +83,7 @@ import { TooltipDirective } from '../../shared/ui/tooltip.directive';
     .side {
       display: none;
       position: relative;
+      container-type: inline-size;
       overflow: hidden;
       padding: clamp(2rem, 4vw, 3.5rem);
       background: #121211;
@@ -98,12 +99,16 @@ import { TooltipDirective } from '../../shared/ui/tooltip.directive';
     .side .eyebrow {
       color: rgba(236, 234, 227, 0.6);
     }
+    /* the same wordmark as the intro and the footer: Inter Tight 600 at -0.04em, 5.818em of ink
+       from 0.05em, so 17.18cqi fills the panel from edge to edge */
     .big {
       font-family: var(--font-display);
-      font-weight: var(--weight-display);
-      font-size: clamp(4rem, 9vw, 9.5rem);
-      line-height: 0.86;
-      letter-spacing: -0.055em;
+      font-weight: 600;
+      font-size: 17.18cqi;
+      line-height: 0.8;
+      letter-spacing: -0.04em;
+      white-space: nowrap;
+      margin-left: -0.05em;
       padding-bottom: 2rem;
     }
     .side ul {

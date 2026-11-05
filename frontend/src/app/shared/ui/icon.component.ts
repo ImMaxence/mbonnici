@@ -39,6 +39,7 @@ const ICONS: Record<string, IconDef> = {
   logout: { d: 'M10 4H5v16h5M14 16l4-4-4-4M18 12H9' },
   drag: { d: 'M9 6h.01M15 6h.01M9 12h.01M15 12h.01M9 18h.01M15 18h.01' },
   plus: { d: 'M12 5v14M5 12h14' },
+  calendar: { d: 'M4 6h16v14H4zM4 10h16M8 3v5M16 3v5M8 14h2M14 14h2M8 17h2' },
   pause: { d: 'M8.5 5v14M15.5 5v14' },
   play: { d: 'M7 4.5v15L19.5 12z' },
   trash: { d: 'M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6' },

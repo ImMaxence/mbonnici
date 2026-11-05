@@ -10,6 +10,9 @@ import fr.mbonnici.portfolio.profile.ProfileDtos.ExperienceInput;
 import fr.mbonnici.portfolio.profile.ProfileDtos.Profile;
 import fr.mbonnici.portfolio.profile.ProfileDtos.SkillDto;
 import fr.mbonnici.portfolio.profile.ProfileDtos.SkillInput;
+import fr.mbonnici.portfolio.profile.ProfileDtos.TestimonialDto;
+import fr.mbonnici.portfolio.profile.ProfileDtos.TestimonialInput;
+import java.util.regex.Pattern;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.cache.annotation.CacheEvict;
@@ -25,11 +28,16 @@ public class ProfileService {
     private final ExperienceRepository experiences;
     private final EducationRepository education;
     private final SkillRepository skills;
+    private final TestimonialRepository testimonials;
 
-    public ProfileService(ExperienceRepository experiences, EducationRepository education, SkillRepository skills) {
+    private static final Pattern HTTP_URL = Pattern.compile("^https?://[^\\s]+$");
+
+    public ProfileService(ExperienceRepository experiences, EducationRepository education, SkillRepository skills,
+            TestimonialRepository testimonials) {
         this.experiences = experiences;
         this.education = education;
         this.skills = skills;
+        this.testimonials = testimonials;
     }
 
     /** Back office: texts as stored, without the fallback to the other language. */
@@ -38,7 +46,8 @@ public class ProfileService {
         return new Profile(
                 experiences.findAllByOrderBySortOrderAscStartDateDesc().stream().map(ExperienceDto::raw).toList(),
                 education.findAllByOrderBySortOrderAscStartDateDesc().stream().map(EducationDto::raw).toList(),
-                skills.findAllByOrderBySortOrderAscNameAsc().stream().map(SkillDto::from).toList());
+                skills.findAllByOrderBySortOrderAscNameAsc().stream().map(SkillDto::from).toList(),
+                testimonials.findAllByOrderBySortOrderAscAuthorAsc().stream().map(TestimonialDto::raw).toList());
     }
 
     @Cacheable(CACHE)
@@ -47,7 +56,8 @@ public class ProfileService {
         return new Profile(
                 experiences.findAllByOrderBySortOrderAscStartDateDesc().stream().map(ExperienceDto::from).toList(),
                 education.findAllByOrderBySortOrderAscStartDateDesc().stream().map(EducationDto::from).toList(),
-                skills.findAllByOrderBySortOrderAscNameAsc().stream().map(SkillDto::from).toList());
+                skills.findAllByOrderBySortOrderAscNameAsc().stream().map(SkillDto::from).toList(),
+                testimonials.findAllByOrderBySortOrderAscAuthorAsc().stream().map(TestimonialDto::from).toList());
     }
 
     // ── experiences ──────────────────────────────────────────────────────────
@@ -182,6 +192,59 @@ public class ProfileService {
             Skill s = skills.findById(id).orElseThrow(() -> new NotFoundException("Skill"));
             s.setSortOrder(i++);
         }
+    }
+
+    // ── testimonials ─────────────────────────────────────────────────────────
+
+    @CacheEvict(value = CACHE, allEntries = true)
+    @Transactional
+    public TestimonialDto createTestimonial(TestimonialInput in) {
+        return TestimonialDto.from(testimonials.save(applyTestimonial(Testimonial.create(), in)));
+    }
+
+    @CacheEvict(value = CACHE, allEntries = true)
+    @Transactional
+    public TestimonialDto updateTestimonial(UUID id, TestimonialInput in) {
+        Testimonial t = testimonials.findById(id).orElseThrow(() -> new NotFoundException("Testimonial"));
+        return TestimonialDto.from(testimonials.save(applyTestimonial(t, in)));
+    }
+
+    @CacheEvict(value = CACHE, allEntries = true)
+    @Transactional
+    public void deleteTestimonial(UUID id) {
+        if (!testimonials.existsById(id)) {
+            throw new NotFoundException("Testimonial");
+        }
+        testimonials.deleteById(id);
+    }
+
+    @CacheEvict(value = CACHE, allEntries = true)
+    @Transactional
+    public void reorderTestimonials(List<UUID> ids) {
+        int i = 0;
+        for (UUID id : ids) {
+            testimonials.findById(id).orElseThrow(() -> new NotFoundException("Testimonial")).setSortOrder(i++);
+        }
+    }
+
+    private static Testimonial applyTestimonial(Testimonial t, TestimonialInput in) {
+        if (in.quote().isBlank()) {
+            throw ApiException.badRequest("quote is required in at least one language");
+        }
+        Localized quote = Localized.clean(in.quote());
+        if ((quote.fr() != null && quote.fr().length() > 600) || (quote.en() != null && quote.en().length() > 600)) {
+            throw ApiException.badRequest("quote is limited to 600 characters");
+        }
+        String url = blankToNull(in.url());
+        if (url != null && !HTTP_URL.matcher(url).matches()) {
+            throw ApiException.badRequest("url must be an http(s) URL");
+        }
+        t.setAuthor(in.author().trim());
+        t.setUrl(url);
+        t.setRole(Localized.clean(in.role() == null ? Localized.EMPTY : in.role()));
+        t.setQuote(quote);
+        t.setSortOrder(in.sortOrder());
+        return t;
     }
 
     private static Skill applySkill(Skill s, SkillInput in) {

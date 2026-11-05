@@ -16,7 +16,7 @@ public interface MediaRepository extends JpaRepository<Media, UUID> {
     /** media referenced by nothing: no project (cover or gallery) or header picture */
     @Query(value = """
             select m.id from media m
-            where not exists (select 1 from project p where p.cover_media_id = m.id)
+            where not exists (select 1 from project p where p.cover_media_id = m.id or p.cover_video_media_id = m.id)
               and not exists (select 1 from project_media pm where pm.media_id = m.id)
               and not exists (select 1 from site_settings s where s.avatar_media_id = m.id)
             order by m.created_at desc

@@ -61,8 +61,10 @@ import { IconComponent } from './icon.component';
       border: 1px solid color-mix(in srgb, var(--bg) 30%, transparent);
       font-weight: 600;
     }
-    .back:hover {
-      background: color-mix(in srgb, var(--bg) 12%, transparent);
+    @media (hover: hover) {
+      .back:hover {
+        background: color-mix(in srgb, var(--bg) 12%, transparent);
+      }
     }
   `,
 })

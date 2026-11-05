@@ -20,6 +20,7 @@ public final class SettingsDtos {
             String publicEmail,
             String githubUrl,
             String linkedinUrl,
+            String bookingUrl,
             SiteSettings.Availability availability,
             Localized seoTitle,
             Localized seoDescription,
@@ -31,7 +32,7 @@ public final class SettingsDtos {
 
         public static PublicSettings from(SiteSettings s) {
             return new PublicSettings(s.getOwnerName(), s.getHeadline().filled(), s.getBio().filled(), s.getLocation(),
-                    s.getPublicEmail(), s.getGithubUrl(), s.getLinkedinUrl(), s.getAvailability(),
+                    s.getPublicEmail(), s.getGithubUrl(), s.getLinkedinUrl(), s.getBookingUrl(), s.getAvailability(),
                     s.getSeoTitle() == null ? Localized.EMPTY : s.getSeoTitle().filled(),
                     s.getSeoDescription() == null ? Localized.EMPTY : s.getSeoDescription().filled(),
                     new Legal(s.getLegalName(), s.getLegalAddress(), s.getLegalHost(), s.getLegalContactEmail()),
@@ -41,7 +42,7 @@ public final class SettingsDtos {
         /** as stored (back office): an empty language stays empty */
         public static PublicSettings raw(SiteSettings s) {
             return new PublicSettings(s.getOwnerName(), s.getHeadline(), s.getBio(), s.getLocation(),
-                    s.getPublicEmail(), s.getGithubUrl(), s.getLinkedinUrl(), s.getAvailability(),
+                    s.getPublicEmail(), s.getGithubUrl(), s.getLinkedinUrl(), s.getBookingUrl(), s.getAvailability(),
                     s.getSeoTitle() == null ? Localized.EMPTY : s.getSeoTitle(),
                     s.getSeoDescription() == null ? Localized.EMPTY : s.getSeoDescription(),
                     new Legal(s.getLegalName(), s.getLegalAddress(), s.getLegalHost(), s.getLegalContactEmail()),
@@ -77,6 +78,7 @@ public final class SettingsDtos {
             @Email @Size(max = 200) String publicEmail,
             @Size(max = 300) String githubUrl,
             @Size(max = 300) String linkedinUrl,
+            @Size(max = 300) String bookingUrl,
             @NotNull SiteSettings.Availability availability,
             Localized seoTitle,
             Localized seoDescription,

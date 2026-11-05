@@ -10,6 +10,8 @@ import type {
   BackupSettings,
   SystemInfo,
   SystemSample,
+  Testimonial,
+  TestimonialInput,
   ContactInput,
   ContactMessage,
   Education,
@@ -142,7 +144,7 @@ export class ApiService {
     return firstValueFrom(this.http.delete<void>(`/api/admin/projects/${id}`));
   }
 
-  reorderProfile(section: 'experiences' | 'education' | 'skills', ids: string[]): Promise<void> {
+  reorderProfile(section: 'experiences' | 'education' | 'skills' | 'testimonials', ids: string[]): Promise<void> {
     return firstValueFrom(this.http.put<void>(`/api/admin/profile/${section}/reorder`, { ids }));
   }
 
@@ -155,11 +157,20 @@ export class ApiService {
     return firstValueFrom(this.http.get<Page<MediaDto>>('/api/admin/media', { params: { page, size } }));
   }
 
-  uploadMedia(file: File, alt?: Localized): Promise<MediaDto> {
+  /** a picture, or a short video (its size read here: the server has no decoder) */
+  async uploadMedia(file: File, alt?: Localized): Promise<MediaDto> {
     const form = new FormData();
     form.append('file', file, file.name);
     if (alt?.fr) form.append('altFr', alt.fr);
     if (alt?.en) form.append('altEn', alt.en);
+    if (isVideoFile(file)) {
+      // the server re-encodes and measures videos itself when it can; this size is its fallback
+      const size = await videoSize(file).catch(() => null);
+      if (size) {
+        form.append('width', String(size.width));
+        form.append('height', String(size.height));
+      }
+    }
     return firstValueFrom(this.http.post<MediaDto>('/api/admin/media', form));
   }
 
@@ -235,6 +246,16 @@ export class ApiService {
 
   deleteSkill(id: string): Promise<void> {
     return firstValueFrom(this.http.delete<void>(`/api/admin/profile/skills/${id}`));
+  }
+
+  saveTestimonial(body: TestimonialInput, id?: string): Promise<Testimonial> {
+    return id
+      ? firstValueFrom(this.http.put<Testimonial>(`/api/admin/profile/testimonials/${id}`, body))
+      : firstValueFrom(this.http.post<Testimonial>('/api/admin/profile/testimonials', body));
+  }
+
+  deleteTestimonial(id: string): Promise<void> {
+    return firstValueFrom(this.http.delete<void>(`/api/admin/profile/testimonials/${id}`));
   }
 
   // ── admin: settings & messages ─────────────────────────────────────────────
@@ -335,4 +356,28 @@ export class ApiService {
   systemLive(since: number): Promise<SystemSample[]> {
     return firstValueFrom(this.http.get<SystemSample[]>('/api/admin/system/live', { params: { since } }));
   }
+}
+
+/** MP4 / WebM / MOV, by type or by extension (some systems send no type) */
+export function isVideoFile(file: File): boolean {
+  return /^video\/(mp4|webm|quicktime)$/.test(file.type) || /\.(mp4|webm|mov)$/i.test(file.name);
+}
+
+/** the pixel size of a video file, read by the browser from its metadata */
+function videoSize(file: File): Promise<{ width: number; height: number }> {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const v = document.createElement('video');
+    v.preload = 'metadata';
+    v.muted = true;
+    v.onloadedmetadata = () => {
+      URL.revokeObjectURL(url);
+      resolve({ width: v.videoWidth, height: v.videoHeight });
+    };
+    v.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error('this video cannot be read by the browser'));
+    };
+    v.src = url;
+  });
 }

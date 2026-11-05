@@ -28,7 +28,6 @@ class AdminProjectTest extends AbstractIntegrationTest {
               "sortOrder": 99,
               "year": 2026,
               "category": "WEB",
-              "sceneType": "HELIX",
               "accentColor": "#ABCDEF",
               "repoUrl": "https://github.com/ImMaxence/x",
               "liveUrl": "https://x.mbonnici.fr",
@@ -61,8 +60,7 @@ class AdminProjectTest extends AbstractIntegrationTest {
         mvc.perform(get("/api/projects"))
                 .andExpect(jsonPath("$[*].slug", hasItem("my-new-project")));
         mvc.perform(get("/api/projects/my-new-project"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.sceneType").value("HELIX"));
+                .andExpect(status().isOk());
 
         // slug collision with a seeded project
         String collide = NEW_PROJECT.replace("\"status\": \"DRAFT\"", "\"status\": \"PUBLISHED\", \"slug\": \"localatscv\"");

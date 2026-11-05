@@ -48,7 +48,7 @@ public class RestoreStagingService {
 
     /** Tables offered for selection, in display order. */
     static final List<String> VISIBLE = List.of("site_settings", "project", "experience", "education", "skill",
-            "media", "contact_message", "analytics_event");
+            "testimonial", "media", "contact_message", "analytics_event");
     /** Columns that change on every save and would make every row look modified. */
     private static final Set<String> VOLATILE = Set.of("updated_at");
 
@@ -322,6 +322,7 @@ public class RestoreStagingService {
             case "experience" -> t.get(r, "company") + " — " + t.get(r, "role_fr");
             case "education" -> t.get(r, "school");
             case "skill" -> t.get(r, "name");
+            case "testimonial" -> t.get(r, "author");
             case "media" -> Objects.requireNonNullElse(t.get(r, "original_filename"), t.get(r, "object_key"));
             case "contact_message" -> t.get(r, "name") + " <" + t.get(r, "email") + ">";
             default -> t.get(r, "id");
@@ -335,6 +336,10 @@ public class RestoreStagingService {
             case "experience" -> t.get(r, "start_date") + " → " + Objects.requireNonNullElse(t.get(r, "end_date"), "…");
             case "education" -> t.get(r, "degree_fr");
             case "skill" -> t.get(r, "category") + " · " + t.get(r, "level");
+            case "testimonial" -> {
+                String q = Objects.requireNonNullElse(t.get(r, "quote_fr"), "");
+                yield q.length() > 90 ? q.substring(0, 90) + "…" : q;
+            }
             case "media" -> t.get(r, "content_type") + " · " + t.get(r, "width") + "×" + t.get(r, "height");
             case "contact_message" -> {
                 String msg = Objects.requireNonNullElse(t.get(r, "message"), "");

@@ -97,7 +97,7 @@ interface NavItem {
         </div>
         <nav class="menu-links">
           @for (item of allItems(); track $index; let i = $index) {
-            <a [href]="item.path" [class.is-active]="item.active" [attr.aria-current]="item.active ? 'page' : null" [class.is-pending]="pending() === item.key" (click)="go($event, item)" [style.--i]="i">
+            <a [href]="item.path" [class.is-active]="shownActive(item)" [attr.aria-current]="item.active ? 'page' : null" (click)="go($event, item)" [style.--i]="i">
               <span class="n" aria-hidden="true">{{ item.n }}</span>
               <span class="t">{{ item.label }}</span>
             </a>
@@ -185,8 +185,10 @@ interface NavItem {
       height: 100%;
       object-fit: cover;
     }
-    .brand:hover .mark {
-      transform: rotate(-12deg) scale(1.08);
+    @media (hover: hover) {
+      .brand:hover .mark {
+        transform: rotate(-12deg) scale(1.08);
+      }
     }
     .links {
       display: flex;
@@ -218,14 +220,21 @@ interface NavItem {
       transform-origin: 100% 50%;
       transition: transform 0.5s var(--ease-out);
     }
-    .links a:hover,
     .links a.is-active {
       color: var(--fg);
     }
-    .links a:hover::after,
     .links a.is-active::after {
       transform: scaleX(1);
       transform-origin: 0 50%;
+    }
+    @media (hover: hover) {
+      .links a:hover {
+        color: var(--fg);
+      }
+      .links a:hover::after {
+        transform: scaleX(1);
+        transform-origin: 0 50%;
+      }
     }
     .n {
       font-family: var(--font-mono);
@@ -253,8 +262,10 @@ interface NavItem {
       color: var(--fg-3);
       transition: background-color var(--dur-1);
     }
-    .lang:hover {
-      background: var(--bg-3);
+    @media (hover: hover) {
+      .lang:hover {
+        background: var(--bg-3);
+      }
     }
     .lang .on {
       color: var(--fg);
@@ -282,8 +293,10 @@ interface NavItem {
         background-color var(--dur-2),
         color var(--dur-2);
     }
-    .theme button:hover {
-      color: var(--fg);
+    @media (hover: hover) {
+      .theme button:hover {
+        color: var(--fg);
+      }
     }
     .theme button[aria-checked='true'] {
       background: var(--fg);
@@ -304,10 +317,12 @@ interface NavItem {
         background-color var(--dur-1),
         transform 0.5s var(--ease-spring);
     }
-    .round:hover {
-      background: var(--fg);
-      color: var(--bg);
-      transform: rotate(-20deg);
+    @media (hover: hover) {
+      .round:hover {
+        background: var(--fg);
+        color: var(--bg);
+        transform: rotate(-20deg);
+      }
     }
     .menu-btn {
       display: none;
@@ -452,9 +467,6 @@ interface NavItem {
         transform: translate3d(0, 110%, 0);
       }
     }
-    .menu-links a.is-pending .t {
-      color: var(--accent);
-    }
     .menu-links a.is-active .t {
       font-family: var(--font-serif);
       font-style: italic;
@@ -516,6 +528,11 @@ export class HeaderComponent {
   readonly closing = signal(false);
   /** the menu entry being opened (the menu stays up until the new page is there) */
   readonly pending = signal<string | null>(null);
+  /**
+   * The entry marked as current while the menu is leaving: the page it was opened on. The new page
+   * renders under the menu before it lifts, and the tapped entry must not turn blue italic then.
+   */
+  private readonly frozenActive = signal<string | null | undefined>(undefined);
   readonly modes: { id: ThemeMode; icon: string }[] = [
     { id: 'light', icon: 'sun' },
     { id: 'dark', icon: 'moon' },
@@ -584,6 +601,7 @@ export class HeaderComponent {
    */
   private async leaveMenu(url: string | null, key: string): Promise<void> {
     if (this.pending() || this.closing()) return;
+    this.frozenActive.set(this.allItems().find((i) => i.active)?.key ?? null);
     this.pending.set(key);
     if (url) {
       await this.transition.navigateUnder(url);
@@ -591,6 +609,11 @@ export class HeaderComponent {
       window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
     }
     this.closeMenu();
+  }
+
+  shownActive(item: NavItem): boolean {
+    const frozen = this.frozenActive();
+    return frozen === undefined ? item.active : frozen === item.key;
   }
 
   setMode(mode: ThemeMode, event: MouseEvent): void {
@@ -601,6 +624,7 @@ export class HeaderComponent {
     if (!this.browser) return;
     this.closing.set(false);
     this.pending.set(null);
+    this.frozenActive.set(undefined);
     this.menu().nativeElement.showModal();
     this.open.set(true);
   }

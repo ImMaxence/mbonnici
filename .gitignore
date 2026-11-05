@@ -30,3 +30,4 @@ backend/.mvn/wrapper/maven-wrapper.jar
 
 # Docker volumes (local)
 .data/
+frontend/public/fonts/

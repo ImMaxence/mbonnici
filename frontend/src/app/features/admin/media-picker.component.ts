@@ -1,4 +1,5 @@
-import { Component, afterNextRender, inject, input, output, signal } from '@angular/core';
+import { Component, afterNextRender, computed, inject, input, output, signal } from '@angular/core';
+import { isVideo } from '../../shared/ui/shots';
 import { ApiService } from '../../core/api/api.service';
 import type { MediaDto } from '../../core/api/models';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
@@ -17,7 +18,7 @@ import { TooltipDirective } from '../../shared/ui/tooltip.directive';
         <div class="row">
           <label class="btn btn-ghost">
             <app-icon name="upload" [size]="16" /> {{ 'admin.media.select' | t }}
-            <input type="file" accept=".png,.jpg,.jpeg,image/png,image/jpeg" multiple hidden (change)="upload($event)" />
+            <input type="file" [attr.accept]="imagesOnly() ? '.png,.jpg,.jpeg,image/png,image/jpeg' : '.png,.jpg,.jpeg,.mp4,.webm,.mov,image/png,image/jpeg,video/mp4,video/webm,video/quicktime'" multiple hidden (change)="upload($event)" />
           </label>
           <button type="button" class="btn btn-accent" (click)="confirm()" [disabled]="!selected().size">
             {{ 'admin.media.done' | t }} ({{ selected().size }})
@@ -29,13 +30,18 @@ import { TooltipDirective } from '../../shared/ui/tooltip.directive';
         <p class="small muted">{{ 'admin.media.uploading' | t: { n: uploading() } }}</p>
       }
       <div class="media-grid scroll">
-        @for (m of items(); track m.id) {
+        @for (m of shown(); track m.id) {
           <button type="button" class="media-item" [class.is-selected]="selected().has(m.id)" (click)="toggle(m)">
-            <img [src]="m.url" [attr.srcset]="m.srcset || null" sizes="220px" [alt]="m.alt.fr || m.originalFilename || ''" loading="lazy" />
+            @if (isVideo(m)) {
+              <video [src]="m.url + '#t=0.1'" muted preload="metadata" playsinline aria-hidden="true" class="thumb-video"></video>
+              <span class="visually-hidden">{{ m.alt.fr || m.originalFilename || '' }}</span>
+            } @else {
+              <img [src]="m.url" [attr.srcset]="m.srcset || null" sizes="220px" [alt]="m.alt.fr || m.originalFilename || ''" loading="lazy" />
+            }
           </button>
         }
       </div>
-      @if (!items().length) {
+      @if (!shown().length) {
         <p class="muted">{{ 'admin.media.empty' | t }}</p>
       }
     </div>
@@ -57,6 +63,11 @@ import { TooltipDirective } from '../../shared/ui/tooltip.directive';
       align-content: start;
       gap: 0.5rem;
     }
+    .thumb-video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
     .scroll {
       max-height: 70vh;
       overflow: auto;
@@ -65,6 +76,14 @@ import { TooltipDirective } from '../../shared/ui/tooltip.directive';
 })
 export class MediaPickerComponent {
   readonly multiple = input(false);
+  /** a cover or an avatar: pictures only (share images and the header need one) */
+  readonly imagesOnly = input(false);
+  /** the browser-frame loop: videos only */
+  readonly videosOnly = input(false);
+  readonly isVideo = isVideo;
+  readonly shown = computed(() =>
+    this.imagesOnly() ? this.items().filter((m) => !isVideo(m)) : this.videosOnly() ? this.items().filter((m) => isVideo(m)) : this.items(),
+  );
   readonly picked = output<MediaDto[]>();
   readonly closed = output<void>();
 

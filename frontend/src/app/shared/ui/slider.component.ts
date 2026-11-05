@@ -15,6 +15,7 @@ import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { IconComponent } from './icon.component';
 import { LightboxComponent } from './lightbox.component';
 import type { Visual } from './shots';
+import { AutoplayDirective } from './autoplay.directive';
 
 /**
  * Image slider built on native horizontal scrolling with scroll-snap: touch swipes, trackpads and
@@ -23,7 +24,7 @@ import type { Visual } from './shots';
 @Component({
   selector: 'app-slider',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [IconComponent, TranslatePipe, LightboxComponent],
+  imports: [IconComponent, TranslatePipe, LightboxComponent, AutoplayDirective],
   template: `
     <div class="slider" role="region" [attr.aria-roledescription]="'project.carousel' | t" [attr.aria-label]="label()">
       <div
@@ -41,7 +42,11 @@ import type { Visual } from './shots';
         @for (img of images(); track img.src; let i = $index) {
           <figure class="slide" role="group" [attr.aria-roledescription]="'project.slide' | t" [attr.aria-label]="'project.slideOf' | t: { n: i + 1, total: images().length }">
             <button type="button" class="open" (click)="clicked(i)" [attr.aria-label]="('common.open' | t) + ' — ' + img.alt" tabindex="-1">
-              <img [src]="img.src" [attr.srcset]="img.srcset || null" [attr.sizes]="img.srcset ? '(max-width: 720px) 86vw, 1100px' : null" [alt]="img.alt" [width]="img.w" [height]="img.h" loading="lazy" decoding="async" draggable="false" />
+              @if (img.video) {
+                <video class="media" appAutoplay loop preload="metadata" [src]="img.src" [attr.poster]="img.poster || null" [attr.aria-label]="img.alt" [attr.width]="img.w" [attr.height]="img.h"></video>
+              } @else {
+                <img class="media" [src]="img.src" [attr.srcset]="img.srcset || null" [attr.sizes]="img.srcset ? '(max-width: 720px) 86vw, 1100px' : null" [alt]="img.alt" [width]="img.w" [height]="img.h" loading="lazy" decoding="async" draggable="false" />
+              }
             </button>
           </figure>
         }
@@ -103,7 +108,7 @@ import type { Visual } from './shots';
       background: var(--bg-3);
       box-shadow: 0 0 0 1px var(--line);
     }
-    .open img {
+    .open .media {
       width: 100%;
       height: auto;
       aspect-ratio: 16 / 10;
@@ -112,8 +117,10 @@ import type { Visual } from './shots';
       user-select: none;
       transition: transform 1.2s var(--ease-out);
     }
-    .open:hover img {
-      transform: scale(1.02);
+    @media (hover: hover) {
+      .open:hover .media {
+        transform: scale(1.02);
+      }
     }
     .controls {
       display: grid;
@@ -161,9 +168,11 @@ import type { Visual } from './shots';
         color var(--dur-1),
         opacity var(--dur-1);
     }
-    .arrow:hover:not([disabled]) {
-      background: var(--fg);
-      color: var(--bg);
+    @media (hover: hover) {
+      .arrow:hover:not([disabled]) {
+        background: var(--fg);
+        color: var(--bg);
+      }
     }
     .arrow[disabled] {
       opacity: 0.35;
@@ -300,6 +309,6 @@ export class SliderComponent {
     const slide = this.track().nativeElement.querySelectorAll<HTMLElement>('.slide')[i];
     if (!slide) return null;
     if (align) this.go(i, true);
-    return slide.querySelector('img');
+    return slide.querySelector<HTMLElement>('.media');
   }
 }

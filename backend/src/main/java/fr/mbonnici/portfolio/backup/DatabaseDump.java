@@ -25,10 +25,10 @@ public class DatabaseDump {
     /** FK-safe order (parents first). Tokens, backup history and settings are deliberately excluded. */
     public static final List<String> TABLES = List.of(
             "media", "site_settings", "project", "project_media", "experience", "education", "skill",
-            "contact_message", "analytics_event");
+            "testimonial", "contact_message", "analytics_event");
 
     /** Tables added after the first archive format: older archives may not have them (restored empty). */
-    public static final java.util.Set<String> OPTIONAL = java.util.Set.of();
+    public static final java.util.Set<String> OPTIONAL = java.util.Set.of("testimonial");
 
     /** Object keys inside an archive: an original or one of its responsive copies ("-w640"). */
     public static final String MEDIA_KEY = "^\\d{4}/\\d{2}/[0-9a-f-]{36}(-w\\d{3,4})?\\.[a-z0-9]{3,4}$";

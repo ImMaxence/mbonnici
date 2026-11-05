@@ -36,6 +36,11 @@ public class MediaService {
 
     private static final Logger log = LoggerFactory.getLogger(MediaService.class);
     private static final long MAX_BYTES = 10L * 1024 * 1024;
+    /** short muted loops (an interaction, a few seconds): stored as sent without ffmpeg… */
+    private static final long MAX_VIDEO_BYTES = 25L * 1024 * 1024;
+    /** …or re-encoded (much smaller) with it, so a raw phone recording is fine */
+    private static final long MAX_VIDEO_SOURCE_BYTES = 80L * 1024 * 1024;
+    private static final int MAX_VIDEO_SIDE = 4096;
     private static final int MAX_PIXELS = 40_000_000;
     private static final int MAX_WIDTH = 2560;
     private static final java.util.Set<String> ACCEPTED = java.util.Set.of("image/png", "image/jpeg");
@@ -48,20 +53,41 @@ public class MediaService {
     private final StorageService storage;
     private final CacheManager cacheManager;
     private final WebpEncoder webpEncoder;
+    private final VideoEncoder videoEncoder;
     private final AtomicBoolean backfilling = new AtomicBoolean();
 
     public MediaService(MediaRepository repository, StorageService storage, CacheManager cacheManager,
-            WebpEncoder webpEncoder) {
+            WebpEncoder webpEncoder, VideoEncoder videoEncoder) {
         this.repository = repository;
         this.storage = storage;
         this.cacheManager = cacheManager;
         this.webpEncoder = webpEncoder;
+        this.videoEncoder = videoEncoder;
     }
 
     @Transactional
     public MediaDto upload(MultipartFile file, Localized alt) {
+        return upload(file, alt, null, null);
+    }
+
+    /**
+     * @param videoWidth  for a video, its size as the back office's browser read it (the server has no
+     *                    decoder); ignored for pictures
+     */
+    @Transactional
+    public MediaDto upload(MultipartFile file, Localized alt, Integer videoWidth, Integer videoHeight) {
         if (file == null || file.isEmpty()) {
             throw ApiException.badRequest("file is required");
+        }
+        byte[] head;
+        try (var in = file.getInputStream()) {
+            head = in.readNBytes(64);
+        } catch (IOException e) {
+            throw ApiException.badRequest("could not read file");
+        }
+        VideoSniffer.Detected video = VideoSniffer.detect(head);
+        if (video != null) {
+            return uploadVideo(file, video, alt, videoWidth, videoHeight);
         }
         if (file.getSize() > MAX_BYTES) {
             throw new ApiException(org.springframework.http.HttpStatus.PAYLOAD_TOO_LARGE, "file exceeds 10 MB");
@@ -75,7 +101,7 @@ public class MediaService {
         // 1. the real type comes from the magic bytes; only PNG and JPEG are accepted
         ImageSniffer.Detected detected = ImageSniffer.detect(bytes);
         if (detected == null || !ACCEPTED.contains(detected.contentType())) {
-            throw ApiException.badRequest("unsupported file type: PNG or JPEG only");
+            throw ApiException.badRequest("unsupported file type: PNG, JPEG, MP4 or WebM only");
         }
         // 2. the extension must agree with the content (a .png that is really a JPEG is refused)
         String ext = extension(file.getOriginalFilename());
@@ -126,6 +152,59 @@ public class MediaService {
         }
         media = repository.save(media);
         log.info("Uploaded media {} ({} bytes, {}x{}, {})", key, bytes.length, width, height, contentType);
+        return MediaDto.from(media);
+    }
+
+    /**
+     * A video is re-encoded with ffmpeg (small H.264 MP4 that starts at once, real size, blurred first
+     * frame); without ffmpeg it is stored as sent, with the size the back office read.
+     */
+    private MediaDto uploadVideo(MultipartFile file, VideoSniffer.Detected detected, Localized alt, Integer width,
+            Integer height) {
+        boolean encode = videoEncoder.available();
+        long max = encode ? MAX_VIDEO_SOURCE_BYTES : MAX_VIDEO_BYTES;
+        if (file.getSize() > max) {
+            throw new ApiException(org.springframework.http.HttpStatus.PAYLOAD_TOO_LARGE,
+                    "video exceeds " + (max / (1024 * 1024)) + " MB");
+        }
+        String ext = extension(file.getOriginalFilename());
+        if (ext == null || !ext.equals(detected.extension())) {
+            throw ApiException.badRequest("unsupported file type: the extension does not match the video (." + detected.extension() + ")");
+        }
+        if (!encode && "mov".equals(detected.extension())) {
+            throw ApiException.badRequest("unsupported file type: MOV needs re-encoding, which is not available here (MP4 or WebM)");
+        }
+        byte[] bytes;
+        try {
+            bytes = file.getBytes();
+        } catch (IOException e) {
+            throw ApiException.badRequest("could not read file");
+        }
+        String contentType = detected.contentType();
+        String extension = detected.extension();
+        String blur = null;
+        if (encode) {
+            var encoded = videoEncoder.encode(bytes, detected.extension());
+            if (encoded.isEmpty()) {
+                throw ApiException.badRequest("this video cannot be read (damaged file or unknown codec)");
+            }
+            log.info("Video re-encoded: {} → {} bytes", bytes.length, encoded.get().bytes().length);
+            bytes = encoded.get().bytes();
+            width = encoded.get().width();
+            height = encoded.get().height();
+            blur = encoded.get().blurDataUrl();
+            contentType = "video/mp4";
+            extension = "mp4";
+        } else if (width == null || height == null || width < 16 || height < 16 || width > MAX_VIDEO_SIDE
+                || height > MAX_VIDEO_SIDE) {
+            throw ApiException.badRequest("video width and height are required (16 to 4096 px)");
+        }
+        LocalDate today = LocalDate.now(ZoneOffset.UTC);
+        String key = String.format("%d/%02d/%s.%s", today.getYear(), today.getMonthValue(), UUID.randomUUID(), extension);
+        storage.put(key, contentType, bytes);
+        Media media = repository.save(Media.create(key, contentType, bytes.length, width, height, blur,
+                safeName(file.getOriginalFilename()), alt == null ? Localized.EMPTY : alt.filled()));
+        log.info("Uploaded video {} ({} bytes, {}x{}, {})", key, bytes.length, width, height, contentType);
         return MediaDto.from(media);
     }
 

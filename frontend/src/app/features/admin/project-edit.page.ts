@@ -25,6 +25,7 @@ import { SortMove, SortableDirective, moveItem } from '../../shared/ui/sortable.
 import { CASE_STUDY_KEYS } from '../../core/api/models';
 import { HasUnsavedChanges, snapshot, warnBeforeUnload } from './unsaved.guard';
 import { missingIn } from './missing-lang.component';
+import { isVideo } from '../../shared/ui/shots';
 import { SkillSelectComponent } from './skill-select.component';
 
 interface MediaRow {
@@ -49,7 +50,6 @@ function emptyForm(): ProjectUpsert {
     sortOrder: 0,
     year: new Date().getFullYear(),
     category: 'WEB',
-    sceneType: 'ORBIT',
     displayMode: 'BOTH',
     accentColor: '#5b9dff',
     repoUrl: '',
@@ -57,6 +57,7 @@ function emptyForm(): ProjectUpsert {
     allowIframe: false,
     stack: [],
     coverMediaId: null,
+    coverVideoMediaId: null,
     media: [],
   };
 }
@@ -219,6 +220,7 @@ function emptyForm(): ProjectUpsert {
             [title]="form.title[lang()]"
             [accent]="form.accentColor"
             [cover]="cover()"
+            [coverVideo]="coverVideo()"
             [mobileMedia]="firstMobile()"
             [mode]="form.displayMode"
             [mobileList]="mobiles()"
@@ -239,6 +241,16 @@ function emptyForm(): ProjectUpsert {
               <p class="faint small">{{ 'admin.projectForm.noCover' | t }}</p>
             }
             <button type="button" class="btn btn-ghost" (click)="pick('cover')"><app-icon name="image" [size]="16" /> {{ 'admin.projectForm.pickMedia' | t }}</button>
+            <span class="field-label" style="margin-top: 1rem">{{ 'admin.projectForm.coverVideo' | t }}</span>
+            @if (coverVideo(); as v) {
+              <div class="media-item is-selected" style="max-width: 220px">
+                <video [src]="v.url + '#t=0.1'" muted preload="metadata" playsinline aria-hidden="true"></video>
+              </div>
+              <button type="button" class="chip" (click)="form.coverVideoMediaId = null; bump()">{{ 'admin.projectForm.removeMedia' | t }}</button>
+            } @else {
+              <p class="faint small">{{ 'admin.projectForm.coverVideoHint' | t }}</p>
+            }
+            <button type="button" class="btn btn-ghost" (click)="pick('coverVideo')"><app-icon name="play" [size]="16" /> {{ 'admin.projectForm.pickVideo' | t }}</button>
           </div>
           <div class="field">
             <span class="field-label">{{ 'admin.projectForm.gallery' | t }} / {{ 'admin.projectForm.mobile' | t }}</span>
@@ -246,7 +258,11 @@ function emptyForm(): ProjectUpsert {
               @for (row of rows(); track row.media.id) {
                 <div class="media-item" data-sort-item>
                   <button type="button" class="icon-btn grip" data-sort-handle [appTip]="'admin.projects.dragTip' | t"><app-icon name="drag" [size]="14" /></button>
-                  <img [src]="row.media.url" [alt]="row.media.alt.fr" />
+                  @if (isVideo(row.media)) {
+                    <video [src]="row.media.url + '#t=0.1'" muted preload="metadata" playsinline aria-hidden="true" class="row-video"></video>
+                  } @else {
+                    <img [src]="row.media.url" [alt]="row.media.alt.fr" />
+                  }
                   <button type="button" class="chip kind" (click)="toggleKind(row)">{{ row.kind === 'MOBILE' ? 'MOBILE' : 'GALLERY' }}</button>
                   <button type="button" class="icon-btn remove" (click)="removeRow(row)" [appTip]="'admin.projectForm.removeMedia' | t"><app-icon name="close" [size]="14" /></button>
                 </div>
@@ -259,7 +275,7 @@ function emptyForm(): ProjectUpsert {
     </form>
 
     @if (picking()) {
-      <app-media-picker [multiple]="picking() === 'rows'" (picked)="onPicked($event)" (closed)="picking.set(null)" />
+      <app-media-picker [multiple]="picking() === 'rows'" [imagesOnly]="picking() === 'cover'" [videosOnly]="picking() === 'coverVideo'" (picked)="onPicked($event)" (closed)="picking.set(null)" />
     }
   `,
   styles: `
@@ -305,10 +321,15 @@ export class ProjectEditPage implements HasUnsavedChanges {
   readonly saved = signal(false);
   readonly error = signal('');
   readonly fieldErrors = signal<Record<string, string>>({});
-  readonly picking = signal<'cover' | 'rows' | null>(null);
+  readonly picking = signal<'cover' | 'coverVideo' | 'rows' | null>(null);
   readonly rows = signal<MediaRow[]>([]);
   private readonly tick = signal(0);
   private coverMedia = signal<MediaDto | null>(null);
+  private coverVideoMedia = signal<MediaDto | null>(null);
+  readonly coverVideo = computed(() => {
+    this.tick();
+    return this.form.coverVideoMediaId ? this.coverVideoMedia() : null;
+  });
   readonly displayModes = DISPLAY_MODES;
   readonly mobiles = computed(() => this.rows().filter((r) => r.kind === 'MOBILE').map((r) => r.media));
   readonly firstMobile = computed(() => this.rows().find((r) => r.kind === 'MOBILE')?.media ?? null);
@@ -320,6 +341,7 @@ export class ProjectEditPage implements HasUnsavedChanges {
   form: ProjectUpsert = emptyForm();
   /** the profile's skills, offered for the stack */
   readonly skills = signal<Skill[]>([]);
+  readonly isVideo = isVideo;
 
   constructor() {
     afterNextRender(() => {
@@ -376,7 +398,6 @@ export class ProjectEditPage implements HasUnsavedChanges {
         sortOrder: p.sortOrder,
         year: p.year,
         category: p.category,
-        sceneType: p.sceneType,
         displayMode: p.displayMode ?? 'BOTH',
         accentColor: p.accentColor,
         repoUrl: p.repoUrl ?? '',
@@ -384,9 +405,11 @@ export class ProjectEditPage implements HasUnsavedChanges {
         allowIframe: p.allowIframe,
         stack: [...p.stack],
         coverMediaId: p.coverMediaId,
+        coverVideoMediaId: p.coverVideoMediaId ?? null,
         media: [],
       };
       this.coverMedia.set(p.cover);
+      this.coverVideoMedia.set(p.coverVideo ?? null);
       this.rows.set(p.media.map((m) => ({ media: m.media, kind: m.kind })));
       this.bump();
       this.savedState = this.state();
@@ -395,7 +418,7 @@ export class ProjectEditPage implements HasUnsavedChanges {
     }
   }
 
-  pick(target: 'cover' | 'rows'): void {
+  pick(target: 'cover' | 'coverVideo' | 'rows'): void {
     this.picking.set(target);
   }
 
@@ -405,6 +428,12 @@ export class ProjectEditPage implements HasUnsavedChanges {
       if (m) {
         this.form.coverMediaId = m.id;
         this.coverMedia.set(m);
+      }
+    } else if (this.picking() === 'coverVideo') {
+      const m = items[0];
+      if (m) {
+        this.form.coverVideoMediaId = m.id;
+        this.coverVideoMedia.set(m);
       }
     } else {
       this.rows.update((rows) => {

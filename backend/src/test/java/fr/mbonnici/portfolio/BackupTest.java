@@ -38,7 +38,7 @@ class BackupTest extends AbstractIntegrationTest {
 
     private static final String NEW_PROJECT = """
             {"title": {"fr": "Projet temporaire", "en": "Temporary project"}, "status": "PUBLISHED",
-             "category": "WEB", "sceneType": "ORBIT", "accentColor": "#112233", "stack": [], "media": []}
+             "category": "WEB", "accentColor": "#112233", "stack": [], "media": []}
             """;
 
     @Test
@@ -56,7 +56,7 @@ class BackupTest extends AbstractIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.drive.connected").value(false))
                 .andExpect(jsonPath("$.settings.keepCount").value(14))
-                .andExpect(jsonPath("$.schemaVersion").value("9"))
+                .andExpect(jsonPath("$.schemaVersion").value("11"))
                 .andExpect(jsonPath("$.running").value(false));
 
         mvc.perform(put("/api/admin/backups/settings").with(csrf()).contentType(MediaType.APPLICATION_JSON)

@@ -37,6 +37,9 @@
   <rect x="4" y="796" width="22" height="200" rx="11" fill="url(#btn-l)"/>
   <rect x="4" y="1054" width="22" height="200" rx="11" fill="url(#btn-l)"/>
   <rect x="1324" y="866" width="22" height="322" rx="11" fill="url(#btn-r)"/>
+  <!-- camera control: a flush sapphire key lower on the right side -->
+  <rect x="1326" y="1560" width="16" height="236" rx="8" fill="#121214"/>
+  <rect x="1327" y="1564" width="6" height="228" rx="3" fill="#fff" fill-opacity="0.08"/>
   <!-- aluminium band, with the screen cut out -->
   <path fill-rule="evenodd" fill="url(#band)" d="M250 10 H1100 C1246.32 10 1336 99.68 1336 246 V2514 C1336 2660.32 1246.32 2750 1100 2750 H250 C103.68 2750 14 2660.32 14 2514 V246 C14 99.68 103.68 10 250 10 Z M244 69 H1106 C1212.64 69 1278 134.36 1278 241 V2519 C1278 2625.64 1212.64 2691 1106 2691 H244 C137.36 2691 72 2625.64 72 2519 V241 C72 134.36 137.36 69 244 69 Z"/>
   <path fill-rule="evenodd" fill="url(#sheen)" d="M250 10 H1100 C1246.32 10 1336 99.68 1336 246 V2514 C1336 2660.32 1246.32 2750 1100 2750 H250 C103.68 2750 14 2660.32 14 2514 V246 C14 99.68 103.68 10 250 10 Z M244 69 H1106 C1212.64 69 1278 134.36 1278 241 V2519 C1278 2625.64 1212.64 2691 1106 2691 H244 C137.36 2691 72 2625.64 72 2519 V241 C72 134.36 137.36 69 244 69 Z"/>
@@ -45,8 +48,11 @@
   <!-- black border around the glass -->
   <path fill-rule="evenodd" fill="#050506" d="M250 32 H1100 C1232.68 32 1314 113.32000000000001 1314 246 V2514 C1314 2646.68 1232.68 2728 1100 2728 H250 C117.32000000000001 2728 36 2646.68 36 2514 V246 C36 113.32000000000001 117.32000000000001 32 250 32 Z M244 69 H1106 C1212.64 69 1278 134.36 1278 241 V2519 C1278 2625.64 1212.64 2691 1106 2691 H244 C137.36 2691 72 2625.64 72 2519 V241 C72 134.36 137.36 69 244 69 Z"/>
   <path fill="none" stroke="#fff" stroke-opacity="0.05" stroke-width="2" d="M250 32 H1100 C1232.68 32 1314 113.32000000000001 1314 246 V2514 C1314 2646.68 1232.68 2728 1100 2728 H250 C117.32000000000001 2728 36 2646.68 36 2514 V246 C36 113.32000000000001 117.32000000000001 32 250 32 Z"/>
-  <!-- island and front camera -->
-  <rect x="535" y="112" width="280" height="104" rx="52" fill="#000"/>
-  <circle cx="761" cy="164" r="21" fill="url(#lens)"/>
-  <circle cx="754" cy="157" r="5" fill="#8aa0d8" fill-opacity="0.35"/>
+  <!-- Dynamic Island (378 × 111 px = 126 × 37 pt) with the front camera at its right end; the faint
+       rim keeps it visible over dark status bars, like a real screen catching the light -->
+  <rect x="486" y="102" width="378" height="111" rx="55.5" fill="#000"/>
+  <rect x="486.75" y="102.75" width="376.5" height="109.5" rx="54.75" fill="none" stroke="#2a2a2e" stroke-width="1.5"/>
+  <circle cx="808" cy="157.5" r="23" fill="url(#lens)"/>
+  <circle cx="808" cy="157.5" r="23" fill="none" stroke="#1d2233" stroke-width="2"/>
+  <circle cx="800" cy="150" r="5.5" fill="#8aa0d8" fill-opacity="0.35"/>
 </svg>

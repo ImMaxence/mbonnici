@@ -65,6 +65,89 @@ export class TransitionService {
   }
 
   /**
+   * From a project card to its page: instead of the curtain, the card's visual lifts off the page,
+   * the rest fades to the paper colour, and the visual glides into the place of the big visual at
+   * the top of the project page, which then takes over. Falls back to the curtain when the card is
+   * off screen or the target is not found.
+   *
+   * @param source the card's <app-showcase> (cloned: its scoped styles come with its attributes)
+   */
+  async navigateMorph(url: string, label: string, source: HTMLElement | null): Promise<void> {
+    const from = source?.getBoundingClientRect();
+    if (
+      !this.browser ||
+      !source ||
+      !from ||
+      this.motion.reduced() ||
+      this.state() !== 'idle' ||
+      this.morphing ||
+      from.bottom < 0 ||
+      from.top > innerHeight ||
+      typeof source.animate !== 'function'
+    ) {
+      return this.navigate(url, label);
+    }
+    if (this.router.url === url) return;
+    this.morphing = true;
+    this.ours = true;
+    const doc = source.ownerDocument;
+    const shade = doc.createElement('div');
+    shade.className = 'morph-shade';
+    Object.assign(shade.style, { position: 'fixed', inset: '0', zIndex: '155', background: 'var(--bg)', opacity: '0', pointerEvents: 'none' });
+    const frame = doc.createElement('div');
+    frame.className = 'morph-frame';
+    Object.assign(frame.style, {
+      position: 'fixed',
+      zIndex: '156',
+      left: from.left + 'px',
+      top: from.top + 'px',
+      width: from.width + 'px',
+      height: from.height + 'px',
+      overflow: 'hidden',
+      pointerEvents: 'none',
+      borderRadius: 'var(--radius-m)',
+    });
+    const clone = source.cloneNode(true) as HTMLElement;
+    clone.style.width = '100%';
+    clone.querySelectorAll('iframe, video').forEach((el) => el.remove());
+    frame.append(clone);
+    doc.body.append(shade, frame);
+    const cleanup = (): void => {
+      shade.remove();
+      frame.remove();
+      this.morphing = false;
+      this.ours = false;
+    };
+    try {
+      await shade.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 300, easing: 'ease-out', fill: 'forwards' }).finished;
+      window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
+      await this.router.navigateByUrl(url);
+      await frames(2);
+      const target = doc.querySelector<HTMLElement>('.hero-shot app-showcase');
+      const to = target?.getBoundingClientRect();
+      if (!target || !to || !to.width) {
+        await frame.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 250, fill: 'forwards' }).finished;
+      } else {
+        target.style.visibility = 'hidden';
+        await frame.animate(
+          [
+            { left: from.left + 'px', top: from.top + 'px', width: from.width + 'px', height: from.height + 'px' },
+            { left: to.left + 'px', top: to.top + 'px', width: to.width + 'px', height: to.height + 'px' },
+          ],
+          { duration: 680, easing: 'cubic-bezier(0.65, 0, 0.2, 1)', fill: 'forwards' },
+        ).finished;
+        target.style.visibility = '';
+        frame.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 220, easing: 'ease-out', fill: 'forwards' });
+      }
+      await shade.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 380, easing: 'ease-out', fill: 'forwards' }).finished;
+    } finally {
+      cleanup();
+    }
+  }
+
+  private morphing = false;
+
+  /**
    * Navigates without the curtain because something else already covers the viewport (the phone
    * menu): the new page renders underneath and the cover is lifted afterwards by its owner.
    */

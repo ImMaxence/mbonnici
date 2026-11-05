@@ -1,3 +1,4 @@
+import { TestimonialsComponent } from '../../shared/ui/testimonials.component';
 import { Component, computed, effect, inject, input } from '@angular/core';
 import { type Profile, type ProjectCard, type Settings } from '../../core/api/models';
 import { I18nService } from '../../core/i18n/i18n.service';
@@ -16,7 +17,7 @@ import { ToolboxComponent } from '../../shared/ui/toolbox.component';
 
 @Component({
   selector: 'app-about',
-  imports: [TranslatePipe, LocalizedPipe, NoDotPipe, LinkDirective, MagneticDirective, FooterComponent, IconComponent, MarkdownComponent, RevealDirective, ToolboxComponent],
+  imports: [TranslatePipe, LocalizedPipe, NoDotPipe, LinkDirective, MagneticDirective, FooterComponent, IconComponent, MarkdownComponent, RevealDirective, ToolboxComponent, TestimonialsComponent],
   template: `
     <main id="main" class="page">
       <header class="container head">
@@ -140,6 +141,17 @@ import { ToolboxComponent } from '../../shared/ui/toolbox.component';
           <h2 appReveal revealSplit="words">{{ 'about.skillsSub' | t }}</h2>
         </div>
         <app-toolbox [skills]="profile()?.skills ?? []" [projects]="projects() ?? []" />
+      </section>
+      }
+
+      @if (profile()?.testimonials?.length) {
+      <!-- ── Testimonials ───────────────────────────────────────────── -->
+      <section class="section container">
+        <div class="section-title">
+          <span class="eyebrow" appReveal>{{ 'home.testimonials' | t }}</span>
+          <h2 appReveal revealSplit="words">{{ 'home.testimonialsSub' | t }}</h2>
+        </div>
+        <app-testimonials [items]="profile()?.testimonials ?? []" />
       </section>
       }
 

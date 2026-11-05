@@ -1,3 +1,4 @@
+import { TestimonialsComponent } from '../../shared/ui/testimonials.component';
 import { Component, DestroyRef, PLATFORM_ID, computed, effect, inject, input, signal } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { type Profile, type ProjectCard, type Settings } from '../../core/api/models';
@@ -28,6 +29,7 @@ import { ToolboxComponent } from '../../shared/ui/toolbox.component';
     RevealDirective,
     ToolboxComponent,
     RollTextComponent,
+    TestimonialsComponent,
   ],
   template: `
     <main id="main" class="page home">
@@ -124,6 +126,17 @@ import { ToolboxComponent } from '../../shared/ui/toolbox.component';
             </li>
           }
         </ol>
+      </section>
+      }
+
+      @if (profile()?.testimonials?.length) {
+      <!-- ── Testimonials ───────────────────────────────────────────────── -->
+      <section class="section container">
+        <div class="section-title">
+          <span class="eyebrow" appReveal>{{ 'home.testimonials' | t }}</span>
+          <h2 appReveal revealSplit="words">{{ 'home.testimonialsSub' | t }}</h2>
+        </div>
+        <app-testimonials [items]="(profile()?.testimonials ?? []).slice(0, 4)" />
       </section>
       }
 
@@ -271,10 +284,12 @@ import { ToolboxComponent } from '../../shared/ui/toolbox.component';
         transform 0.8s var(--ease-spring),
         background-color var(--dur-2);
     }
-    .big-link:hover .circle {
-      transform: rotate(45deg);
-      background: var(--accent);
-      color: var(--accent-fg);
+    @media (hover: hover) {
+      .big-link:hover .circle {
+        transform: rotate(45deg);
+        background: var(--accent);
+        color: var(--accent-fg);
+      }
     }
   `,
 })

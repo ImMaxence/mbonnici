@@ -15,6 +15,8 @@ import { TransitionService } from './transition.service';
 export class LinkDirective {
   readonly appLink = input.required<string>();
   readonly linkLabel = input('');
+  /** a selector inside the link whose element glides into the next page (project cards) */
+  readonly linkMorph = input<string | null>(null);
 
   private readonly transition = inject(TransitionService);
 
@@ -23,6 +25,12 @@ export class LinkDirective {
       return;
     }
     event.preventDefault();
+    const morph = this.linkMorph();
+    if (morph) {
+      const source = (event.currentTarget as HTMLElement).querySelector<HTMLElement>(morph);
+      void this.transition.navigateMorph(this.appLink(), this.linkLabel(), source);
+      return;
+    }
     void this.transition.navigate(this.appLink(), this.linkLabel());
   }
 }

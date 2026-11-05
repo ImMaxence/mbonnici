@@ -3,7 +3,10 @@ import type { SiteStatus } from '../../core/api/models';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 
-/** "● Online · 120 ms": the live site of a project answered the last check (every 5 minutes). */
+/**
+ * "● Online": the live site of a project answered the last check (every 5 minutes). Response times
+ * and outages stay in the back office: the public pages only show a site that is up.
+ */
 @Component({
   selector: 'app-status-pill',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -11,10 +14,7 @@ import { TranslatePipe } from '../../core/i18n/translate.pipe';
   template: `
     <span class="pill" [attr.data-up]="site().up" [attr.title]="checked()">
       <i aria-hidden="true"></i>
-      {{ (site().up ? 'project.online' : 'project.offline') | t }}
-      @if (site().up && site().latencyMs != null) {
-        <span class="ms">· {{ site().latencyMs }} ms</span>
-      }
+      {{ 'project.online' | t }}
     </span>
   `,
   styles: `
@@ -49,9 +49,6 @@ import { TranslatePipe } from '../../core/i18n/translate.pipe';
       border: 1px solid #1f9d55;
       opacity: 0;
       animation: ping 2.4s var(--ease-out) infinite;
-    }
-    .ms {
-      color: var(--fg-3);
     }
     @keyframes ping {
       0% {

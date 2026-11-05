@@ -50,7 +50,19 @@ public final class ProfileDtos {
         }
     }
 
-    public record Profile(List<ExperienceDto> experiences, List<EducationDto> education, List<SkillDto> skills) {}
+    public record TestimonialDto(UUID id, String author, String url, Localized role, Localized quote, int sortOrder) {
+        static TestimonialDto from(Testimonial t) {
+            return new TestimonialDto(t.getId(), t.getAuthor(), t.getUrl(), t.getRole().filled(), t.getQuote().filled(),
+                    t.getSortOrder());
+        }
+
+        static TestimonialDto raw(Testimonial t) {
+            return new TestimonialDto(t.getId(), t.getAuthor(), t.getUrl(), t.getRole(), t.getQuote(), t.getSortOrder());
+        }
+    }
+
+    public record Profile(List<ExperienceDto> experiences, List<EducationDto> education, List<SkillDto> skills,
+            List<TestimonialDto> testimonials) {}
 
     public record ExperienceInput(
             @NotBlank @Size(max = 120) String company,
@@ -71,6 +83,13 @@ public final class ProfileDtos {
             @Size(max = 120) String location,
             @NotNull LocalDate startDate,
             LocalDate endDate,
+            int sortOrder) {}
+
+    public record TestimonialInput(
+            @NotBlank @Size(max = 120) String author,
+            @Size(max = 300) String url,
+            Localized role,
+            @NotNull Localized quote,
             int sortOrder) {}
 
     public record SkillInput(

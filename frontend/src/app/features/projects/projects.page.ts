@@ -188,9 +188,11 @@ const MOBILE_UA = /Mobi|Android|iPhone|iPad|iPod/i;
         color var(--dur-2),
         border-color var(--dur-2);
     }
-    .filter:hover {
-      color: var(--fg);
-      border-color: var(--fg);
+    @media (hover: hover) {
+      .filter:hover {
+        color: var(--fg);
+        border-color: var(--fg);
+      }
     }
     .filter[aria-pressed='true'] {
       background: var(--fg);

@@ -36,7 +36,6 @@ class PublicApiTest extends AbstractIntegrationTest {
                 .andExpect(jsonPath("$[0].slug").value("localatscv"))
                 .andExpect(jsonPath("$[*].slug", not(hasItem("nailsbyanastasie"))))
                 .andExpect(jsonPath("$[0].title.fr").value("LocalATSCV"))
-                .andExpect(jsonPath("$[0].sceneType").value("STACK"))
                 .andExpect(jsonPath("$[0].stack", hasItem("TypeScript")));
 
         mvc.perform(get("/api/projects").param("featured", "true"))

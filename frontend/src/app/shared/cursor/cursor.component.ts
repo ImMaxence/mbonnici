@@ -93,14 +93,25 @@ import { CursorService } from './cursor.service';
     :host([data-mode='text']) .ring {
       opacity: 0;
     }
+    /* over pictures ("View", "Drag") the disc is a solid dark lens, not an inversion: the colours
+       of the picture underneath stay as they are */
+    :host([data-mode='label']),
+    :host([data-mode='drag']) {
+      mix-blend-mode: normal;
+    }
     :host([data-mode='label']) .ring,
     :host([data-mode='drag']) .ring {
       width: 84px;
       height: 84px;
       margin: -42px 0 0 -42px;
-      background: var(--c);
-      border-color: var(--c);
+      background: rgba(14, 14, 16, 0.86);
+      border-color: rgba(255, 255, 255, 0.22);
+      backdrop-filter: blur(6px);
       opacity: 1;
+    }
+    :host([data-mode='label']) .label,
+    :host([data-mode='drag']) .label {
+      color: #f4f2ec;
     }
     :host([data-mode='label']) .label,
     :host([data-mode='drag']) .label {

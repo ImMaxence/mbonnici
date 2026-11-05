@@ -11,6 +11,8 @@ import {
   SKILL_CATEGORIES,
   type Skill,
   type SkillInput,
+  type Testimonial,
+  type TestimonialInput,
 } from '../../core/api/models';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { Lang } from '../../core/i18n/routes';
@@ -24,7 +26,7 @@ import { SkillSelectComponent } from './skill-select.component';
 import { MissingLangComponent } from './missing-lang.component';
 import { HasUnsavedChanges, snapshot, warnBeforeUnload } from './unsaved.guard';
 
-type Section = 'experience' | 'education' | 'skill';
+type Section = 'experience' | 'education' | 'skill' | 'testimonial';
 
 @Component({
   selector: 'app-admin-profile',
@@ -176,8 +178,64 @@ type Section = 'experience' | 'education' | 'skill';
         </form>
       }
     </div>
+
+    <!-- ── Testimonials ────────────────────────────────────────────── -->
+    <div class="panel">
+      <div class="panel-head">
+        <h2 class="panel-title" style="margin:0">{{ 'admin.profile.testimonials' | t }}</h2>
+        <button type="button" class="btn btn-ghost" (click)="startTestimonial()"><app-icon name="plus" [size]="14" /> {{ 'admin.profile.add' | t }}</button>
+      </div>
+      <p class="small faint hint">{{ 'admin.profile.testimonialsHint' | t }}</p>
+      <div appSortable (sortMove)="moveTestimonial($event)" (sortDrop)="saveOrder('testimonials')">
+        @for (q of profile()?.testimonials ?? []; track q.id) {
+          <div class="list-row sortable" data-sort-item>
+            <button type="button" class="drag-handle" data-sort-handle [appTip]="'admin.projects.dragTip' | t"><app-icon name="drag" [size]="16" /></button>
+            <div class="quote-row">
+              <strong>{{ q.author }}</strong>
+              @if (q.role | l; as role) {
+                <span class="muted"> · {{ role }}</span>
+              }
+              <app-missing-lang [fields]="[q.quote, q.role]" />
+              <p class="small faint quote-text">« {{ q.quote | l }} »</p>
+            </div>
+            <div class="row" style="gap:.4rem">
+              <button type="button" class="icon-btn" (click)="startTestimonial(q)" [appTip]="'admin.projects.edit' | t"><app-icon name="edit" [size]="15" /></button>
+              <button type="button" class="icon-btn danger" (click)="deleteItem('testimonial', q.id)" [appTip]="'admin.profile.delete' | t"><app-icon name="trash" [size]="15" /></button>
+            </div>
+          </div>
+        } @empty {
+          <p class="muted small">{{ 'admin.profile.testimonialsNone' | t }}</p>
+        }
+      </div>
+      @if (editing() === 'testimonial' && tm) {
+        <form class="form-grid cols-2 editor" (ngSubmit)="saveTestimonial()">
+          <div class="field"><label for="tm-author">{{ 'admin.profile.author' | t }}</label><input id="tm-author" class="input" name="author" [(ngModel)]="tm.author" required maxlength="120" /></div>
+          <div class="field"><label for="tm-role">{{ 'admin.profile.authorRole' | t }} ({{ lang() }})</label><input id="tm-role" class="input" name="role" [(ngModel)]="tm.role[lang()]" [placeholder]="'admin.profile.authorRolePlaceholder' | t" /></div>
+          <div class="field span-2">
+            <label for="tm-quote">{{ 'admin.profile.quote' | t }} ({{ lang() }})</label>
+            <textarea id="tm-quote" class="textarea" name="quote" rows="4" maxlength="600" [(ngModel)]="tm.quote[lang()]" required></textarea>
+            <span class="field-hint">{{ (tm.quote[lang()] || '').length }} / 600</span>
+          </div>
+          <div class="field span-2"><label for="tm-url">{{ 'admin.profile.quoteUrl' | t }}</label><input id="tm-url" class="input" type="url" name="url" [(ngModel)]="tm.url" placeholder="https://www.linkedin.com/in/…" /></div>
+          <div class="row span-2">
+            <button type="submit" class="btn btn-accent">{{ 'admin.profile.save' | t }}</button>
+            <button type="button" class="btn btn-ghost" (click)="editing.set(null)">{{ 'admin.projectForm.cancel' | t }}</button>
+          </div>
+        </form>
+      }
+    </div>
   `,
   styles: `
+    .quote-row {
+      min-width: 0;
+    }
+    .quote-text {
+      margin-top: 0.2rem;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
     .editor {
       margin-top: var(--space-4);
       padding-top: var(--space-4);
@@ -269,6 +327,8 @@ export class AdminProfilePage implements HasUnsavedChanges {
   eduId: string | undefined;
   sk: SkillInput | null = null;
   skId: string | undefined;
+  tm: TestimonialInput | null = null;
+  tmId: string | undefined;
 
   constructor() {
     afterNextRender(() => this.load());
@@ -277,7 +337,7 @@ export class AdminProfilePage implements HasUnsavedChanges {
 
   private current(): unknown {
     const s = this.editing();
-    return s === 'experience' ? this.exp : s === 'education' ? this.edu : s === 'skill' ? this.sk : null;
+    return s === 'experience' ? this.exp : s === 'education' ? this.edu : s === 'skill' ? this.sk : s === 'testimonial' ? this.tm : null;
   }
 
   /** an open form holds changes */
@@ -312,6 +372,24 @@ export class AdminProfilePage implements HasUnsavedChanges {
     this.sk = s ? { name: s.name, category: s.category, level: s.level, sortOrder: s.sortOrder } : { name: '', category: 'TOOL', level: 3, sortOrder: 0 };
     this.editing.set('skill');
     this.editState = snapshot(this.sk);
+  }
+
+  startTestimonial(q?: Testimonial): void {
+    this.tmId = q?.id;
+    this.tm = q
+      ? { author: q.author, url: q.url ?? null, role: { ...q.role }, quote: { ...q.quote }, sortOrder: q.sortOrder }
+      : { author: '', url: null, role: { fr: '', en: '' }, quote: { fr: '', en: '' }, sortOrder: this.profile()?.testimonials.length ?? 0 };
+    this.editing.set('testimonial');
+    this.editState = snapshot(this.tm);
+  }
+
+  async saveTestimonial(): Promise<void> {
+    if (!this.tm) return;
+    await this.run(() => this.api.saveTestimonial({ ...this.tm!, url: this.tm!.url || null }, this.tmId));
+  }
+
+  moveTestimonial(m: SortMove): void {
+    this.profile.update((pr) => (pr ? { ...pr, testimonials: moveItem(pr.testimonials, m.from, m.to) } : pr));
   }
 
   async saveExperience(): Promise<void> {
@@ -349,7 +427,7 @@ export class AdminProfilePage implements HasUnsavedChanges {
     });
   }
 
-  async saveOrder(section: 'experiences' | 'education' | 'skills'): Promise<void> {
+  async saveOrder(section: 'experiences' | 'education' | 'skills' | 'testimonials'): Promise<void> {
     const pr = this.profile();
     if (!pr) return;
     const ids = (section === 'skills' ? pr.skills : pr[section]).map((x) => x.id);
@@ -371,7 +449,13 @@ export class AdminProfilePage implements HasUnsavedChanges {
     });
     if (!ok) return;
     await this.run(() =>
-      section === 'experience' ? this.api.deleteExperience(id) : section === 'education' ? this.api.deleteEducation(id) : this.api.deleteSkill(id),
+      section === 'experience'
+        ? this.api.deleteExperience(id)
+        : section === 'education'
+          ? this.api.deleteEducation(id)
+          : section === 'testimonial'
+            ? this.api.deleteTestimonial(id)
+            : this.api.deleteSkill(id),
     );
   }
 

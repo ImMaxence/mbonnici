@@ -11,8 +11,8 @@ RUN ./mvnw -q -B package -DskipTests
 FROM eclipse-temurin:25-jre-alpine
 ENV PORT=8080 \
     JAVA_TOOL_OPTIONS="-XX:MaxRAMPercentage=75 -XX:+ExitOnOutOfMemoryError -Djava.security.egd=file:/dev/./urandom"
-# cwebp converts uploaded images to WebP (MediaService → WebpEncoder)
-RUN apk add --no-cache libwebp-tools && addgroup -S app && adduser -S app -G app
+# cwebp converts uploaded images to WebP (WebpEncoder), ffmpeg re-encodes videos (VideoEncoder)
+RUN apk add --no-cache libwebp-tools ffmpeg && addgroup -S app && adduser -S app -G app
 WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
 USER app

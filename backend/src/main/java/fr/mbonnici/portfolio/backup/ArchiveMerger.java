@@ -29,7 +29,7 @@ public class ArchiveMerger {
 
     /** Upsert order (parents first). project_media and analytics_event are handled separately. */
     static final List<String> ORDER = List.of("media", "site_settings", "project", "experience", "education",
-            "skill", "contact_message");
+            "skill", "testimonial", "contact_message");
 
     /**
      * @param ids       table → primary keys to insert or overwrite

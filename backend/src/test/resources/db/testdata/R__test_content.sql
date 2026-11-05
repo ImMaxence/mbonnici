@@ -59,7 +59,7 @@ insert into skill (name, category, level, sort_order) values
 ('Tests automatisés', 'PRACTICE', 5, 50), ('Clean code', 'PRACTICE', 4, 51), ('Accessibilité', 'PRACTICE', 4, 52), ('SEO', 'PRACTICE', 4, 53);
 
 -- Projects
-insert into project (slug, title_fr, title_en, tagline_fr, tagline_en, description_fr, description_en, status, featured, sort_order, year, category, scene_type, accent_color, repo_url, live_url, allow_iframe, stack, published_at) values
+insert into project (slug, title_fr, title_en, tagline_fr, tagline_en, description_fr, description_en, status, featured, sort_order, year, category, accent_color, repo_url, live_url, allow_iframe, stack, published_at) values
 ('localatscv', 'LocalATSCV', 'LocalATSCV',
  'Le CV qui décroche l''entretien, prêt en quelques minutes. Gratuit, sans compte, 100 % local.',
  'The resume that gets you the interview, ready in minutes. Free, no sign-up, 100% local.',
@@ -77,7 +77,7 @@ LocalATSCV gives you both: designs recruiters like and real text that robots rea
 - 72 templates, 44 interface languages, installable PWA that works offline
 - ATS check built into the editor, tailor one master resume to every job
 - PDF export generated entirely in the browser',
- 'PUBLISHED', true, 0, 2026, 'TOOL', 'STACK', '#f0582b', 'https://github.com/ImMaxence/LocalATSCV', 'https://localatscv.mbonnici.fr/', true,
+ 'PUBLISHED', true, 0, 2026, 'TOOL', '#f0582b', 'https://github.com/ImMaxence/LocalATSCV', 'https://localatscv.mbonnici.fr/', true,
  '{Angular 22,TypeScript,PWA,Génération PDF,i18n}', now()),
 
 ('localcutvideo', 'LocalCutVideo', 'LocalCutVideo',
@@ -93,7 +93,7 @@ LocalATSCV gives you both: designs recruiters like and real text that robots rea
 - **Auto edit**: transcription, filler removal, silence cuts, face framing, smart zoom and karaoke subtitles in one click
 - Background blur through segmentation, titles and transitions, thumbnail maker
 - The video is read in place from your disk (File System Access API): nothing is sent anywhere',
- 'PUBLISHED', true, 1, 2026, 'TOOL', 'TERRAIN', '#7c5cff', 'https://github.com/ImMaxence/LocalCutVideo', 'https://localcutvideo.mbonnici.fr', true,
+ 'PUBLISHED', true, 1, 2026, 'TOOL', '#7c5cff', 'https://github.com/ImMaxence/LocalCutVideo', 'https://localcutvideo.mbonnici.fr', true,
  '{Angular,TypeScript,WebCodecs,Whisper (WASM),MediaPipe,Web Workers}', now()),
 
 ('meowtrix', 'Meowtrix', 'Meowtrix',
@@ -109,7 +109,7 @@ LocalATSCV gives you both: designs recruiters like and real text that robots rea
 - **Prey that behaves like prey**: every animal is simulated, not animated (supple spine, legs that actually step, a tail that follows)
 - Three worlds (land, water, sky), live-synthesised sound, reacts to real room noises through the microphone
 - Speed adapts to the cat and every session ends on a catch',
- 'PUBLISHED', true, 2, 2026, 'GAME', 'DEVICE', '#2dd4a0', 'https://github.com/ImMaxence/meowtrix', 'https://meowtrix.mbonnici.fr/', true,
+ 'PUBLISHED', true, 2, 2026, 'GAME', '#2dd4a0', 'https://github.com/ImMaxence/meowtrix', 'https://meowtrix.mbonnici.fr/', true,
  '{TypeScript,Canvas,3D procédural,Web Audio,PWA}', now()),
 
 ('a2e-environnement', 'A2E Environnement', 'A2E Environnement',
@@ -125,7 +125,7 @@ LocalATSCV gives you both: designs recruiters like and real text that robots rea
 - Angular 22 SPA with lazy-loaded pages and self-hosted fonts
 - Typed dictionary: a missing translation fails the build
 - Containerised with nginx and deployed with Docker Compose on Coolify',
- 'PUBLISHED', false, 3, 2026, 'WEB', 'STACK', '#1f8ef1', 'https://github.com/ImMaxence/a2e', 'https://a2e.mbonnici.fr/', true,
+ 'PUBLISHED', false, 3, 2026, 'WEB', '#1f8ef1', 'https://github.com/ImMaxence/a2e', 'https://a2e.mbonnici.fr/', true,
  '{Angular 22,TypeScript,i18n,nginx,Docker}', now()),
 
 ('les-creations-de-yona', 'Les créations de Yona', 'Les créations de Yona',
@@ -141,7 +141,7 @@ LocalATSCV gives you both: designs recruiters like and real text that robots rea
 - Smart search ("cake for 8", "dessert in 30 min", "no bake"), adjustable servings, kitchen mode that keeps the screen on
 - Shopping list, glossary, dark theme, push notifications for every new recipe
 - Full back office to write, illustrate and publish',
- 'PUBLISHED', true, 4, 2026, 'WEB', 'DEVICE', '#e8713c', 'https://github.com/ImMaxence/les-creations-de-yona', 'https://les-creations-de-yona.fr/', false,
+ 'PUBLISHED', true, 4, 2026, 'WEB', '#e8713c', 'https://github.com/ImMaxence/les-creations-de-yona', 'https://les-creations-de-yona.fr/', false,
  '{TypeScript,PWA,Notifications push,Back-office}', now()),
 
 ('clienthub-crm', 'ClientHub CRM', 'ClientHub CRM',
@@ -157,7 +157,7 @@ LocalATSCV gives you both: designs recruiters like and real text that robots rea
 - Spring Boot 3 REST API secured with JWT, PostgreSQL database
 - Responsive Angular 20 interface with dashboards
 - Docker Compose orchestration with nginx in front',
- 'PUBLISHED', false, 5, 2025, 'WEB', 'TERRAIN', '#0ea5e9', 'https://github.com/ImMaxence/ClientHub-CRM', 'https://clienthub.mbonnici.fr', false,
+ 'PUBLISHED', false, 5, 2025, 'WEB', '#0ea5e9', 'https://github.com/ImMaxence/ClientHub-CRM', 'https://clienthub.mbonnici.fr', false,
  '{Angular 20,Spring Boot 3,PostgreSQL,JWT,Docker Compose,nginx}', now()),
 
 ('epic-road-trip-planner', 'Epic Road Trip Planner', 'Epic Road Trip Planner',
@@ -173,7 +173,7 @@ LocalATSCV gives you both: designs recruiters like and real text that robots rea
 - Leaflet map on OpenStreetMap tiles
 - Node / Express API developed with TDD
 - React interface with Ant Design and React-PDF export',
- 'PUBLISHED', false, 6, 2024, 'WEB', 'TERRAIN', '#22c55e', 'https://github.com/ImMaxence/Epic-Road-Trip-Planner', null, false,
+ 'PUBLISHED', false, 6, 2024, 'WEB', '#22c55e', 'https://github.com/ImMaxence/Epic-Road-Trip-Planner', null, false,
  '{React,Node.js,Express,Leaflet,OpenStreetMap,TDD}', now()),
 
 ('time-manager', 'Time Manager', 'Time Manager',
@@ -189,7 +189,7 @@ LocalATSCV gives you both: designs recruiters like and real text that robots rea
 - Containerised Elixir / Phoenix API
 - React web client and React Native mobile app
 - Figma mock-ups then pixel-perfect integration',
- 'PUBLISHED', false, 7, 2024, 'MOBILE', 'HELIX', '#a855f7', 'https://github.com/ImMaxence/Time-Manager', null, false,
+ 'PUBLISHED', false, 7, 2024, 'MOBILE', '#a855f7', 'https://github.com/ImMaxence/Time-Manager', null, false,
  '{React,React Native,Elixir,Phoenix,Docker,Figma}', now()),
 
 ('kryptonews', 'Kryptonews', 'Kryptonews',
@@ -205,7 +205,7 @@ LocalATSCV gives you both: designs recruiters like and real text that robots rea
 - Server-side RSS aggregation with Node / Express
 - React interface, Figma mock-ups
 - HTTPS deployment on a dedicated domain',
- 'PUBLISHED', false, 8, 2024, 'WEB', 'HELIX', '#f59e0b', 'https://github.com/ImMaxence/Kryptonews', null, false,
+ 'PUBLISHED', false, 8, 2024, 'WEB', '#f59e0b', 'https://github.com/ImMaxence/Kryptonews', null, false,
  '{React,Node.js,Express,RSS}', now()),
 
 ('redditech', 'Redditech', 'Redditech',
@@ -213,7 +213,7 @@ LocalATSCV gives you both: designs recruiters like and real text that robots rea
  'A mobile Reddit client with OAuth2 and infinite scrolling.',
  'Projet EPITECH : un client Reddit en React Native. Connexion OAuth2, navigation par subreddit, défilement automatique et profil utilisateur.',
  'EPITECH project: a Reddit client in React Native. OAuth2 login, subreddit browsing, auto-scrolling and user profile.',
- 'PUBLISHED', false, 9, 2023, 'MOBILE', 'DEVICE', '#ff4500', 'https://github.com/ImMaxence/Redditech', null, false,
+ 'PUBLISHED', false, 9, 2023, 'MOBILE', '#ff4500', 'https://github.com/ImMaxence/Redditech', null, false,
  '{React Native,OAuth2,Reddit API}', now()),
 
 ('mern-irc', 'MERN IRC', 'MERN IRC',
@@ -221,7 +221,7 @@ LocalATSCV gives you both: designs recruiters like and real text that robots rea
  'A real-time IRC built with MongoDB, Express, React, Node and Socket.IO.',
  'Projet EPITECH : une messagerie instantanée inspirée d''IRC. Canaux, messages en temps réel via Socket.IO, interface responsive.',
  'EPITECH project: an IRC-inspired instant messaging app. Channels, real-time messages over Socket.IO, responsive interface.',
- 'PUBLISHED', false, 10, 2023, 'WEB', 'ORBIT', '#06b6d4', 'https://github.com/ImMaxence/MERN-IRC-SocketIO', null, false,
+ 'PUBLISHED', false, 10, 2023, 'WEB', '#06b6d4', 'https://github.com/ImMaxence/MERN-IRC-SocketIO', null, false,
  '{MongoDB,Express,React,Node.js,Socket.IO}', now()),
 
 ('nailsbyanastasie', 'Nails by Anastasie', 'Nails by Anastasie',
@@ -229,7 +229,7 @@ LocalATSCV gives you both: designs recruiters like and real text that robots rea
  'Showcase website for a nail technician.',
  'Site vitrine pour une prothésiste ongulaire : prestations, galerie et prise de contact.',
  'Showcase website for a nail technician: services, gallery and contact.',
- 'DRAFT', false, 11, 2026, 'WEB', 'ORBIT', '#f472b6', 'https://github.com/ImMaxence/nailsbyanastasie', 'https://nailsbyanastasie.fr', false,
+ 'DRAFT', false, 11, 2026, 'WEB', '#f472b6', 'https://github.com/ImMaxence/nailsbyanastasie', 'https://nailsbyanastasie.fr', false,
  '{HTML,CSS,JavaScript}', null);
 
 -- ─────────────────────────────────────────────────────────────────────────────

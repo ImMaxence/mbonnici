@@ -172,9 +172,6 @@ public class ProjectService {
         p.setSortOrder(in.sortOrder() == null ? 0 : in.sortOrder());
         p.setYear(in.year());
         p.setCategory(in.category());
-        if (in.sceneType() != null) {
-            p.setSceneType(in.sceneType());
-        }
         p.setDisplayMode(in.displayMode() == null ? Project.DisplayMode.BOTH : in.displayMode());
         p.setAccentColor(in.accentColor() == null || in.accentColor().isBlank() ? "#0a84ff" : in.accentColor().toLowerCase());
         p.setRepoUrl(checkedUrl(in.repoUrl(), "repoUrl"));
@@ -182,8 +179,18 @@ public class ProjectService {
         p.setAllowIframe(Boolean.TRUE.equals(in.allowIframe()) && p.getLiveUrl() != null);
         p.setStack(clean(in.stack()));
 
-        p.setCoverMedia(in.coverMediaId() == null ? null
-                : mediaRepository.findById(in.coverMediaId()).orElseThrow(() -> new NotFoundException("Cover media")));
+        Media cover = in.coverMediaId() == null ? null
+                : mediaRepository.findById(in.coverMediaId()).orElseThrow(() -> new NotFoundException("Cover media"));
+        if (cover != null && cover.getContentType().startsWith("video/")) {
+            throw ApiException.badRequest("the cover must be a picture (it is also the share image)");
+        }
+        p.setCoverMedia(cover);
+        Media coverVideo = in.coverVideoMediaId() == null ? null
+                : mediaRepository.findById(in.coverVideoMediaId()).orElseThrow(() -> new NotFoundException("Cover video"));
+        if (coverVideo != null && !coverVideo.getContentType().startsWith("video/")) {
+            throw ApiException.badRequest("coverVideoMediaId must be a video");
+        }
+        p.setCoverVideo(coverVideo);
 
         if (in.media() != null) {
             Map<UUID, Media> loaded = new LinkedHashMap<>();
@@ -252,8 +259,8 @@ public class ProjectService {
             (pm.getKind() == ProjectMedia.Kind.MOBILE ? mobile : gallery).add(MediaDto.from(pm.getMedia()));
         }
         return new Detail(p.getId(), p.getSlug(), p.getTitle().filled(), p.getTagline().filled(),
-                p.getDescription().filled(), ProjectDtos.CaseStudy.from(p), p.getCategory(), p.getSceneType(), p.getDisplayMode(), p.getAccentColor(), p.getYear(),
-                List.copyOf(p.getStack()), p.isFeatured(), MediaDto.from(p.getCoverMedia()),
+                p.getDescription().filled(), ProjectDtos.CaseStudy.from(p), p.getCategory(), p.getDisplayMode(), p.getAccentColor(), p.getYear(),
+                List.copyOf(p.getStack()), p.isFeatured(), MediaDto.from(p.getCoverMedia()), MediaDto.from(p.getCoverVideo()),
                 p.getLiveUrl(), p.getRepoUrl(), p.isAllowIframe(), gallery, mobile, p.getPublishedAt(), p.getUpdatedAt(),
                 previous, next);
     }
@@ -265,8 +272,10 @@ public class ProjectService {
         Media cover = p.getCoverMedia();
         return new Admin(p.getId(), p.getSlug(), p.getTitle(), p.getTagline(), p.getDescription(),
                 new ProjectDtos.CaseStudy(p.getContext(), p.getRole(), p.getChallenges(), p.getResults()), p.getStatus(),
-                p.isFeatured(), p.getSortOrder(), p.getYear(), p.getCategory(), p.getSceneType(), p.getDisplayMode(), p.getAccentColor(),
-                cover == null ? null : cover.getId(), MediaDto.from(cover), p.getRepoUrl(), p.getLiveUrl(),
+                p.isFeatured(), p.getSortOrder(), p.getYear(), p.getCategory(), p.getDisplayMode(), p.getAccentColor(),
+                cover == null ? null : cover.getId(), MediaDto.from(cover),
+                p.getCoverVideo() == null ? null : p.getCoverVideo().getId(), MediaDto.from(p.getCoverVideo()),
+                p.getRepoUrl(), p.getLiveUrl(),
                 p.isAllowIframe(), List.copyOf(p.getStack()), items, p.getCreatedAt(),
                 p.getUpdatedAt(), p.getPublishedAt());
     }

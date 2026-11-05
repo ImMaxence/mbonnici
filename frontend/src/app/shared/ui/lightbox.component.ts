@@ -14,6 +14,7 @@ import { DOCUMENT } from '@angular/common';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { IconComponent } from './icon.component';
 import type { Visual } from './shots';
+import { AutoplayDirective } from './autoplay.directive';
 
 /** finds the thumbnail of image i in the page; `align` scrolls it into place first (on close) */
 export type ThumbResolver = (index: number, align: boolean) => HTMLElement | null;
@@ -44,7 +45,7 @@ const clamp = (v: number, min: number, max: number): number => Math.min(max, Mat
 @Component({
   selector: 'app-lightbox',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [IconComponent, TranslatePipe],
+  imports: [IconComponent, TranslatePipe, AutoplayDirective],
   template: `
     <dialog class="viewer" #dialog [class.is-zoomed]="zoomed()" [attr.aria-label]="label()" (cancel)="$event.preventDefault(); close()" (keydown)="key($event)">
       <div class="shade" #shade></div>
@@ -62,7 +63,11 @@ const clamp = (v: number, min: number, max: number): number => Math.min(max, Mat
       >
         @if (shown(); as img) {
           @for (v of [img]; track v.src) {
-            <img #pic class="pic" [src]="v.src" [attr.srcset]="v.srcset || null" [attr.sizes]="v.srcset ? '92vw' : null" [alt]="v.alt" [width]="v.w" [height]="v.h" draggable="false" />
+            @if (v.video) {
+              <video #pic class="pic" appAutoplay loop preload="auto" [src]="v.src" [attr.poster]="v.poster || null" [attr.aria-label]="v.alt" [attr.width]="v.w" [attr.height]="v.h"></video>
+            } @else {
+              <img #pic class="pic" [src]="v.src" [attr.srcset]="v.srcset || null" [attr.sizes]="v.srcset ? '92vw' : null" [alt]="v.alt" [width]="v.w" [height]="v.h" draggable="false" />
+            }
           }
         }
       </div>
@@ -213,9 +218,11 @@ const clamp = (v: number, min: number, max: number): number => Math.min(max, Mat
         opacity 0.2s,
         transform 0.35s var(--ease-out);
     }
-    .ctl:hover:not(:disabled) {
-      background: rgba(44, 44, 48, 0.86);
-      border-color: rgba(255, 255, 255, 0.32);
+    @media (hover: hover) {
+      .ctl:hover:not(:disabled) {
+        background: rgba(44, 44, 48, 0.86);
+        border-color: rgba(255, 255, 255, 0.32);
+      }
     }
     .ctl:focus-visible {
       outline: 2px solid #fff;
@@ -239,11 +246,15 @@ const clamp = (v: number, min: number, max: number): number => Math.min(max, Mat
     .next {
       right: clamp(10px, 2vw, 32px);
     }
-    .prev:hover:not(:disabled) {
-      transform: translateX(-3px);
+    @media (hover: hover) {
+      .prev:hover:not(:disabled) {
+        transform: translateX(-3px);
+      }
     }
-    .next:hover:not(:disabled) {
-      transform: translateX(3px);
+    @media (hover: hover) {
+      .next:hover:not(:disabled) {
+        transform: translateX(3px);
+      }
     }
     .caption {
       position: absolute;
@@ -286,7 +297,7 @@ export class LightboxComponent {
   private readonly dialog = viewChild.required<ElementRef<HTMLDialogElement>>('dialog');
   private readonly shade = viewChild.required<ElementRef<HTMLElement>>('shade');
   private readonly chrome = viewChild.required<ElementRef<HTMLElement>>('chrome');
-  private readonly pic = viewChild<ElementRef<HTMLImageElement>>('pic');
+  private readonly pic = viewChild<ElementRef<HTMLElement>>('pic');
   private readonly injector = inject(Injector);
   private readonly document = inject(DOCUMENT);
 
@@ -667,7 +678,8 @@ export class LightboxComponent {
     const imgs = this.images();
     for (const j of [this.index() - 1, this.index() + 1]) {
       const v = imgs[j];
-      if (v) {
+      // pictures only: a video loads when it is shown
+      if (v && !v.video) {
         const im = new Image();
         im.decoding = 'async';
         im.src = v.src;

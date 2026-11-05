@@ -131,7 +131,8 @@ test.describe('projects', () => {
 
   test('mobile version is shown in the phone mock-up', async ({ page }) => {
     await page.goto('/fr/projets/meowtrix');
-    const phone = page.locator('section.mobile app-phone').first();
+    // the phone capture sits in the top visual, in front of the browser
+    const phone = page.locator('.hero-shot app-phone').first();
     await phone.scrollIntoViewIfNeeded();
     await expect(phone.locator('img.shot')).toBeVisible();
     await expect(phone.locator('.bezel')).toBeAttached();

@@ -95,6 +95,7 @@
 }
 
 /* ── dark: night ink, paper-white type ── */
+/* also copied into the inline <style> of index.html by scripts/shell.mjs (first paint) */
 :root[data-theme='dark'] {
   color-scheme: dark;
   --bg: #0d0d0c;

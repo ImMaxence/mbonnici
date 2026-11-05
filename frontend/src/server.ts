@@ -70,6 +70,8 @@ function contentSecurityPolicy(nonce: string): string {
     `style-src 'self' 'nonce-${nonce}'`,
     "style-src-attr 'unsafe-inline'",
     "img-src 'self' data: blob: https://*.googleusercontent.com",
+    // gallery loops, and the back office reading a video's size before uploading it
+    "media-src 'self' blob:",
     "font-src 'self'",
     "connect-src 'self'",
     'frame-src https:',

@@ -45,6 +45,10 @@ public class SiteSettings {
     @Column(name = "linkedin_url")
     private String linkedinUrl;
 
+    /** an appointment page (Cal.com, Calendly…), offered on the contact page */
+    @Column(name = "booking_url")
+    private String bookingUrl;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Availability availability = Availability.OPEN;
@@ -110,6 +114,8 @@ public class SiteSettings {
     public void setGithubUrl(String githubUrl) { this.githubUrl = githubUrl; }
     public String getLinkedinUrl() { return linkedinUrl; }
     public void setLinkedinUrl(String linkedinUrl) { this.linkedinUrl = linkedinUrl; }
+    public String getBookingUrl() { return bookingUrl; }
+    public void setBookingUrl(String bookingUrl) { this.bookingUrl = bookingUrl; }
     public Availability getAvailability() { return availability; }
     public void setAvailability(Availability availability) { this.availability = availability; }
     public Localized getSeoTitle() { return seoTitle; }

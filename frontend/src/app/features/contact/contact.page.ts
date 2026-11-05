@@ -50,6 +50,15 @@ interface FormErrors {
               <span class="availability" [attr.data-state]="state"><i class="dot"></i>{{ 'availability.' + state | t }}</span>
             }
           </div>
+          @if (settings()?.bookingUrl; as booking) {
+            <div class="block" appReveal [revealDelay]="60">
+              <span class="eyebrow">{{ 'contact.booking' | t }}</span>
+              <a class="btn btn-ghost" [href]="booking" target="_blank" rel="noopener noreferrer" appMagnetic>
+                <app-icon name="calendar" [size]="16" /> {{ 'contact.bookingCta' | t }}
+              </a>
+              <p class="small faint booking-hint">{{ 'contact.bookingHint' | t }}</p>
+            </div>
+          }
           <div class="block" appReveal [revealDelay]="100">
             <span class="eyebrow">{{ 'contact.socials' | t }}</span>
             <div class="row">
@@ -137,6 +146,9 @@ interface FormErrors {
     </main>
   `,
   styles: `
+    .booking-hint {
+      margin-top: 0.5rem;
+    }
     .cv-meta {
       font-family: var(--font-mono);
       font-size: var(--fs-micro);
@@ -190,8 +202,10 @@ interface FormErrors {
       overflow-wrap: anywhere;
       transition: color var(--dur-2);
     }
-    .big-mail:hover {
-      color: var(--accent);
+    @media (hover: hover) {
+      .big-mail:hover {
+        color: var(--accent);
+      }
     }
     .form-card {
       padding: clamp(1.5rem, 4vw, 2.75rem);

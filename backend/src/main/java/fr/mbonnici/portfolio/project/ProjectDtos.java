@@ -22,13 +22,14 @@ public final class ProjectDtos {
             Localized title,
             Localized tagline,
             Project.Category category,
-            Project.SceneType sceneType,
             Project.DisplayMode displayMode,
             String accentColor,
             Integer year,
             List<String> stack,
             boolean featured,
             MediaDto cover,
+            /** optional loop for the browser frame */
+            MediaDto coverVideo,
             /** first portrait capture, shown in the phone of the card mock-up */
             MediaDto mobileCover,
             String liveUrl,
@@ -41,8 +42,8 @@ public final class ProjectDtos {
                     .map(pm -> MediaDto.from(pm.getMedia()))
                     .orElse(null);
             return new Card(p.getId(), p.getSlug(), p.getTitle().filled(), p.getTagline().filled(), p.getCategory(),
-                    p.getSceneType(), p.getDisplayMode(), p.getAccentColor(), p.getYear(), List.copyOf(p.getStack()),
-                    p.isFeatured(), MediaDto.from(p.getCoverMedia()), mobile, p.getLiveUrl(),
+                    p.getDisplayMode(), p.getAccentColor(), p.getYear(), List.copyOf(p.getStack()),
+                    p.isFeatured(), MediaDto.from(p.getCoverMedia()), MediaDto.from(p.getCoverVideo()), mobile, p.getLiveUrl(),
                     p.getRepoUrl());
         }
     }
@@ -65,13 +66,13 @@ public final class ProjectDtos {
             Localized description,
             CaseStudy caseStudy,
             Project.Category category,
-            Project.SceneType sceneType,
             Project.DisplayMode displayMode,
             String accentColor,
             Integer year,
             List<String> stack,
             boolean featured,
             MediaDto cover,
+            MediaDto coverVideo,
             String liveUrl,
             String repoUrl,
             boolean allowIframe,
@@ -97,11 +98,12 @@ public final class ProjectDtos {
             int sortOrder,
             Integer year,
             Project.Category category,
-            Project.SceneType sceneType,
             Project.DisplayMode displayMode,
             String accentColor,
             UUID coverMediaId,
             MediaDto cover,
+            UUID coverVideoMediaId,
+            MediaDto coverVideo,
             String repoUrl,
             String liveUrl,
             boolean allowIframe,
@@ -124,7 +126,6 @@ public final class ProjectDtos {
             Integer sortOrder,
             @Min(1990) @Max(2100) Integer year,
             @NotNull Project.Category category,
-            Project.SceneType sceneType,
             Project.DisplayMode displayMode,
             @Pattern(regexp = "^#[0-9a-fA-F]{6}$", message = "accentColor must be a #rrggbb colour") String accentColor,
             @Size(max = 300) String repoUrl,
@@ -132,6 +133,7 @@ public final class ProjectDtos {
             Boolean allowIframe,
             @Size(max = 30) List<@Size(max = 60) String> stack,
             UUID coverMediaId,
+            UUID coverVideoMediaId,
             @Size(max = 60) List<MediaRef> media) {}
 
     public record Reorder(@NotNull List<UUID> ids) {}

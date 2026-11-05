@@ -20,12 +20,13 @@ import { stripDot } from './text';
       class="pc"
       [appLink]="path()"
       [linkLabel]="title()"
+      linkMorph="app-showcase"
       appCursor="label"
       [cursorLabel]="'cursor.view' | t"
       [class.is-hover]="hover()"
-      (pointerenter)="hover.set(true)"
+      (pointerenter)="$event.pointerType !== 'touch' && hover.set(true)"
       (pointerleave)="hover.set(false)"
-      (focus)="hover.set(true)"
+      (focus)="focused($event)"
       (blur)="hover.set(false)"
     >
       <app-showcase
@@ -34,6 +35,7 @@ import { stripDot } from './text';
         [accent]="project().accentColor"
         [mode]="project().displayMode"
         [cover]="project().cover"
+        [coverVideo]="project().coverVideo"
         [mobileMedia]="project().mobileCover"
         [site]="project().liveUrl"
         [priority]="priority()"
@@ -50,7 +52,9 @@ import { stripDot } from './text';
         <p class="tagline">{{ tagline() }}</p>
         <p class="meta mono">
           @if (insight()?.site; as site) {
-            <app-status-pill [site]="site" />
+            @if (site.up) {
+              <app-status-pill [site]="site" />
+            }
           }
           <span>{{ 'categories.' + project().category | t }}</span>
           @if (project().year) {
@@ -140,6 +144,11 @@ export class ProjectCardComponent {
   private readonly i18n = inject(I18nService);
 
   readonly hover = signal(false);
+
+  /** keyboard focus lifts the card like a hover; the focus a tap gives does not */
+  focused(e: FocusEvent): void {
+    if ((e.target as HTMLElement).matches(':focus-visible')) this.hover.set(true);
+  }
   readonly title = computed(() => this.i18n.l(this.project().title));
   readonly tagline = computed(() => stripDot(this.i18n.l(this.project().tagline)));
   readonly path = computed(() => this.i18n.path('project', this.project().slug));

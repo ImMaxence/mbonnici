@@ -14,7 +14,7 @@ integration tests), and manual probing of the running stack.*
 | CSRF | ✅ Double-submit cookie (`XSRF-TOKEN` / `X-XSRF-TOKEN`); only the anonymous beacon is exempt |
 | Injection | ✅ JPA parameters everywhere; native analytics queries use bound parameters; Markdown rendered through templates, never `innerHTML` |
 | XSS | ✅ CSP with per-request nonces, `frame-ancestors 'none'`, Angular escaping; uploaded SVGs are sanitised and served sandboxed |
-| File upload | ✅ Magic-byte detection, 10 MB / 40 Mpx limits, random keys, private bucket, streamed by the API with `nosniff` |
+| File upload | ✅ Magic-byte detection (PNG / JPEG pictures; MP4 / WebM videos, an extension that disagrees is refused), 10 MB / 40 Mpx limits for pictures, 25 MB for videos, random keys, private bucket, streamed by the API with `nosniff`; a cover and the avatar must be pictures |
 | Rate limiting | ✅ Per-IP token buckets on every endpoint family; proxy headers only trusted when `TRUST_PROXY=true` |
 | Transport & headers | ✅ HSTS, nosniff, referrer-policy, permissions-policy, COOP, X-Frame-Options on both tiers |
 | Secrets | ✅ Only from environment; `.env` git-ignored; compose refuses to start without the required secrets |

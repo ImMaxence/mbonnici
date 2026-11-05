@@ -1,3 +1,4 @@
+import { PhoneComponent } from '../../shared/ui/phone.component';
 import { Component, PLATFORM_ID, computed, effect, inject, input, signal, untracked } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { AnalyticsService } from '../../core/analytics/analytics.service';
@@ -35,6 +36,7 @@ import { PreviewBannerComponent } from '../../shared/ui/preview-banner.component
     MarkdownComponent,
     RevealDirective,
     ShowcaseComponent,
+    PhoneComponent,
     SliderComponent,
     RollTextComponent,
     StatusPillComponent,
@@ -81,13 +83,14 @@ import { PreviewBannerComponent } from '../../shared/ui/preview-banner.component
               </dd>
             </div>
             @if (insight()?.site; as site) {
-              <div><dt>{{ 'project.status' | t }}</dt><dd><app-status-pill [site]="site" /></dd></div>
+              @if (site.up) {
+                <div><dt>{{ 'project.status' | t }}</dt><dd><app-status-pill [site]="site" /></dd></div>
+              }
             }
             @if (insight()?.repo; as repo) {
               <div class="wide repo">
                 <dt>GitHub</dt>
                 <dd>
-                  <span class="stat"><app-icon name="star" [size]="13" /> {{ repo.stars }}</span>
                   @if (repo.pushedAt) {
                     <span class="stat">{{ 'project.pushed' | t: { when: ago(repo.pushedAt) } }}</span>
                   }
@@ -125,10 +128,12 @@ import { PreviewBannerComponent } from '../../shared/ui/preview-banner.component
             [accent]="p.accentColor"
             [mode]="p.displayMode"
             [cover]="p.cover"
+            [coverVideo]="p.coverVideo"
             [mobileList]="p.mobile"
             [site]="p.liveUrl"
             [live]="live()"
             [priority]="true"
+            [scrollEntry]="true"
             sizes="(max-width: 720px) 96vw, 84vw"
           />
           @if (live()) {
@@ -172,15 +177,20 @@ import { PreviewBannerComponent } from '../../shared/ui/preview-banner.component
         }
 
         <!-- ── Mobile ─────────────────────────────────────────────────── -->
-        @if (hasPhone() && p.displayMode !== 'MOBILE' && p.displayMode !== 'DESKTOP') {
+        <!-- the first phone capture is already in the visual at the top: only the others here -->
+        @if (otherPhones().length && (p.displayMode ?? 'BOTH') === 'BOTH') {
           <section class="container mobile">
             <div class="mobile-text">
               <span class="eyebrow" appReveal>{{ 'project.onMobile' | t }}</span>
               <h2 class="h2" appReveal revealSplit="words">{{ 'project.onMobileTitle' | t }}</h2>
             </div>
-            <div class="mobile-stage" appReveal>
-              <app-showcase [slug]="p.slug" [title]="p.title | l" [accent]="p.accentColor" mode="MOBILE" [mobileList]="p.mobile" [site]="p.liveUrl" />
-            </div>
+            <ul class="phones-row" [style.--n]="otherPhones().length">
+              @for (v of otherPhones(); track v.src; let i = $index) {
+                <li appReveal [revealDelay]="i * 90">
+                  <app-phone [shot]="v" [alt]="v.alt" />
+                </li>
+              }
+            </ul>
           </section>
         }
 
@@ -234,10 +244,15 @@ import { PreviewBannerComponent } from '../../shared/ui/preview-banner.component
         background-size 0.45s var(--ease-out),
         color var(--dur-1);
     }
-    .stack a:hover,
     .stack a:focus-visible {
       color: var(--accent);
       background-size: 100% 1px;
+    }
+    @media (hover: hover) {
+      .stack a:hover {
+        color: var(--accent);
+        background-size: 100% 1px;
+      }
     }
     .stack .sep {
       margin: 0 0.4em;
@@ -358,8 +373,10 @@ import { PreviewBannerComponent } from '../../shared/ui/preview-banner.component
       cursor: pointer;
       transition: color var(--dur-1);
     }
-    .back:hover {
-      color: var(--fg);
+    @media (hover: hover) {
+      .back:hover {
+        color: var(--fg);
+      }
     }
     .head-foot {
       display: grid;
@@ -468,12 +485,16 @@ import { PreviewBannerComponent } from '../../shared/ui/preview-banner.component
     .mobile {
       display: grid;
       gap: var(--space-7);
-      align-items: center;
       padding-bottom: var(--section);
     }
+    /* computers: the title on the left, the phones on the right, side by side */
     @media (min-width: 900px) {
       .mobile {
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: center;
+      }
+      .phones-row {
+        grid-auto-columns: clamp(220px, 20vw, 300px);
       }
     }
     .mobile-text {
@@ -481,8 +502,30 @@ import { PreviewBannerComponent } from '../../shared/ui/preview-banner.component
       gap: var(--space-4);
       align-content: start;
     }
-    .mobile-stage {
-      min-width: 0;
+    .phones-row {
+      display: grid;
+      grid-auto-flow: column;
+      grid-auto-columns: min(62vw, 300px);
+      justify-content: start;
+      gap: clamp(1rem, 3vw, 2.5rem);
+      margin: 0;
+      padding: 0 0 var(--space-4);
+      list-style: none;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      scrollbar-width: none;
+    }
+    .phones-row::-webkit-scrollbar {
+      display: none;
+    }
+    .phones-row li {
+      scroll-snap-align: start;
+    }
+    @media (min-width: 900px) {
+      .phones-row {
+        justify-content: end;
+        overflow: visible;
+      }
     }
     .neighbours {
       display: grid;
@@ -502,6 +545,21 @@ import { PreviewBannerComponent } from '../../shared/ui/preview-banner.component
     .neighbour.next {
       text-align: right;
       justify-items: end;
+    }
+    /* phones: the two links one above the other, centred, a rule between them */
+    @media (max-width: 719px) {
+      .neighbour,
+      .neighbour.next {
+        justify-items: center;
+        text-align: center;
+        padding: var(--space-6) 0;
+      }
+      .neighbour + .neighbour {
+        border-top: 1px solid var(--line);
+      }
+      .neighbours > span:empty {
+        display: none;
+      }
     }
   `,
 })
@@ -544,10 +602,13 @@ export class ProjectPage {
     return p.gallery.map((m, i) => fromMedia(m, this.i18n.l(m.alt) || this.i18n.t('project.screenshot', { n: i + 1 }))!);
   });
 
-  /** a phone capture exists (back office or README) */
-  readonly hasPhone = computed(() => {
+  /** the phone captures after the first one (that one is in the visual at the top), three at most */
+  readonly otherPhones = computed<Visual[]>(() => {
     const p = this.project();
-    return !!p && p.mobile.length > 0;
+    if (!p) return [];
+    return p.mobile
+      .slice(1, 4)
+      .map((m, i) => fromMedia(m, this.i18n.l(m.alt) || this.i18n.t('project.phoneScreen', { n: i + 2 }))!);
   });
 
   constructor() {

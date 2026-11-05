@@ -10,6 +10,30 @@ All notable changes to this project are documented here. The format follows
 ## [1.7.0] — 2026-11-05
 
 ### Added
+- **Short videos**: the media library takes MP4, WebM and iPhone MOV (80 MB, type checked from the
+  bytes). ffmpeg (now in the backend image) re-encodes them to a light H.264 MP4 that plays everywhere:
+  no sound, no metadata, 1280 px wide and 30 s at most, index at the front (`faststart`: playback
+  starts before the download ends), real size from ffprobe and a blurred first frame shown while it
+  loads. Without ffmpeg (a dev machine) MP4 / WebM up to 25 MB are stored as sent. They play muted in the gallery, the image
+  viewer and the phone screens, only while on screen, and not by themselves with reduced motion.
+  Served with byte ranges (Safari plays video only that way). A cover and the avatar stay pictures
+  (they are the share images). The CSP allows `media-src 'self' blob:`.
+- **Video in the browser frame**: a project can have a loop played in the browser window of its
+  visual (cards, top of the project page); the cover stays the share image and is its poster.
+  Migration V11.
+- **Testimonials**: real quotes from people you worked with (author, role, quote in both languages,
+  link to the source), managed on the Profile page and reorderable, shown large in the serif italic
+  on the home and about pages when there is at least one. Backed up (optional table for older
+  archives, selectable in the restore review).
+- **Booking link**: an optional appointment page (https: Cal.com, Calendly…) in Settings; the contact
+  page then offers "Book a call" next to the form.
+- **Depth on the project visuals**: on a computer the browser and the phone each turn in 3D towards
+  the pointer, the phone (closer) more than the browser. The phone has a real thickness: ten thin layers in
+  its silhouette stepped back in depth, which form its edge as it turns; on the project page the phone
+  rises and straightens in front of the browser over the first screen of scrolling (scroll-driven
+  animation, nothing with reduced motion).
+- **Card to page**: opening a project from its card, the card's visual glides into the big visual at
+  the top of the project page while the rest fades (the curtain stays for the other links).
 - **Server, live**: the dashboard follows CPU and memory every 2 seconds, for the application (the
   backend container) and for the whole server, on four small charts with their own scale, a
   crosshair shared by the four, a 1 / 5 / 15 minute window and a pause button. The backend samples
@@ -32,6 +56,25 @@ All notable changes to this project are documented here. The format follows
   the view from the browser, so there is no flash; the visitor's own choice still wins.
 - **Home**: the selected projects are all the same size (the first one was full width), in an
   even number so the two columns end level.
+- The project page's **"On mobile"** section no longer repeats the phone capture already in the top
+  visual: it shows the other phone screens, side by side, and only when there are some.
+- Public cards and project pages show **"Online"** without the response time, and nothing when a
+  site is down (the dashboard keeps both).
+- **Touch screens**: hover effects (the letters rolling into the blue italic, colour changes, lifted
+  cards) no longer fire at the tap, right before the page changes; the keyboard focus still shows
+  them. In the phone menu, the entry you tap no longer turns blue, then blue italic, while the new
+  page renders under the menu: the menu keeps its look until it has lifted.
+- Phone layout of the project page: previous / next project are centred, one above the other.
+- **Phone frame**: the Dynamic Island has its real size (126 × 37 pt; it was a small pill) with a
+  faint rim, and the right side gains the camera control. The status bar of phone captures takes
+  the page's own top colour with ink that reads on it, like iOS (it was black, which swallowed the
+  island): in the starter archive (rebuilt, now at schema 10) and, for captures without a bar, in
+  the browser. Still an original drawing (Apple's artwork may not be used on a website).
+- The cursor over pictures ("View", "Drag") is a dark lens instead of an inversion of the colours
+  underneath.
+- The home heading of the selected projects reads "Des projets en ligne, à essayer" / "Live projects,
+  ready to try"; the project page no longer shows the GitHub star count; the back-office sign-in
+  page shows the MBONNICI.FR wordmark.
 - Section labels (PROJETS, CONTACT…) carry an orange mark instead of the blue dot.
 - Every public button moves towards the pointer with the cursor ring around it: "All projects",
   "Full story", the project filters, the grid / list switch, the header language and theme
@@ -43,10 +86,17 @@ All notable changes to this project are documented here. The format follows
 - The storage figures (disk, database, pictures, Java heap) have their own panel next to versions.
 
 ### Removed
+- `project.scene_type` (the 3D scenes it chose were removed long ago; nothing read it). Migration V10.
 - Project **tags** (they only fed the meta keywords; the stack does that). Migration V9 drops the
   column; older archives still restore, their tags are ignored.
 
 ### Fixed
+- Dark mode: a reload showed the light page for half a second. The critical CSS inlined by the server
+  left the dark palette out (the server renders the light theme); `scripts/shell.mjs` now copies it
+  into the inline style of `index.html` at every build.
+- The first-visit intro started in the system font, then switched: its fonts are preloaded from
+  `/fonts` and declared inline (the site uses the same files). It reads **MBONNICI.FR**, like the
+  footer wordmark, sized to fill the width.
 - Two quick clicks on the gallery's "Next" moved one picture only: the second click started from
   the picture the smooth scroll had not reached yet.
 - The project gallery kept the previous project's position (picture 4 of project A → picture 4 of

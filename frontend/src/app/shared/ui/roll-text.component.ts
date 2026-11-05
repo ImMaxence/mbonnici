@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, input } from '@angular/co
 
 /**
  * Text that rolls letter by letter from the grotesk to the serif italic when its trigger is
- * hovered (an ancestor with the `roll-trigger` class): each glyph slides up out of a mask while its
+ * hovered with a mouse or focused with the keyboard (an ancestor with the `roll-trigger` class): each glyph slides up out of a mask while its
  * italic twin rises behind it, with a short stagger. Screen readers get the plain word once.
  */
 @Component({
@@ -64,15 +64,24 @@ import { ChangeDetectionStrategy, Component, computed, input } from '@angular/co
       transform: translate3d(0, 110%, 0) rotate(6deg);
       opacity: 0;
     }
-    :host-context(.roll-trigger:hover) .a .c,
     :host-context(.roll-trigger:focus-visible) .a .c {
       transform: translate3d(0, -130%, 0) rotate(-4deg);
       opacity: 0;
     }
-    :host-context(.roll-trigger:hover) .b .c,
     :host-context(.roll-trigger:focus-visible) .b .c {
       transform: none;
       opacity: 1;
+    }
+    /* a touch screen "hovers" at the tap, just before the page changes: no roll there */
+    @media (hover: hover) and (pointer: fine) {
+      :host-context(.roll-trigger:hover) .a .c {
+        transform: translate3d(0, -130%, 0) rotate(-4deg);
+        opacity: 0;
+      }
+      :host-context(.roll-trigger:hover) .b .c {
+        transform: none;
+        opacity: 1;
+      }
     }
     @media (prefers-reduced-motion: reduce) {
       .c {

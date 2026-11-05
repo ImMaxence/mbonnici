@@ -158,6 +158,62 @@ test('the dashboard follows the server live', async ({ page }) => {
   await expect(live.locator('.live')).toHaveText(/En pause/);
 });
 
+test('a project card glides into the top of its page', async ({ page }) => {
+  await page.addInitScript(() => {
+    sessionStorage.setItem('mb.intro', '1');
+    localStorage.setItem('mb.projectsView', 'grid');
+  });
+  await page.goto('/fr/projets');
+  const card = page.locator('app-project-card').first();
+  await card.scrollIntoViewIfNeeded();
+  await card.locator('a').first().click();
+  // mid-flight: the card's visual travels above the paper
+  await expect(page.locator('.morph-frame')).toHaveCount(1);
+  await page.waitForURL('**/fr/projets/localatscv');
+  await expect(page.locator('h1')).toHaveText('LocalATSCV');
+  await expect(page.locator('.morph-frame, .morph-shade')).toHaveCount(0, { timeout: 5000 });
+  await expect(page.locator('.hero-shot app-showcase')).toBeVisible();
+});
+
+test('the phone section only shows other screens than the one at the top', async ({ page }) => {
+  await noIntro(page);
+  // the starter projects have a single phone capture: it is already in the top visual
+  await page.goto('/fr/projets/localatscv');
+  await expect(page.locator('h1')).toHaveText('LocalATSCV');
+  await expect(page.locator('section.mobile')).toHaveCount(0);
+});
+
+test('a testimonial shows on the home and about pages', async ({ page, baseURL }) => {
+  const { api, headers } = await admin(baseURL!);
+  const res = await api.post('/api/admin/profile/testimonials', {
+    headers,
+    data: { author: 'E2E Témoin', url: null, role: { fr: 'Rôle e2e', en: '' }, quote: { fr: 'Citation de test e2e', en: '' }, sortOrder: 99 },
+  });
+  expect(res.status()).toBe(201);
+  const { id } = await res.json();
+  try {
+    await noIntro(page);
+    await page.goto('/fr');
+    const quotes = page.locator('app-testimonials');
+    await quotes.scrollIntoViewIfNeeded();
+    await expect(quotes).toContainText('Citation de test e2e');
+    await expect(quotes).toContainText('E2E Témoin');
+    await page.goto('/fr/a-propos');
+    await expect(page.locator('app-testimonials')).toContainText('Citation de test e2e');
+    await expectAccessible(page);
+  } finally {
+    await api.delete(`/api/admin/profile/testimonials/${id}`, { headers });
+    await api.dispose();
+  }
+});
+
+test('the media library takes short videos', async ({ page }) => {
+  await page.goto('/api/auth/dev-login');
+  await page.goto('/admin/media');
+  await expect(page.locator('input[type=file]').first()).toHaveAttribute('accept', /video\/mp4/);
+  await expect(page.getByText(/MP4, WebM ou MOV/)).toBeVisible();
+});
+
 test('project pages share a generated 1200 × 630 JPEG', async ({ page, request: api }) => {
   await page.goto('/fr/projets/localatscv');
   const og = await page.locator('meta[property="og:image"]').getAttribute('content');

@@ -1,6 +1,9 @@
 // Draws the phone frame used by the mock-ups (public/img/devices/phone.svg): an original vector
 // drawing in the proportions of a current 6.3" phone (1350 × 2760 canvas, transparent 1206 × 2622
-// screen at 72,69), aluminium band, black border, island with a lens, side buttons.
+// screen at 72,69, i.e. 402 × 874 pt at 3x), aluminium band, black border, side buttons (action,
+// volume, side button, camera control) and a Dynamic Island at its real size: 126 × 37 pt, 11 pt
+// below the top of the screen, with the front camera in its right end. Apple's own device artwork
+// is not used: its licence does not allow it in website content.
 //   node scripts/device-svg.mjs
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -73,6 +76,9 @@ const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1350 2760" wid
   ${button(4, 796, 22, 200, 'l')}
   ${button(4, 1054, 22, 200, 'l')}
   ${button(1324, 866, 22, 322, 'r')}
+  <!-- camera control: a flush sapphire key lower on the right side -->
+  <rect x="1326" y="1560" width="16" height="236" rx="8" fill="#121214"/>
+  <rect x="1327" y="1564" width="6" height="228" rx="3" fill="#fff" fill-opacity="0.08"/>
   <!-- aluminium band, with the screen cut out -->
   <path fill-rule="evenodd" fill="url(#band)" d="${body} ${screen}"/>
   <path fill-rule="evenodd" fill="url(#sheen)" d="${body} ${screen}"/>
@@ -81,10 +87,13 @@ const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1350 2760" wid
   <!-- black border around the glass -->
   <path fill-rule="evenodd" fill="#050506" d="${bezel} ${screen}"/>
   <path fill="none" stroke="#fff" stroke-opacity="0.05" stroke-width="2" d="${bezel}"/>
-  <!-- island and front camera -->
-  <rect x="535" y="112" width="280" height="104" rx="52" fill="#000"/>
-  <circle cx="761" cy="164" r="21" fill="url(#lens)"/>
-  <circle cx="754" cy="157" r="5" fill="#8aa0d8" fill-opacity="0.35"/>
+  <!-- Dynamic Island (378 × 111 px = 126 × 37 pt) with the front camera at its right end; the faint
+       rim keeps it visible over dark status bars, like a real screen catching the light -->
+  <rect x="486" y="102" width="378" height="111" rx="55.5" fill="#000"/>
+  <rect x="486.75" y="102.75" width="376.5" height="109.5" rx="54.75" fill="none" stroke="#2a2a2e" stroke-width="1.5"/>
+  <circle cx="808" cy="157.5" r="23" fill="url(#lens)"/>
+  <circle cx="808" cy="157.5" r="23" fill="none" stroke="#1d2233" stroke-width="2"/>
+  <circle cx="800" cy="150" r="5.5" fill="#8aa0d8" fill-opacity="0.35"/>
 </svg>
 `;
 writeFileSync(out, svg);

@@ -54,8 +54,10 @@ public class AdminMediaController {
     @ResponseStatus(HttpStatus.CREATED)
     public MediaDto upload(@RequestPart("file") MultipartFile file,
             @RequestParam(value = "altFr", required = false) String altFr,
-            @RequestParam(value = "altEn", required = false) String altEn) {
-        return service.upload(file, Localized.of(altFr, altEn));
+            @RequestParam(value = "altEn", required = false) String altEn,
+            @RequestParam(value = "width", required = false) Integer width,
+            @RequestParam(value = "height", required = false) Integer height) {
+        return service.upload(file, Localized.of(altFr, altEn), width, height);
     }
 
     @PutMapping("/{id}")

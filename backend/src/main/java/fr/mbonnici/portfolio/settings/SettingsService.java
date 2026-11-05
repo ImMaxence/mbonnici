@@ -47,6 +47,11 @@ public class SettingsService {
         s.setPublicEmail(blankToNull(in.publicEmail()));
         s.setGithubUrl(blankToNull(in.githubUrl()));
         s.setLinkedinUrl(blankToNull(in.linkedinUrl()));
+        String booking = blankToNull(in.bookingUrl());
+        if (booking != null && !booking.matches("^https://[^\\s]+$")) {
+            throw ApiException.badRequest("bookingUrl must be an https URL");
+        }
+        s.setBookingUrl(booking);
         s.setAvailability(in.availability());
         s.setSeoTitle(Localized.clean(in.seoTitle()));
         s.setSeoDescription(Localized.clean(in.seoDescription()));
@@ -54,9 +59,13 @@ public class SettingsService {
         s.setLegalAddress(blankToNull(in.legalAddress()));
         s.setLegalHost(blankToNull(in.legalHost()));
         s.setLegalContactEmail(blankToNull(in.legalContactEmail()));
-        s.setAvatar(in.avatarMediaId() == null ? null
+        var avatar = in.avatarMediaId() == null ? null
                 : media.findById(in.avatarMediaId())
-                        .orElseThrow(() -> new fr.mbonnici.portfolio.common.NotFoundException("Avatar media")));
+                        .orElseThrow(() -> new fr.mbonnici.portfolio.common.NotFoundException("Avatar media"));
+        if (avatar != null && avatar.getContentType().startsWith("video/")) {
+            throw ApiException.badRequest("the avatar must be a picture");
+        }
+        s.setAvatar(avatar);
         s.touch();
         return PublicSettings.raw(repository.save(s));
     }

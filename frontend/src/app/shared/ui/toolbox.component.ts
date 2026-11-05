@@ -100,8 +100,10 @@ import { usesTech } from './tech';
       color: var(--line-strong);
       font-weight: 300;
     }
-    li:hover {
-      color: var(--fg);
+    @media (hover: hover) {
+      li:hover {
+        color: var(--fg);
+      }
     }
     li.daily {
       color: var(--fg);
@@ -115,10 +117,15 @@ import { usesTech } from './tech';
         background-size 0.5s var(--ease-out),
         color var(--dur-1);
     }
-    .tech:hover,
     .tech:focus-visible {
       color: var(--accent);
       background-size: 100% 1px;
+    }
+    @media (hover: hover) {
+      .tech:hover {
+        color: var(--accent);
+        background-size: 100% 1px;
+      }
     }
     .tech sup {
       font-family: var(--font-mono);

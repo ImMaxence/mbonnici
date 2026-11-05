@@ -47,7 +47,7 @@ import { IconComponent } from './icon.component';
         </div>
 
         <!-- the domain name, sized to fill the column exactly (see .wordmark) -->
-        <p class="wordmark" aria-hidden="true">MBONNICI</p>
+        <p class="wordmark" aria-hidden="true">MBONNICI.FR</p>
 
         <div class="bottom">
           <p class="small faint">{{ 'footer.rights' | t: { year: year, owner: settings()?.ownerName ?? 'Maxence Bonnici' } }}</p>
@@ -109,8 +109,10 @@ import { IconComponent } from './icon.component';
       background-position: 0 100%;
       transition: background-size 0.6s var(--ease-out);
     }
-    .mail:hover {
-      background-size: 100% 2px;
+    @media (hover: hover) {
+      .mail:hover {
+        background-size: 100% 2px;
+      }
     }
     .links a {
       display: inline-flex;
@@ -120,15 +122,17 @@ import { IconComponent } from './icon.component';
       opacity: 0.85;
       transition: opacity var(--dur-1);
     }
-    .links a:hover {
-      opacity: 1;
+    @media (hover: hover) {
+      .links a:hover {
+        opacity: 1;
+      }
     }
-    /* "MBONNICI" in Inter Tight 600 at -0.04em: the ink is 4.44 × the font size wide and starts
-       0.05em after the origin, so 22.5cqi fills the container from edge to edge at any width */
+    /* "MBONNICI.FR" in Inter Tight 600 at -0.04em: the ink is 5.818 × the font size wide and starts
+       0.05em after the origin, so 17.18cqi fills the container from edge to edge at any width */
     .wordmark {
       font-family: var(--font-display);
       font-weight: 600;
-      font-size: 22.5cqi;
+      font-size: 17.18cqi;
       letter-spacing: -0.04em;
       line-height: 0.74;
       white-space: nowrap;
@@ -150,8 +154,10 @@ import { IconComponent } from './icon.component';
       gap: 0.5rem var(--space-5);
       color: color-mix(in srgb, var(--bg) 70%, transparent);
     }
-    .legal a:hover {
-      color: var(--bg);
+    @media (hover: hover) {
+      .legal a:hover {
+        color: var(--bg);
+      }
     }
     .top-btn {
       display: inline-flex;
@@ -163,9 +169,11 @@ import { IconComponent } from './icon.component';
       border: 1px solid var(--line);
       font-size: var(--fs-small);
     }
-    .top-btn:hover {
-      background: var(--bg);
-      color: var(--fg);
+    @media (hover: hover) {
+      .top-btn:hover {
+        background: var(--bg);
+        color: var(--fg);
+      }
     }
   `,
 })

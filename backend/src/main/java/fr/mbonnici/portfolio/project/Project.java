@@ -31,7 +31,6 @@ public class Project {
     public enum Status { DRAFT, PUBLISHED }
     public enum Category { WEB, MOBILE, GAME, TOOL, DESIGN, DATA, OTHER }
     /** Which interactive 3D scene the frontend renders for this project. */
-    public enum SceneType { ORBIT, TERRAIN, HELIX, STACK, DEVICE }
 
     /** How the project is staged on the site: browser + phone, phone only, or browser only. */
     public enum DisplayMode { BOTH, MOBILE, DESKTOP }
@@ -96,10 +95,6 @@ public class Project {
     private Category category = Category.WEB;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "scene_type", nullable = false)
-    private SceneType sceneType = SceneType.ORBIT;
-
-    @Enumerated(EnumType.STRING)
     @Column(name = "display_mode", nullable = false)
     private DisplayMode displayMode = DisplayMode.BOTH;
 
@@ -109,6 +104,11 @@ public class Project {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "cover_media_id")
     private Media coverMedia;
+
+    /** optional loop played in the browser frame (the cover is its poster and the share image) */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "cover_video_media_id")
+    private Media coverVideo;
 
     @Column(name = "repo_url")
     private String repoUrl;
@@ -170,14 +170,14 @@ public class Project {
     public void setYear(Integer year) { this.year = year; }
     public Category getCategory() { return category; }
     public void setCategory(Category category) { this.category = category; }
-    public SceneType getSceneType() { return sceneType; }
-    public void setSceneType(SceneType sceneType) { this.sceneType = sceneType; }
     public DisplayMode getDisplayMode() { return displayMode; }
     public void setDisplayMode(DisplayMode displayMode) { this.displayMode = displayMode; }
     public String getAccentColor() { return accentColor; }
     public void setAccentColor(String accentColor) { this.accentColor = accentColor; }
     public Media getCoverMedia() { return coverMedia; }
     public void setCoverMedia(Media coverMedia) { this.coverMedia = coverMedia; }
+    public Media getCoverVideo() { return coverVideo; }
+    public void setCoverVideo(Media coverVideo) { this.coverVideo = coverVideo; }
     public String getRepoUrl() { return repoUrl; }
     public void setRepoUrl(String repoUrl) { this.repoUrl = repoUrl; }
     public String getLiveUrl() { return liveUrl; }

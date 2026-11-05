@@ -6,7 +6,8 @@ import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { IconComponent } from '../../shared/ui/icon.component';
 import { ConfirmService } from '../../shared/ui/confirm.service';
 import { TooltipDirective } from '../../shared/ui/tooltip.directive';
-import { focalPosition } from '../../shared/ui/shots';
+import { focalPosition, isVideo } from '../../shared/ui/shots';
+import { isVideoFile } from '../../core/api/api.service';
 import { MediaEditDialogComponent } from './media-edit-dialog.component';
 
 @Component({
@@ -45,7 +46,7 @@ import { MediaEditDialogComponent } from './media-edit-dialog.component';
       <app-icon name="upload" [size]="28" />
       <strong>{{ 'admin.media.drop' | t }}</strong>
       <span class="small faint">{{ 'admin.media.formats' | t }}</span>
-      <input type="file" accept=".png,.jpg,.jpeg,image/png,image/jpeg" multiple hidden (change)="onFiles($event)" />
+      <input type="file" accept=".png,.jpg,.jpeg,.mp4,.webm,.mov,image/png,image/jpeg,video/mp4,video/webm,video/quicktime" multiple hidden (change)="onFiles($event)" />
     </label>
     @if (uploading()) {
       <p class="small muted" style="margin-top:.5rem">{{ 'admin.media.uploading' | t: { n: uploading() } }}</p>
@@ -65,7 +66,12 @@ import { MediaEditDialogComponent } from './media-edit-dialog.component';
         @for (m of shown(); track m.id) {
           <div class="entry">
             <button type="button" class="media-item" [class.is-selected]="editing() === m.id" (click)="editing.set(m.id)" [attr.aria-label]="('admin.media.edit' | t) + (m.alt.fr ? ' — ' + m.alt.fr : '')">
-              <img [src]="m.url" [attr.srcset]="m.srcset || null" sizes="220px" [style.object-position]="pos(m)" alt="" loading="lazy" />
+              @if (isVideo(m)) {
+                <video [src]="m.url + '#t=0.1'" muted preload="metadata" playsinline aria-hidden="true" [style.object-position]="pos(m)"></video>
+                <span class="kind-badge" aria-hidden="true"><app-icon name="play" [size]="11" /> {{ 'admin.media.video' | t }}</span>
+              } @else {
+                <img [src]="m.url" [attr.srcset]="m.srcset || null" sizes="220px" [style.object-position]="pos(m)" alt="" loading="lazy" />
+              }
               @if (!m.alt.fr && !m.alt.en) {
                 <span class="no-alt" [appTip]="'admin.media.noAlt' | t" [tipLabel]="false">ALT</span>
               }
@@ -150,6 +156,25 @@ import { MediaEditDialogComponent } from './media-edit-dialog.component';
     .danger-text {
       color: var(--danger, #c62828);
     }
+    .kind-badge {
+      position: absolute;
+      left: 8px;
+      top: 8px;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3em;
+      padding: 0.2em 0.5em;
+      border-radius: 6px;
+      background: rgba(10, 10, 12, 0.78);
+      color: #fff;
+      font: 600 0.62rem/1.2 var(--font-mono);
+      letter-spacing: 0.04em;
+    }
+    .media-item video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
     .no-alt {
       position: absolute;
       top: 8px;
@@ -189,6 +214,8 @@ export class MediaPage {
     this.total.set(page.total);
     this.unused.set(new Set(unused.ids));
   }
+
+  readonly isVideo = isVideo;
 
   pos(m: MediaDto): string {
     return focalPosition(m);
@@ -232,7 +259,7 @@ export class MediaPage {
   drop(event: DragEvent): void {
     event.preventDefault();
     this.over.set(false);
-    void this.upload(Array.from(event.dataTransfer?.files ?? []).filter((f) => f.type.startsWith('image/')));
+    void this.upload(Array.from(event.dataTransfer?.files ?? []).filter((f) => f.type.startsWith('image/') || isVideoFile(f)));
   }
 
   private async upload(files: File[]): Promise<void> {

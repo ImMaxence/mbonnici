@@ -7,14 +7,12 @@ export interface Localized {
 
 export type ProjectStatus = 'DRAFT' | 'PUBLISHED';
 export type ProjectCategory = 'WEB' | 'MOBILE' | 'GAME' | 'TOOL' | 'DESIGN' | 'DATA' | 'OTHER';
-export type SceneType = 'ORBIT' | 'TERRAIN' | 'HELIX' | 'STACK' | 'DEVICE';
 export type MediaKind = 'GALLERY' | 'MOBILE';
 export type Availability = 'OPEN' | 'LISTENING' | 'BUSY';
 export type ContractType = 'CDI' | 'CDD' | 'ALTERNANCE' | 'STAGE' | 'FREELANCE';
 export type SkillCategory = 'LANGUAGE' | 'FRAMEWORK' | 'DATABASE' | 'DEVOPS' | 'NETWORK' | 'TOOL' | 'PRACTICE';
 
 export const PROJECT_CATEGORIES: ProjectCategory[] = ['WEB', 'MOBILE', 'GAME', 'TOOL', 'DESIGN', 'DATA', 'OTHER'];
-export const SCENE_TYPES: SceneType[] = ['ORBIT', 'TERRAIN', 'HELIX', 'STACK', 'DEVICE'];
 export const CONTRACT_TYPES: ContractType[] = ['CDI', 'CDD', 'ALTERNANCE', 'STAGE', 'FREELANCE'];
 export const SKILL_CATEGORIES: SkillCategory[] = ['LANGUAGE', 'FRAMEWORK', 'DATABASE', 'DEVOPS', 'NETWORK', 'TOOL', 'PRACTICE'];
 
@@ -46,13 +44,14 @@ export interface ProjectCard {
   title: Localized;
   tagline: Localized;
   category: ProjectCategory;
-  sceneType: SceneType;
   displayMode?: DisplayMode;
   accentColor: string;
   year: number | null;
   stack: string[];
   featured: boolean;
   cover: MediaDto | null;
+  /** optional loop for the browser frame (the cover is its poster) */
+  coverVideo?: MediaDto | null;
   /** first portrait capture (cards only) */
   mobileCover?: MediaDto | null;
   liveUrl: string | null;
@@ -99,11 +98,13 @@ export interface AdminProject {
   sortOrder: number;
   year: number | null;
   category: ProjectCategory;
-  sceneType: SceneType;
   displayMode?: DisplayMode;
   accentColor: string;
   coverMediaId: string | null;
+  coverVideoMediaId?: string | null;
   cover: MediaDto | null;
+  /** optional loop for the browser frame (the cover is its poster) */
+  coverVideo?: MediaDto | null;
   repoUrl: string | null;
   liveUrl: string | null;
   allowIframe: boolean;
@@ -125,7 +126,6 @@ export interface ProjectUpsert {
   sortOrder: number;
   year: number | null;
   category: ProjectCategory;
-  sceneType: SceneType;
   displayMode: DisplayMode;
   accentColor: string;
   repoUrl: string | null;
@@ -133,6 +133,7 @@ export interface ProjectUpsert {
   allowIframe: boolean;
   stack: string[];
   coverMediaId: string | null;
+  coverVideoMediaId?: string | null;
   media: { mediaId: string; kind: MediaKind; sortOrder: number }[];
 }
 
@@ -151,6 +152,8 @@ export interface Settings {
   publicEmail: string | null;
   githubUrl: string | null;
   linkedinUrl: string | null;
+  /** appointment page (Cal.com, Calendly…), offered on the contact page */
+  bookingUrl?: string | null;
   availability: Availability;
   seoTitle: Localized;
   seoDescription: Localized;
@@ -181,6 +184,8 @@ export interface SettingsUpdate {
   publicEmail: string | null;
   githubUrl: string | null;
   linkedinUrl: string | null;
+  /** appointment page (Cal.com, Calendly…), offered on the contact page */
+  bookingUrl?: string | null;
   availability: Availability;
   seoTitle: Localized;
   seoDescription: Localized;
@@ -224,10 +229,24 @@ export interface Skill {
   sortOrder: number;
 }
 
+/** a short quote from someone the owner worked with */
+export interface Testimonial {
+  id: string;
+  author: string;
+  /** where the quote can be read (LinkedIn recommendation…) */
+  url?: string | null;
+  role: Localized;
+  quote: Localized;
+  sortOrder: number;
+}
+
+export type TestimonialInput = Omit<Testimonial, 'id'>;
+
 export interface Profile {
   experiences: Experience[];
   education: Education[];
   skills: Skill[];
+  testimonials: Testimonial[];
 }
 
 export type ExperienceInput = Omit<Experience, 'id'>;

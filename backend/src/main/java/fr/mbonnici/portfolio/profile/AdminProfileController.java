@@ -8,6 +8,8 @@ import fr.mbonnici.portfolio.profile.ProfileDtos.Profile;
 import fr.mbonnici.portfolio.profile.ProfileDtos.ReorderInput;
 import fr.mbonnici.portfolio.profile.ProfileDtos.SkillDto;
 import fr.mbonnici.portfolio.profile.ProfileDtos.SkillInput;
+import fr.mbonnici.portfolio.profile.ProfileDtos.TestimonialDto;
+import fr.mbonnici.portfolio.profile.ProfileDtos.TestimonialInput;
 import jakarta.validation.Valid;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
@@ -97,6 +99,29 @@ public class AdminProfileController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void reorderEducation(@Valid @RequestBody ReorderInput in) {
         service.reorderEducation(in.ids());
+    }
+
+    @PostMapping("/testimonials")
+    @ResponseStatus(HttpStatus.CREATED)
+    public TestimonialDto createTestimonial(@Valid @RequestBody TestimonialInput in) {
+        return service.createTestimonial(in);
+    }
+
+    @PutMapping("/testimonials/{id}")
+    public TestimonialDto updateTestimonial(@PathVariable UUID id, @Valid @RequestBody TestimonialInput in) {
+        return service.updateTestimonial(id, in);
+    }
+
+    @DeleteMapping("/testimonials/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteTestimonial(@PathVariable UUID id) {
+        service.deleteTestimonial(id);
+    }
+
+    @PutMapping("/testimonials/reorder")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void reorderTestimonials(@Valid @RequestBody ReorderInput in) {
+        service.reorderTestimonials(in.ids());
     }
 
     @PutMapping("/skills/reorder")

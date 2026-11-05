@@ -5,9 +5,9 @@
   "description": "Portfolio of Maxence Bonnici — Angular 22 SSR frontend",
   "scripts": {
     "ng": "ng",
-    "prestart": "node scripts/version.mjs",
+    "prestart": "node scripts/version.mjs && node scripts/shell.mjs",
     "start": "ng serve --proxy-config proxy.conf.json",
-    "prebuild": "node scripts/version.mjs",
+    "prebuild": "node scripts/version.mjs && node scripts/shell.mjs",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",

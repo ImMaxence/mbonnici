@@ -82,6 +82,11 @@ import { missingIn } from './missing-lang.component';
             </div>
             <div class="field"><label for="s-githubUrl">{{ 'admin.settings.githubUrl' | t }}</label><input id="s-githubUrl" class="input" type="url" name="githubUrl" [(ngModel)]="f.githubUrl" /></div>
             <div class="field"><label for="s-linkedinUrl">{{ 'admin.settings.linkedinUrl' | t }}</label><input id="s-linkedinUrl" class="input" type="url" name="linkedinUrl" [(ngModel)]="f.linkedinUrl" /></div>
+            <div class="field span-2">
+              <label for="s-bookingUrl">{{ 'admin.settings.bookingUrl' | t }}</label>
+              <input id="s-bookingUrl" class="input" type="url" name="bookingUrl" [(ngModel)]="f.bookingUrl" placeholder="https://cal.com/…" />
+              <span class="field-hint">{{ 'admin.settings.bookingHint' | t }}</span>
+            </div>
           </div>
         </div>
         <div class="panel">
@@ -103,7 +108,7 @@ import { missingIn } from './missing-lang.component';
       </form>
     }
     @if (picking()) {
-      <app-media-picker [multiple]="false" (picked)="setAvatar($event[0] ?? null); picking.set(false)" (closed)="picking.set(false)" />
+      <app-media-picker [multiple]="false" [imagesOnly]="true" (picked)="setAvatar($event[0] ?? null); picking.set(false)" (closed)="picking.set(false)" />
     }
   `,
   styles: `
@@ -172,6 +177,7 @@ export class AdminSettingsPage implements HasUnsavedChanges {
       publicEmail: s.publicEmail,
       githubUrl: s.githubUrl,
       linkedinUrl: s.linkedinUrl,
+      bookingUrl: s.bookingUrl ?? null,
       availability: s.availability,
       seoTitle: { ...s.seoTitle },
       seoDescription: { ...s.seoDescription },
