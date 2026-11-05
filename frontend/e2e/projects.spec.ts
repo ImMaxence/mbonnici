@@ -66,6 +66,21 @@ test.describe('projects', () => {
     await expect(slider.locator('.count')).toContainText('02');
   });
 
+  test('the gallery starts at the first picture on the next project', async ({ page }) => {
+    await page.goto('/fr/projets/localatscv');
+    const slider = page.locator('app-slider');
+    await slider.scrollIntoViewIfNeeded();
+    await slider.getByRole('button', { name: 'Suivant' }).click();
+    await slider.getByRole('button', { name: 'Suivant' }).click();
+    await expect(slider.locator('.count')).toContainText('03');
+    // client-side navigation reuses the page component
+    await page.locator('a[href="/fr/projets/localcutvideo"]').last().click();
+    await expect(page).toHaveURL(/localcutvideo/);
+    await page.locator('app-slider').scrollIntoViewIfNeeded();
+    await expect(page.locator('app-slider .count')).toContainText('01 /');
+    expect(await page.locator('app-slider .track').evaluate((e) => e.scrollLeft)).toBe(0);
+  });
+
   test('gallery images open in a viewer with navigation', async ({ page }) => {
     await page.goto('/fr/projets/localatscv');
     const slider = page.locator('app-slider');
@@ -80,6 +95,29 @@ test.describe('projects', () => {
     await expect(viewer.locator('.lb-count')).toContainText('01');
     await page.keyboard.press('Escape');
     await expect(viewer).toBeHidden();
+  });
+
+  test('a picture in the viewer zooms with a double click and the wheel', async ({ page }) => {
+    await page.goto('/fr/projets/localatscv');
+    await page.locator('app-slider').scrollIntoViewIfNeeded();
+    await page.locator('app-slider .slide .open').first().click();
+    const viewer = page.locator('dialog.viewer');
+    const pic = viewer.locator('.pic');
+    await page.waitForTimeout(700);
+    const scale = () => pic.evaluate((el) => new DOMMatrix(getComputedStyle(el).transform).a);
+    await pic.dblclick();
+    await expect.poll(scale).toBeGreaterThan(2);
+    // arrows pan instead of changing picture while zoomed
+    await page.keyboard.press('ArrowRight');
+    await expect(viewer.locator('.lb-count')).toContainText('01');
+    await page.keyboard.press('0');
+    await expect.poll(scale).toBe(1);
+    const box = (await pic.boundingBox())!;
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await page.mouse.wheel(0, -400);
+    await expect.poll(scale).toBeGreaterThan(1.5);
+    await viewer.getByRole('button', { name: 'Dézoomer' }).click();
+    await expect.poll(scale).toBe(1);
   });
 
   test('mobile version is shown in the phone mock-up', async ({ page }) => {

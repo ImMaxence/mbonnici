@@ -27,7 +27,6 @@ public final class ProjectDtos {
             String accentColor,
             Integer year,
             List<String> stack,
-            List<String> tags,
             boolean featured,
             MediaDto cover,
             /** first portrait capture, shown in the phone of the card mock-up */
@@ -43,7 +42,7 @@ public final class ProjectDtos {
                     .orElse(null);
             return new Card(p.getId(), p.getSlug(), p.getTitle().filled(), p.getTagline().filled(), p.getCategory(),
                     p.getSceneType(), p.getDisplayMode(), p.getAccentColor(), p.getYear(), List.copyOf(p.getStack()),
-                    List.copyOf(p.getTags()), p.isFeatured(), MediaDto.from(p.getCoverMedia()), mobile, p.getLiveUrl(),
+                    p.isFeatured(), MediaDto.from(p.getCoverMedia()), mobile, p.getLiveUrl(),
                     p.getRepoUrl());
         }
     }
@@ -71,7 +70,6 @@ public final class ProjectDtos {
             String accentColor,
             Integer year,
             List<String> stack,
-            List<String> tags,
             boolean featured,
             MediaDto cover,
             String liveUrl,
@@ -108,7 +106,6 @@ public final class ProjectDtos {
             String liveUrl,
             boolean allowIframe,
             List<String> stack,
-            List<String> tags,
             List<MediaItem> media,
             Instant createdAt,
             Instant updatedAt,
@@ -134,7 +131,6 @@ public final class ProjectDtos {
             @Size(max = 300) String liveUrl,
             Boolean allowIframe,
             @Size(max = 30) List<@Size(max = 60) String> stack,
-            @Size(max = 30) List<@Size(max = 40) String> tags,
             UUID coverMediaId,
             @Size(max = 60) List<MediaRef> media) {}
 

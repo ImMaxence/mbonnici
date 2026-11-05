@@ -123,10 +123,6 @@ public class Project {
     @Column(nullable = false, columnDefinition = "text[]")
     private List<String> stack = new ArrayList<>();
 
-    @JdbcTypeCode(SqlTypes.ARRAY)
-    @Column(nullable = false, columnDefinition = "text[]")
-    private List<String> tags = new ArrayList<>();
-
     @Column(name = "created_at", nullable = false)
     private Instant createdAt = Instant.now();
 
@@ -190,8 +186,6 @@ public class Project {
     public void setAllowIframe(boolean allowIframe) { this.allowIframe = allowIframe; }
     public List<String> getStack() { return stack; }
     public void setStack(List<String> stack) { this.stack = stack == null ? new ArrayList<>() : new ArrayList<>(stack); }
-    public List<String> getTags() { return tags; }
-    public void setTags(List<String> tags) { this.tags = tags == null ? new ArrayList<>() : new ArrayList<>(tags); }
     public Instant getCreatedAt() { return createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }
     public Instant getPublishedAt() { return publishedAt; }

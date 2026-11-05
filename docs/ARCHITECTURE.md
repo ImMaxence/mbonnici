@@ -78,8 +78,8 @@ View Transition (circular reveal from the button, cross-fade fallback).
 
 ## Data model
 
-`site_settings` (single row) · `project` (bilingual texts, status, scene type, accent, stack[],
-tags[]) · `media` (object key, dimensions, blur placeholder, alt texts) · `project_media`
+`site_settings` (single row) · `project` (bilingual texts, status, scene type, accent, stack[]
+(picked from the profile skills in the back office; tags were dropped in V9)) · `media` (object key, dimensions, blur placeholder, alt texts) · `project_media`
 (gallery / mobile ordering) · `experience` · `education` · `skill` · `contact_message` ·
 `analytics_event` (type, path, project, locale, theme, style (legacy, unused), device, referrer host, daily
 visitor hash). Migrations: `backend/src/main/resources/db/migration` (Flyway, plain SQL); they

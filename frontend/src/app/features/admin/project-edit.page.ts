@@ -12,6 +12,7 @@ import {
   DISPLAY_MODES,
   PROJECT_CATEGORIES,
   type ProjectUpsert,
+  type Skill,
 } from '../../core/api/models';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { Lang } from '../../core/i18n/routes';
@@ -24,6 +25,7 @@ import { SortMove, SortableDirective, moveItem } from '../../shared/ui/sortable.
 import { CASE_STUDY_KEYS } from '../../core/api/models';
 import { HasUnsavedChanges, snapshot, warnBeforeUnload } from './unsaved.guard';
 import { missingIn } from './missing-lang.component';
+import { SkillSelectComponent } from './skill-select.component';
 
 interface MediaRow {
   media: MediaDto;
@@ -54,7 +56,6 @@ function emptyForm(): ProjectUpsert {
     liveUrl: '',
     allowIframe: false,
     stack: [],
-    tags: [],
     coverMediaId: null,
     media: [],
   };
@@ -62,7 +63,7 @@ function emptyForm(): ProjectUpsert {
 
 @Component({
   selector: 'app-admin-project-edit',
-  imports: [FormsModule, RouterLink, TranslatePipe, UpperCasePipe, IconComponent, ShowcaseComponent, MediaPickerComponent, TooltipDirective, SortableDirective],
+  imports: [FormsModule, RouterLink, TranslatePipe, UpperCasePipe, IconComponent, ShowcaseComponent, MediaPickerComponent, TooltipDirective, SortableDirective, SkillSelectComponent],
   template: `
     <div class="admin-head">
       <div>
@@ -186,13 +187,10 @@ function emptyForm(): ProjectUpsert {
             <label for="f-live">{{ 'admin.projectForm.liveUrl' | t }}</label>
             <input id="f-live" class="input" name="liveUrl" type="url" [(ngModel)]="form.liveUrl" placeholder="https://…" />
           </div>
-          <div class="field">
+          <div class="field span-2">
             <label for="f-stack">{{ 'admin.projectForm.stack' | t }}</label>
-            <input id="f-stack" class="input" name="stack" [ngModel]="form.stack.join(', ')" (ngModelChange)="form.stack = split($event)" />
-          </div>
-          <div class="field">
-            <label for="f-tags">{{ 'admin.projectForm.tags' | t }}</label>
-            <input id="f-tags" class="input" name="tags" [ngModel]="form.tags.join(', ')" (ngModelChange)="form.tags = split($event)" />
+            <app-skill-select inputId="f-stack" [(value)]="form.stack" [skills]="skills()" />
+            <span class="field-hint">{{ 'admin.projectForm.stackHint' | t }}</span>
           </div>
           <label class="row" style="gap:.6rem">
             <button type="button" class="switch" role="switch" [attr.aria-checked]="form.featured" (click)="form.featured = !form.featured"></button>
@@ -320,9 +318,12 @@ export class ProjectEditPage implements HasUnsavedChanges {
   });
 
   form: ProjectUpsert = emptyForm();
+  /** the profile's skills, offered for the stack */
+  readonly skills = signal<Skill[]>([]);
 
   constructor() {
     afterNextRender(() => {
+      this.api.adminProfile().then((p) => this.skills.set(p.skills)).catch(() => undefined);
       const id = this.id();
       if (id) this.load(id);
       else this.savedState = this.state();
@@ -356,10 +357,6 @@ export class ProjectEditPage implements HasUnsavedChanges {
     this.tick.update((v) => v + 1);
   }
 
-  split(value: string): string[] {
-    return value.split(',').map((s) => s.trim()).filter(Boolean);
-  }
-
   private async load(id: string): Promise<void> {
     try {
       const p: AdminProject = await this.api.adminProject(id);
@@ -386,7 +383,6 @@ export class ProjectEditPage implements HasUnsavedChanges {
         liveUrl: p.liveUrl ?? '',
         allowIframe: p.allowIframe,
         stack: [...p.stack],
-        tags: [...p.tags],
         coverMediaId: p.coverMediaId,
         media: [],
       };

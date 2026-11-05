@@ -24,16 +24,21 @@ import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import javax.imageio.ImageIO;
+import fr.mbonnici.portfolio.admin.SystemSampler;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.test.context.support.WithMockUser;
 
 class BackupTest extends AbstractIntegrationTest {
 
+    @Autowired
+    SystemSampler sampler;
+
     private static final String NEW_PROJECT = """
             {"title": {"fr": "Projet temporaire", "en": "Temporary project"}, "status": "PUBLISHED",
-             "category": "WEB", "sceneType": "ORBIT", "accentColor": "#112233", "stack": [], "tags": [], "media": []}
+             "category": "WEB", "sceneType": "ORBIT", "accentColor": "#112233", "stack": [], "media": []}
             """;
 
     @Test
@@ -51,7 +56,7 @@ class BackupTest extends AbstractIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.drive.connected").value(false))
                 .andExpect(jsonPath("$.settings.keepCount").value(14))
-                .andExpect(jsonPath("$.schemaVersion").value("8"))
+                .andExpect(jsonPath("$.schemaVersion").value("9"))
                 .andExpect(jsonPath("$.running").value(false));
 
         mvc.perform(put("/api/admin/backups/settings").with(csrf()).contentType(MediaType.APPLICATION_JSON)
@@ -76,7 +81,28 @@ class BackupTest extends AbstractIntegrationTest {
                 .andExpect(jsonPath("$.memory.totalMb").isNumber())
                 .andExpect(jsonPath("$.disk.totalMb").isNumber())
                 .andExpect(jsonPath("$.data.databaseBytes").isNumber())
-                .andExpect(jsonPath("$.data.mediaCount").isNumber());
+                .andExpect(jsonPath("$.data.mediaCount").isNumber())
+                .andExpect(jsonPath("$.memory.appMb").isNumber());
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void liveSamplesAreServedIncrementally() throws Exception {
+        sampler.sample();
+        mvc.perform(get("/api/admin/system/live"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].t").isNumber())
+                .andExpect(jsonPath("$[0].appCpu").isNumber())
+                .andExpect(jsonPath("$[0].serverMemMb").isNumber());
+        long last = sampler.latest().t();
+        mvc.perform(get("/api/admin/system/live").param("since", Long.toString(last)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(0));
+    }
+
+    @Test
+    void liveSamplesNeedAnAdmin() throws Exception {
+        mvc.perform(get("/api/admin/system/live")).andExpect(status().isUnauthorized());
     }
 
     @Test

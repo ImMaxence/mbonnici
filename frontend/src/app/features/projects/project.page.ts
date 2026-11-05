@@ -582,7 +582,7 @@ export class ProjectPage {
             ...(p.repoUrl ? { codeRepository: p.repoUrl } : {}),
             ...(p.liveUrl ? { sameAs: p.liveUrl } : {}),
             ...(p.stack.length ? { programmingLanguage: p.stack.join(', ') } : {}),
-            keywords: [...p.tags, ...p.stack].join(', '),
+            keywords: p.stack.join(', '),
             dateModified: p.updatedAt,
             ...(p.publishedAt ? { datePublished: p.publishedAt } : {}),
             author: { '@id': `${origin}/#person` },

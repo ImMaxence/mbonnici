@@ -65,4 +65,48 @@ test.describe('phone layout', () => {
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
     expect(overflow).toBeLessThanOrEqual(1);
   });
+  test('a gallery picture can be zoomed with two fingers, a double tap, and panned', async ({ page }) => {
+    await page.goto('/fr/projets/localatscv');
+    const slider = page.locator('app-slider');
+    await slider.scrollIntoViewIfNeeded();
+    await slider.locator('.slide .open').first().tap();
+    const viewer = page.locator('dialog.viewer');
+    await expect(viewer).toBeVisible();
+    const pic = viewer.locator('.pic');
+    await page.waitForTimeout(700); // entrance animation
+    const box = (await pic.boundingBox())!;
+    const cx = box.x + box.width / 2;
+    const cy = box.y + box.height / 2;
+    const cdp = await page.context().newCDPSession(page);
+    const touch = (type: string, points: { x: number; y: number }[]) =>
+      cdp.send('Input.dispatchTouchEvent', { type, touchPoints: points.map((p, id) => ({ x: p.x, y: p.y, id })) });
+    const scale = () => pic.evaluate((el) => new DOMMatrix(getComputedStyle(el).transform).a);
+
+    // pinch: two fingers move apart
+    await touch('touchStart', [{ x: cx - 20, y: cy }, { x: cx + 20, y: cy }]);
+    for (let i = 1; i <= 8; i++) await touch('touchMove', [{ x: cx - 20 - i * 12, y: cy }, { x: cx + 20 + i * 12, y: cy }]);
+    await touch('touchEnd', []);
+    expect(await scale()).toBeGreaterThan(2.5);
+    await expect(viewer.getByRole('button', { name: 'Dézoomer' })).toBeVisible();
+
+    // one finger pans the zoomed picture and does not change picture
+    const before = (await pic.boundingBox())!.x;
+    await touch('touchStart', [{ x: cx, y: cy }]);
+    for (let i = 1; i <= 5; i++) await touch('touchMove', [{ x: cx + i * 15, y: cy }]);
+    await touch('touchEnd', []);
+    expect((await pic.boundingBox())!.x).toBeGreaterThan(before + 30);
+    await expect(viewer.locator('.lb-count')).toContainText('01');
+
+    // double tap: back to fitted, then in again
+    await page.waitForTimeout(400);
+    await page.touchscreen.tap(cx, cy);
+    await page.touchscreen.tap(cx, cy);
+    await expect.poll(scale).toBe(1);
+    await page.waitForTimeout(400);
+    await page.touchscreen.tap(cx, cy);
+    await page.touchscreen.tap(cx, cy);
+    await expect.poll(scale).toBeGreaterThan(2);
+    await viewer.getByRole('button', { name: 'Fermer' }).tap();
+    await expect(viewer).toBeHidden();
+  });
 });

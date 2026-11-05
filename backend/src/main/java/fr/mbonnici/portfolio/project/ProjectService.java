@@ -181,7 +181,6 @@ public class ProjectService {
         p.setLiveUrl(checkedUrl(in.liveUrl(), "liveUrl"));
         p.setAllowIframe(Boolean.TRUE.equals(in.allowIframe()) && p.getLiveUrl() != null);
         p.setStack(clean(in.stack()));
-        p.setTags(clean(in.tags()));
 
         p.setCoverMedia(in.coverMediaId() == null ? null
                 : mediaRepository.findById(in.coverMediaId()).orElseThrow(() -> new NotFoundException("Cover media")));
@@ -254,7 +253,7 @@ public class ProjectService {
         }
         return new Detail(p.getId(), p.getSlug(), p.getTitle().filled(), p.getTagline().filled(),
                 p.getDescription().filled(), ProjectDtos.CaseStudy.from(p), p.getCategory(), p.getSceneType(), p.getDisplayMode(), p.getAccentColor(), p.getYear(),
-                List.copyOf(p.getStack()), List.copyOf(p.getTags()), p.isFeatured(), MediaDto.from(p.getCoverMedia()),
+                List.copyOf(p.getStack()), p.isFeatured(), MediaDto.from(p.getCoverMedia()),
                 p.getLiveUrl(), p.getRepoUrl(), p.isAllowIframe(), gallery, mobile, p.getPublishedAt(), p.getUpdatedAt(),
                 previous, next);
     }
@@ -268,7 +267,7 @@ public class ProjectService {
                 new ProjectDtos.CaseStudy(p.getContext(), p.getRole(), p.getChallenges(), p.getResults()), p.getStatus(),
                 p.isFeatured(), p.getSortOrder(), p.getYear(), p.getCategory(), p.getSceneType(), p.getDisplayMode(), p.getAccentColor(),
                 cover == null ? null : cover.getId(), MediaDto.from(cover), p.getRepoUrl(), p.getLiveUrl(),
-                p.isAllowIframe(), List.copyOf(p.getStack()), List.copyOf(p.getTags()), items, p.getCreatedAt(),
+                p.isAllowIframe(), List.copyOf(p.getStack()), items, p.getCreatedAt(),
                 p.getUpdatedAt(), p.getPublishedAt());
     }
 }

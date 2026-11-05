@@ -59,7 +59,7 @@ insert into skill (name, category, level, sort_order) values
 ('Tests automatisés', 'PRACTICE', 5, 50), ('Clean code', 'PRACTICE', 4, 51), ('Accessibilité', 'PRACTICE', 4, 52), ('SEO', 'PRACTICE', 4, 53);
 
 -- Projects
-insert into project (slug, title_fr, title_en, tagline_fr, tagline_en, description_fr, description_en, status, featured, sort_order, year, category, scene_type, accent_color, repo_url, live_url, allow_iframe, stack, tags, published_at) values
+insert into project (slug, title_fr, title_en, tagline_fr, tagline_en, description_fr, description_en, status, featured, sort_order, year, category, scene_type, accent_color, repo_url, live_url, allow_iframe, stack, published_at) values
 ('localatscv', 'LocalATSCV', 'LocalATSCV',
  'Le CV qui décroche l''entretien, prêt en quelques minutes. Gratuit, sans compte, 100 % local.',
  'The resume that gets you the interview, ready in minutes. Free, no sign-up, 100% local.',
@@ -78,7 +78,7 @@ LocalATSCV gives you both: designs recruiters like and real text that robots rea
 - ATS check built into the editor, tailor one master resume to every job
 - PDF export generated entirely in the browser',
  'PUBLISHED', true, 0, 2026, 'TOOL', 'STACK', '#f0582b', 'https://github.com/ImMaxence/LocalATSCV', 'https://localatscv.mbonnici.fr/', true,
- '{Angular 22,TypeScript,PWA,Génération PDF,i18n}', '{open source,privacy,pwa}', now()),
+ '{Angular 22,TypeScript,PWA,Génération PDF,i18n}', now()),
 
 ('localcutvideo', 'LocalCutVideo', 'LocalCutVideo',
  'Montez vos vidéos en un clic. Rien ne quitte votre ordinateur.',
@@ -94,7 +94,7 @@ LocalATSCV gives you both: designs recruiters like and real text that robots rea
 - Background blur through segmentation, titles and transitions, thumbnail maker
 - The video is read in place from your disk (File System Access API): nothing is sent anywhere',
  'PUBLISHED', true, 1, 2026, 'TOOL', 'TERRAIN', '#7c5cff', 'https://github.com/ImMaxence/LocalCutVideo', 'https://localcutvideo.mbonnici.fr', true,
- '{Angular,TypeScript,WebCodecs,Whisper (WASM),MediaPipe,Web Workers}', '{open source,video,privacy}', now()),
+ '{Angular,TypeScript,WebCodecs,Whisper (WASM),MediaPipe,Web Workers}', now()),
 
 ('meowtrix', 'Meowtrix', 'Meowtrix',
  'Transformez n''importe quel écran en terrain de chasse pour votre chat.',
@@ -110,7 +110,7 @@ LocalATSCV gives you both: designs recruiters like and real text that robots rea
 - Three worlds (land, water, sky), live-synthesised sound, reacts to real room noises through the microphone
 - Speed adapts to the cat and every session ends on a catch',
  'PUBLISHED', true, 2, 2026, 'GAME', 'DEVICE', '#2dd4a0', 'https://github.com/ImMaxence/meowtrix', 'https://meowtrix.mbonnici.fr/', true,
- '{TypeScript,Canvas,3D procédural,Web Audio,PWA}', '{game,3d,procedural}', now()),
+ '{TypeScript,Canvas,3D procédural,Web Audio,PWA}', now()),
 
 ('a2e-environnement', 'A2E Environnement', 'A2E Environnement',
  'Refonte complète du site d''un bureau d''études en eau, assainissement et sols.',
@@ -126,7 +126,7 @@ LocalATSCV gives you both: designs recruiters like and real text that robots rea
 - Typed dictionary: a missing translation fails the build
 - Containerised with nginx and deployed with Docker Compose on Coolify',
  'PUBLISHED', false, 3, 2026, 'WEB', 'STACK', '#1f8ef1', 'https://github.com/ImMaxence/a2e', 'https://a2e.mbonnici.fr/', true,
- '{Angular 22,TypeScript,i18n,nginx,Docker}', '{showcase,seo,i18n}', now()),
+ '{Angular 22,TypeScript,i18n,nginx,Docker}', now()),
 
 ('les-creations-de-yona', 'Les créations de Yona', 'Les créations de Yona',
  'Un blog de cuisine installable, avec mode cuisine, liste de courses et notifications.',
@@ -142,7 +142,7 @@ LocalATSCV gives you both: designs recruiters like and real text that robots rea
 - Shopping list, glossary, dark theme, push notifications for every new recipe
 - Full back office to write, illustrate and publish',
  'PUBLISHED', true, 4, 2026, 'WEB', 'DEVICE', '#e8713c', 'https://github.com/ImMaxence/les-creations-de-yona', 'https://les-creations-de-yona.fr/', false,
- '{TypeScript,PWA,Notifications push,Back-office}', '{pwa,blog,mobile-first}', now()),
+ '{TypeScript,PWA,Notifications push,Back-office}', now()),
 
 ('clienthub-crm', 'ClientHub CRM', 'ClientHub CRM',
  'Un CRM complet, Angular et Spring Boot, entièrement conteneurisé.',
@@ -158,7 +158,7 @@ LocalATSCV gives you both: designs recruiters like and real text that robots rea
 - Responsive Angular 20 interface with dashboards
 - Docker Compose orchestration with nginx in front',
  'PUBLISHED', false, 5, 2025, 'WEB', 'TERRAIN', '#0ea5e9', 'https://github.com/ImMaxence/ClientHub-CRM', 'https://clienthub.mbonnici.fr', false,
- '{Angular 20,Spring Boot 3,PostgreSQL,JWT,Docker Compose,nginx}', '{fullstack,crm}', now()),
+ '{Angular 20,Spring Boot 3,PostgreSQL,JWT,Docker Compose,nginx}', now()),
 
 ('epic-road-trip-planner', 'Epic Road Trip Planner', 'Epic Road Trip Planner',
  'Planifier un road trip en France, étape par étape, sur une carte.',
@@ -174,7 +174,7 @@ LocalATSCV gives you both: designs recruiters like and real text that robots rea
 - Node / Express API developed with TDD
 - React interface with Ant Design and React-PDF export',
  'PUBLISHED', false, 6, 2024, 'WEB', 'TERRAIN', '#22c55e', 'https://github.com/ImMaxence/Epic-Road-Trip-Planner', null, false,
- '{React,Node.js,Express,Leaflet,OpenStreetMap,TDD}', '{epitech,maps}', now()),
+ '{React,Node.js,Express,Leaflet,OpenStreetMap,TDD}', now()),
 
 ('time-manager', 'Time Manager', 'Time Manager',
  'Suivi du temps de travail pour les équipes, web et mobile.',
@@ -190,7 +190,7 @@ LocalATSCV gives you both: designs recruiters like and real text that robots rea
 - React web client and React Native mobile app
 - Figma mock-ups then pixel-perfect integration',
  'PUBLISHED', false, 7, 2024, 'MOBILE', 'HELIX', '#a855f7', 'https://github.com/ImMaxence/Time-Manager', null, false,
- '{React,React Native,Elixir,Phoenix,Docker,Figma}', '{epitech,mobile}', now()),
+ '{React,React Native,Elixir,Phoenix,Docker,Figma}', now()),
 
 ('kryptonews', 'Kryptonews', 'Kryptonews',
  'L''actualité des cryptomonnaies, agrégée et mise en page.',
@@ -206,7 +206,7 @@ LocalATSCV gives you both: designs recruiters like and real text that robots rea
 - React interface, Figma mock-ups
 - HTTPS deployment on a dedicated domain',
  'PUBLISHED', false, 8, 2024, 'WEB', 'HELIX', '#f59e0b', 'https://github.com/ImMaxence/Kryptonews', null, false,
- '{React,Node.js,Express,RSS}', '{epitech,crypto}', now()),
+ '{React,Node.js,Express,RSS}', now()),
 
 ('redditech', 'Redditech', 'Redditech',
  'Un client Reddit mobile avec OAuth2 et défilement infini.',
@@ -214,7 +214,7 @@ LocalATSCV gives you both: designs recruiters like and real text that robots rea
  'Projet EPITECH : un client Reddit en React Native. Connexion OAuth2, navigation par subreddit, défilement automatique et profil utilisateur.',
  'EPITECH project: a Reddit client in React Native. OAuth2 login, subreddit browsing, auto-scrolling and user profile.',
  'PUBLISHED', false, 9, 2023, 'MOBILE', 'DEVICE', '#ff4500', 'https://github.com/ImMaxence/Redditech', null, false,
- '{React Native,OAuth2,Reddit API}', '{epitech,mobile}', now()),
+ '{React Native,OAuth2,Reddit API}', now()),
 
 ('mern-irc', 'MERN IRC', 'MERN IRC',
  'Un IRC temps réel en MongoDB, Express, React, Node et Socket.IO.',
@@ -222,7 +222,7 @@ LocalATSCV gives you both: designs recruiters like and real text that robots rea
  'Projet EPITECH : une messagerie instantanée inspirée d''IRC. Canaux, messages en temps réel via Socket.IO, interface responsive.',
  'EPITECH project: an IRC-inspired instant messaging app. Channels, real-time messages over Socket.IO, responsive interface.',
  'PUBLISHED', false, 10, 2023, 'WEB', 'ORBIT', '#06b6d4', 'https://github.com/ImMaxence/MERN-IRC-SocketIO', null, false,
- '{MongoDB,Express,React,Node.js,Socket.IO}', '{epitech,realtime}', now()),
+ '{MongoDB,Express,React,Node.js,Socket.IO}', now()),
 
 ('nailsbyanastasie', 'Nails by Anastasie', 'Nails by Anastasie',
  'Site vitrine d''une prothésiste ongulaire.',
@@ -230,7 +230,7 @@ LocalATSCV gives you both: designs recruiters like and real text that robots rea
  'Site vitrine pour une prothésiste ongulaire : prestations, galerie et prise de contact.',
  'Showcase website for a nail technician: services, gallery and contact.',
  'DRAFT', false, 11, 2026, 'WEB', 'ORBIT', '#f472b6', 'https://github.com/ImMaxence/nailsbyanastasie', 'https://nailsbyanastasie.fr', false,
- '{HTML,CSS,JavaScript}', '{showcase}', null);
+ '{HTML,CSS,JavaScript}', null);
 
 -- ─────────────────────────────────────────────────────────────────────────────
 -- Content refresh (v1.2.0). Every statement only touches values still equal to the

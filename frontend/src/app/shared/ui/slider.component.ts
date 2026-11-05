@@ -4,7 +4,9 @@ import {
   DestroyRef,
   ElementRef,
   afterNextRender,
+  effect,
   inject,
+  untracked,
   input,
   signal,
   viewChild,
@@ -180,6 +182,22 @@ export class SliderComponent {
 
   constructor() {
     afterNextRender(() => this.onScroll());
+    // the project page reuses this component from one project to the next: start each gallery at its first picture
+    let first = true;
+    effect(() => {
+      this.images();
+      if (first) {
+        first = false;
+        return;
+      }
+      untracked(() => {
+        this.drag = null;
+        this.index.set(0);
+        const el = this.track().nativeElement;
+        el.classList.remove('is-dragging');
+        el.scrollTo({ left: 0, behavior: 'instant' });
+      });
+    });
     inject(DestroyRef).onDestroy(() => (this.drag = null));
   }
 

@@ -111,6 +111,53 @@ test('leaving a form with unsaved changes asks first', async ({ page }) => {
   await expect(page).toHaveURL(/\/admin\/projects/);
 });
 
+test('a picture is described in a dialog, nothing saved before "Save"', async ({ page }) => {
+  await page.goto('/api/auth/dev-login');
+  await page.goto('/admin/media');
+  await page.locator('.media-item').first().click();
+  const dialog = page.locator('dialog.media-dialog');
+  await expect(dialog).toBeVisible();
+  await expect(dialog.locator('#alt-fr')).toBeFocused();
+  await expectAccessible(page, 600);
+  const before = await dialog.locator('#alt-fr').inputValue();
+  await dialog.locator('#alt-fr').fill(before + ' (brouillon)');
+  await dialog.getByRole('button', { name: 'Annuler' }).click();
+  await expect(dialog).toBeHidden();
+  await page.locator('.media-item').first().click();
+  await expect(dialog.locator('#alt-fr')).toHaveValue(before);
+  await page.keyboard.press('Escape');
+  await expect(dialog).toBeHidden();
+});
+
+test('the stack is picked from the profile skills', async ({ page }) => {
+  await page.goto('/api/auth/dev-login');
+  await page.goto('/admin/projects/new');
+  const field = page.locator('#f-stack');
+  await field.fill('typesc');
+  const option = page.getByRole('option', { name: 'TypeScript' });
+  await expect(option).toBeVisible();
+  await expectAccessible(page, 300);
+  await field.press('Enter');
+  await expect(page.locator('app-skill-select .pick')).toHaveText(['TypeScript']);
+  // something that is not a skill is added as typed, dashed
+  await field.fill('Three.js');
+  await field.press('Enter');
+  await expect(page.locator('app-skill-select .pick.custom')).toHaveText(['Three.js']);
+  await field.press('Backspace');
+  await expect(page.locator('app-skill-select .pick')).toHaveCount(1);
+});
+
+test('the dashboard follows the server live', async ({ page }) => {
+  await page.goto('/api/auth/dev-login');
+  await page.goto('/admin');
+  const live = page.locator('app-live-metrics');
+  await expect(live.locator('.tile')).toHaveCount(4);
+  const first = await page.request.get('/api/admin/system/live').then((r) => r.json());
+  await expect.poll(async () => (await page.request.get('/api/admin/system/live').then((r) => r.json())).length, { timeout: 8000 }).toBeGreaterThan(first.length - 1);
+  await live.getByRole('button', { name: 'Mettre en pause' }).click();
+  await expect(live.locator('.live')).toHaveText(/En pause/);
+});
+
 test('project pages share a generated 1200 × 630 JPEG', async ({ page, request: api }) => {
   await page.goto('/fr/projets/localatscv');
   const og = await page.locator('meta[property="og:image"]').getAttribute('content');

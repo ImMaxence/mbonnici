@@ -1,5 +1,4 @@
 import { Component, afterNextRender, computed, inject, signal } from '@angular/core';
-import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../core/api/api.service';
 import type { MediaDto } from '../../core/api/models';
 import { I18nService } from '../../core/i18n/i18n.service';
@@ -8,10 +7,11 @@ import { IconComponent } from '../../shared/ui/icon.component';
 import { ConfirmService } from '../../shared/ui/confirm.service';
 import { TooltipDirective } from '../../shared/ui/tooltip.directive';
 import { focalPosition } from '../../shared/ui/shots';
+import { MediaEditDialogComponent } from './media-edit-dialog.component';
 
 @Component({
   selector: 'app-admin-media',
-  imports: [FormsModule, TranslatePipe, IconComponent, TooltipDirective],
+  imports: [TranslatePipe, IconComponent, TooltipDirective, MediaEditDialogComponent],
   template: `
     <div class="admin-head">
       <div>
@@ -63,40 +63,35 @@ import { focalPosition } from '../../shared/ui/shots';
       }
       <div class="library">
         @for (m of shown(); track m.id) {
-          <div class="entry" [class.is-editing]="editing() === m.id">
-            <div class="media-item" [class.is-selected]="editing() === m.id" (click)="editing.set(editing() === m.id ? null : m.id)">
-              <img [src]="m.url" [attr.srcset]="m.srcset || null" sizes="220px" [style.object-position]="pos(m)" [alt]="m.alt.fr || ''" loading="lazy" />
+          <div class="entry">
+            <button type="button" class="media-item" [class.is-selected]="editing() === m.id" (click)="editing.set(m.id)" [attr.aria-label]="('admin.media.edit' | t) + (m.alt.fr ? ' — ' + m.alt.fr : '')">
+              <img [src]="m.url" [attr.srcset]="m.srcset || null" sizes="220px" [style.object-position]="pos(m)" alt="" loading="lazy" />
               @if (!m.alt.fr && !m.alt.en) {
                 <span class="no-alt" [appTip]="'admin.media.noAlt' | t" [tipLabel]="false">ALT</span>
               }
               @if (unused().has(m.id)) {
                 <span class="unused" [appTip]="'admin.media.unusedTip' | t" [tipLabel]="false">{{ 'admin.media.unused' | t }}</span>
               }
-            </div>
+            </button>
+            @if (m.alt.fr || m.alt.en) {
+              <p class="entry-alt small" [title]="m.alt.fr || m.alt.en">{{ m.alt.fr || m.alt.en }}</p>
+            } @else {
+              <p class="entry-alt small warn-text">{{ 'admin.media.noAlt' | t }}</p>
+            }
             <div class="entry-foot">
-              <span class="small faint mono">{{ m.width ?? '?' }}×{{ m.height ?? '?' }} · {{ kb(m.sizeBytes) }} ko · {{ m.contentType.replace('image/', '') }}</span>
+              <span class="small faint mono">{{ m.width ?? '?' }}×{{ m.height ?? '?' }} · {{ kb(m.sizeBytes) }} ko</span>
               <span class="entry-actions">
-                <button type="button" class="icon-btn" (click)="editing.set(editing() === m.id ? null : m.id)" [appTip]="'admin.media.alt' | t"><app-icon name="edit" [size]="14" /></button>
+                <button type="button" class="icon-btn" (click)="editing.set(m.id)" [appTip]="'admin.media.edit' | t"><app-icon name="edit" [size]="14" /></button>
                 <button type="button" class="icon-btn" (click)="copy(m)" [appTip]="'admin.media.copyUrl' | t"><app-icon name="copy" [size]="14" /></button>
                 <button type="button" class="icon-btn danger" (click)="remove(m)" [appTip]="'admin.media.delete' | t"><app-icon name="trash" [size]="14" /></button>
               </span>
             </div>
-            @if (editing() === m.id) {
-              <div class="stack" style="gap:.4rem">
-                <span class="small faint">{{ 'admin.media.focalHint' | t }}</span>
-                <button type="button" class="focal" (click)="setFocal(m, $event)" [attr.aria-label]="'admin.media.focal' | t">
-                  <img [src]="m.url" [attr.srcset]="m.srcset || null" sizes="300px" alt="" />
-                  <i class="dot" [style.left.%]="(m.focalX ?? 0.5) * 100" [style.top.%]="(m.focalY ?? 0) * 100" aria-hidden="true"></i>
-                </button>
-                <input class="input" [placeholder]="'admin.media.altFr' | t" [(ngModel)]="m.alt.fr" name="altFr-{{ m.id }}" />
-                <input class="input" [placeholder]="'admin.media.altEn' | t" [(ngModel)]="m.alt.en" name="altEn-{{ m.id }}" />
-                <button type="button" class="btn" (click)="saveAlt(m)"><app-icon name="check" [size]="14" /> {{ 'admin.profile.save' | t }}</button>
-              </div>
-            }
           </div>
         }
       </div>
     </div>
+
+    <app-media-edit-dialog [media]="current()" [hasNext]="nextId() != null" [position]="position()" (saved)="onSaved($event)" (closed)="editing.set(null)" />
   `,
   styles: `
     .library {
@@ -108,6 +103,21 @@ import { focalPosition } from '../../shared/ui/shots';
       display: grid;
       gap: 0.5rem;
       align-content: start;
+    }
+    button.media-item {
+      display: block;
+      width: 100%;
+      padding: 0;
+      text-align: left;
+    }
+    .entry-alt {
+      margin: 0;
+      color: var(--fg-2);
+      line-height: 1.35;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
     }
     .entry-foot {
       display: flex;
@@ -133,36 +143,6 @@ import { focalPosition } from '../../shared/ui/shots';
       color: var(--fg-2);
       font: 600 0.62rem/1.2 var(--font-mono);
       letter-spacing: 0.04em;
-    }
-    .focal {
-      position: relative;
-      display: block;
-      width: 100%;
-      padding: 0;
-      border-radius: 10px;
-      overflow: hidden;
-      cursor: crosshair;
-      background: var(--bg-3);
-    }
-    .focal img {
-      display: block;
-      width: 100%;
-      height: auto;
-    }
-    .focal .dot {
-      position: absolute;
-      width: 22px;
-      height: 22px;
-      margin: -11px 0 0 -11px;
-      border-radius: 50%;
-      border: 2px solid #fff;
-      box-shadow:
-        0 0 0 2px var(--accent),
-        0 2px 10px rgba(0, 0, 0, 0.4);
-      transition:
-        left 0.3s var(--ease-out),
-        top 0.3s var(--ease-out);
-      pointer-events: none;
     }
     .warn-text {
       color: var(--warning);
@@ -212,20 +192,6 @@ export class MediaPage {
 
   pos(m: MediaDto): string {
     return focalPosition(m);
-  }
-
-  /** click on the picture: that point stays in view when a frame crops it */
-  async setFocal(m: MediaDto, e: MouseEvent): Promise<void> {
-    const r = (e.currentTarget as HTMLElement).getBoundingClientRect();
-    const x = Math.round(Math.min(1, Math.max(0, (e.clientX - r.left) / r.width)) * 100) / 100;
-    const y = Math.round(Math.min(1, Math.max(0, (e.clientY - r.top) / r.height)) * 100) / 100;
-    this.items.update((list) => list.map((i) => (i.id === m.id ? { ...i, focalX: x, focalY: y } : i)));
-    try {
-      const updated = await this.api.updateMediaFocal(m.id, x, y);
-      this.items.update((list) => list.map((i) => (i.id === m.id ? { ...updated, alt: i.alt } : i)));
-    } catch (err) {
-      this.error.set(String(err));
-    }
   }
 
   async cleanUp(): Promise<void> {
@@ -287,10 +253,23 @@ export class MediaPage {
     }
   }
 
-  async saveAlt(m: MediaDto): Promise<void> {
-    const updated = await this.api.updateMediaAlt(m.id, { fr: m.alt.fr, en: m.alt.en });
-    this.items.update((list) => list.map((x) => (x.id === m.id ? updated : x)));
-    this.editing.set(null);
+  /** the picture open in the dialog, and the one after it in the visible list */
+  readonly current = computed(() => this.items().find((m) => m.id === this.editing()) ?? null);
+  readonly nextId = computed(() => {
+    const list = this.shown();
+    const i = list.findIndex((m) => m.id === this.editing());
+    return i >= 0 && i < list.length - 1 ? list[i + 1].id : null;
+  });
+  readonly position = computed(() => {
+    const list = this.shown();
+    const i = list.findIndex((m) => m.id === this.editing());
+    return i >= 0 ? `${i + 1} / ${list.length}` : '';
+  });
+
+  onSaved(e: { media: MediaDto; next: boolean }): void {
+    const next = e.next ? this.nextId() : null;
+    this.items.update((list) => list.map((x) => (x.id === e.media.id ? e.media : x)));
+    this.editing.set(next);
   }
 
   async remove(m: MediaDto): Promise<void> {

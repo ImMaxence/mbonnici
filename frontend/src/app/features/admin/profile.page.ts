@@ -20,6 +20,7 @@ import { ConfirmService } from '../../shared/ui/confirm.service';
 import { TooltipDirective } from '../../shared/ui/tooltip.directive';
 import { SortMove, SortableDirective, moveItem } from '../../shared/ui/sortable.directive';
 import { CvPanelComponent } from './cv-panel.component';
+import { SkillSelectComponent } from './skill-select.component';
 import { MissingLangComponent } from './missing-lang.component';
 import { HasUnsavedChanges, snapshot, warnBeforeUnload } from './unsaved.guard';
 
@@ -27,7 +28,7 @@ type Section = 'experience' | 'education' | 'skill';
 
 @Component({
   selector: 'app-admin-profile',
-  imports: [FormsModule, TranslatePipe, LocalizedPipe, IconComponent, TooltipDirective, SortableDirective, MissingLangComponent, CvPanelComponent],
+  imports: [FormsModule, TranslatePipe, LocalizedPipe, IconComponent, TooltipDirective, SortableDirective, MissingLangComponent, CvPanelComponent, SkillSelectComponent],
   template: `
     <div class="admin-head">
       <h1>{{ 'admin.profile.title' | t }}</h1>
@@ -86,7 +87,7 @@ type Section = 'experience' | 'education' | 'skill';
           <div class="field"><label for="prof-sortOrder">{{ 'admin.profile.order' | t }}</label><input id="prof-sortOrder" class="input" type="number" name="sortOrder" [(ngModel)]="exp.sortOrder" /></div>
           <div class="field"><label for="prof-startDate">{{ 'admin.profile.start' | t }}</label><input id="prof-startDate" class="input" type="date" name="startDate" [(ngModel)]="exp.startDate" required /></div>
           <div class="field"><label for="prof-endDate">{{ 'admin.profile.end' | t }}</label><input id="prof-endDate" class="input" type="date" name="endDate" [(ngModel)]="exp.endDate" /></div>
-          <div class="field span-2"><label for="prof-skills">{{ 'admin.profile.skillsList' | t }}</label><input id="prof-skills" class="input" name="skills" [ngModel]="exp.skills.join(', ')" (ngModelChange)="exp.skills = split($event)" /></div>
+          <div class="field span-2"><label for="prof-skills">{{ 'admin.profile.skillsList' | t }}</label><app-skill-select inputId="prof-skills" [(value)]="exp.skills" [skills]="profile()?.skills ?? []" /></div>
           <div class="row span-2">
             <button type="submit" class="btn btn-accent">{{ 'admin.profile.save' | t }}</button>
             <button type="button" class="btn btn-ghost" (click)="editing.set(null)">{{ 'admin.projectForm.cancel' | t }}</button>
@@ -286,10 +287,6 @@ export class AdminProfilePage implements HasUnsavedChanges {
 
   async load(): Promise<void> {
     this.profile.set(await this.api.adminProfile());
-  }
-
-  split(v: string): string[] {
-    return v.split(',').map((s) => s.trim()).filter(Boolean);
   }
 
   startExperience(e?: Experience): void {

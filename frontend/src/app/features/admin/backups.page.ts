@@ -20,9 +20,6 @@ import { TooltipDirective } from '../../shared/ui/tooltip.directive';
         <h1>{{ 'admin.backups.title' | t }}</h1>
         <p class="muted small" style="max-width: 70ch">{{ 'admin.backups.intro' | t }}</p>
       </div>
-      @if (overview()?.schemaVersion; as v) {
-        <span class="chip mono">{{ 'admin.backups.schema' | t: { v: v } }}</span>
-      }
     </div>
 
     @if (toast()) {
@@ -88,6 +85,9 @@ import { TooltipDirective } from '../../shared/ui/tooltip.directive';
               <input type="file" accept=".zip,application/zip" hidden (change)="importFile($event)" [disabled]="importing()" />
             </label>
             <p class="small faint" style="margin-top: .4rem">{{ 'admin.backups.actions.importHint' | t }}</p>
+            @if (overview()?.schemaVersion; as v) {
+              <p class="small faint" style="margin-top: .25rem">{{ 'admin.backups.schema' | t: { v: v } }}</p>
+            }
           </div>
         </div>
       </section>
@@ -132,10 +132,12 @@ import { TooltipDirective } from '../../shared/ui/tooltip.directive';
                     <div class="mono small">{{ f.name }}</div>
                     <div class="faint small">{{ f.createdTime ? i18n.formatDate(f.createdTime, { dateStyle: 'medium', timeStyle: 'short' }) : '' }} · {{ size(f.size ?? 0) }}</div>
                   </td>
-                  <td class="num" style="white-space: nowrap">
+                  <td class="num">
+                    <div class="file-actions">
                     <button type="button" class="chip" (click)="restore(f)" [disabled]="overview()?.running || staging()"><app-icon name="refresh" [size]="12" /> {{ 'admin.backups.files.restore' | t }}</button>
                     <a class="chip" [href]="api.backupDownloadUrl(f.id)"><app-icon name="arrow-down" [size]="12" /> {{ 'admin.backups.files.download' | t }}</a>
                     <button type="button" class="icon-btn danger" (click)="remove(f)" [appTip]="'admin.backups.files.delete' | t"><app-icon name="trash" [size]="15" /></button>
+                    </div>
                   </td>
                 </tr>
               }
@@ -184,6 +186,13 @@ import { TooltipDirective } from '../../shared/ui/tooltip.directive';
       .grid-2 .panel + .panel {
         margin-top: 0;
       }
+    }
+    .file-actions {
+      display: inline-flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 0.4rem;
+      white-space: nowrap;
     }
     .is-disabled {
       opacity: 0.5;

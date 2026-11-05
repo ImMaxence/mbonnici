@@ -9,6 +9,7 @@ import { I18nService } from '../../core/i18n/i18n.service';
 import { LocalizedPipe, TranslatePipe } from '../../core/i18n/translate.pipe';
 import { IconComponent } from '../../shared/ui/icon.component';
 import { APP_VERSION } from '../../../environments/version';
+import { LiveMetricsComponent } from './live-metrics.component';
 
 interface ChartPoint {
   x: number;
@@ -25,7 +26,7 @@ const PAD = { top: 16, right: 16, bottom: 28, left: 36 };
 
 @Component({
   selector: 'app-admin-dashboard',
-  imports: [NgTemplateOutlet, RouterLink, TooltipDirective, TranslatePipe, LocalizedPipe, IconComponent],
+  imports: [NgTemplateOutlet, RouterLink, TooltipDirective, TranslatePipe, LocalizedPipe, IconComponent, LiveMetricsComponent],
   template: `
     <div class="admin-head">
       <div>
@@ -207,15 +208,23 @@ const PAD = { top: 16, right: 16, bottom: 28, left: 36 };
           @if (!hasVitals()) {
             <div class="empty"><app-icon name="gauge" [size]="22" /><p>{{ 'admin.vitals.none' | t }}</p></div>
           } @else {
+            <p class="vital-intro small">{{ 'admin.vitals.intro' | t }}</p>
+            <div class="vital-legend small">
+              <span><i class="sw-r good" aria-hidden="true"></i>{{ 'admin.vitals.legend.good' | t }}</span>
+              <span><i class="sw-r ni" aria-hidden="true"></i>{{ 'admin.vitals.legend.ni' | t }}</span>
+              <span><i class="sw-r poor" aria-hidden="true"></i>{{ 'admin.vitals.legend.poor' | t }}</span>
+              <span class="faint">{{ 'admin.vitals.legend.bar' | t }}</span>
+            </div>
             <div class="vital-grid">
               @for (m of v.metrics; track m.metric) {
-                <div class="vital" [attr.data-rating]="rating(m.metric, m.p75)" [appTip]="'admin.vitals.help.' + m.metric | t">
+                <div class="vital" [attr.data-rating]="rating(m.metric, m.p75)">
                   <span class="v-name mono">{{ m.metric }}</span>
                   <strong class="v-value">{{ m.p75 == null ? '—' : format(m.metric, m.p75) }}</strong>
                   <span class="v-label small">{{ 'admin.vitals.label.' + m.metric | t }}</span>
                   <span class="v-bar" aria-hidden="true">
                     <i class="good" [style.flex-grow]="m.good"></i><i class="ni" [style.flex-grow]="m.needsImprovement"></i><i class="poor" [style.flex-grow]="m.poor"></i>
                   </span>
+                  <span class="v-goal small faint">{{ 'admin.vitals.help.' + m.metric | t }}</span>
                   <span class="v-samples small faint mono">{{ 'admin.vitals.samples' | t: { n: m.samples } }}</span>
                 </div>
               }
@@ -306,30 +315,26 @@ const PAD = { top: 16, right: 16, bottom: 28, left: 36 };
         </section>
       }
 
-      <!-- ── system ── -->
+      <!-- ── server, live ── -->
+      <section class="panel server-live">
+        <app-live-metrics [cores]="system()?.cpu?.cores ?? 0" />
+      </section>
+
       <section class="grid two">
         <div class="panel">
-          <div class="panel-head">
-            <h2>{{ 'admin.server.title' | t }}</h2>
-            @if (system(); as s) {
-              <span class="faint small mono">{{ 'admin.server.cores' | t: { n: s.cpu.cores } }} · {{ 'admin.server.sampled' | t: { time: i18n.formatDate(s.sampledAt, { timeStyle: 'medium' }) } }}</span>
-            }
-          </div>
+          <div class="panel-head"><h2>{{ 'admin.server.storage' | t }}</h2></div>
           @if (system(); as s) {
-            <div class="gauges">
-              <ng-container *ngTemplateOutlet="gauge; context: { v: pctOf(s.cpu.processLoad), label: ('admin.server.cpuProcess' | t), sub: '' }" />
-              <ng-container *ngTemplateOutlet="gauge; context: { v: pctOf(s.cpu.systemLoad), label: ('admin.server.cpuSystem' | t), sub: '' }" />
-              <ng-container *ngTemplateOutlet="gauge; context: { v: ratio(s.memory.usedMb, s.memory.totalMb), label: ('admin.server.memory' | t), sub: mb(s.memory.usedMb) + ' / ' + mb(s.memory.totalMb) }" />
+            <div class="storage">
               <ng-container *ngTemplateOutlet="gauge; context: { v: ratio(s.disk.usedMb, s.disk.totalMb), label: ('admin.server.disk' | t), sub: mb(s.disk.freeMb) + ' ' + ('admin.server.left' | t) }" />
+              <dl class="kv">
+                <dt>{{ 'admin.server.database' | t }}</dt>
+                <dd>{{ bytes(s.data.databaseBytes) }} · {{ fmt(s.data.analyticsEvents) }} {{ 'admin.server.events' | t }}</dd>
+                <dt>{{ 'admin.server.media' | t }}</dt>
+                <dd>{{ bytes(s.data.mediaBytes) }} · {{ 'admin.server.mediaCount' | t: { n: s.data.mediaCount } }}</dd>
+                <dt>{{ 'admin.server.jvm' | t }}</dt>
+                <dd>{{ mb(s.memory.jvmHeapUsedMb) }} / {{ mb(s.memory.jvmHeapMaxMb) }}</dd>
+              </dl>
             </div>
-            <dl class="kv" style="margin-top: 1.25rem">
-              <dt>{{ 'admin.server.jvm' | t }}</dt>
-              <dd>{{ mb(s.memory.jvmHeapUsedMb) }} / {{ mb(s.memory.jvmHeapMaxMb) }}</dd>
-              <dt>{{ 'admin.server.database' | t }}</dt>
-              <dd>{{ bytes(s.data.databaseBytes) }} · {{ fmt(s.data.analyticsEvents) }} {{ 'admin.server.events' | t }}</dd>
-              <dt>{{ 'admin.server.media' | t }}</dt>
-              <dd>{{ bytes(s.data.mediaBytes) }} · {{ 'admin.server.mediaCount' | t: { n: s.data.mediaCount } }}</dd>
-            </dl>
           } @else {
             <p class="muted small">{{ 'admin.common.loading' | t }}</p>
           }
@@ -681,6 +686,40 @@ const PAD = { top: 16, right: 16, bottom: 28, left: 36 };
         display: none;
       }
     }
+    .vital-intro {
+      max-width: 75ch;
+      margin: -0.25rem 0 0.75rem;
+      color: var(--fg-2);
+    }
+    .vital-legend {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.4rem 1.1rem;
+      margin-bottom: 1rem;
+    }
+    .vital-legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .sw-r {
+      width: 14px;
+      height: 5px;
+      border-radius: 99px;
+    }
+    .sw-r.good {
+      background: #22a05a;
+    }
+    .sw-r.ni {
+      background: #e0a12a;
+    }
+    .sw-r.poor {
+      background: #e5484d;
+    }
+    .v-goal {
+      line-height: 1.35;
+    }
     .vital-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
@@ -916,11 +955,6 @@ const PAD = { top: 16, right: 16, bottom: 28, left: 36 };
       width: 8px;
       height: 8px;
     }
-    .gauges {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-      gap: 1rem;
-    }
     .gauge {
       position: relative;
       display: grid;
@@ -990,6 +1024,23 @@ const PAD = { top: 16, right: 16, bottom: 28, left: 36 };
     }
     .health li > span:first-child {
       color: var(--fg-2);
+    }
+    .health li > :last-child {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+    .server-live {
+      margin-bottom: var(--space-5);
+    }
+    .storage {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 1.25rem 2rem;
+    }
+    .storage .kv {
+      flex: 1 1 240px;
     }
     .health .mono {
       font-size: 0.8rem;
@@ -1098,13 +1149,10 @@ export class DashboardPage {
         this.api.systemInfo().then((s) => this.system.set(s)).catch(() => undefined);
       };
       sample();
-      const timer = setInterval(sample, 10_000);
+      // disk and stored data move slowly; CPU and memory are followed live by <app-live-metrics>
+      const timer = setInterval(sample, 60_000);
       destroyRef.onDestroy(() => clearInterval(timer));
     });
-  }
-
-  pctOf(load: number): number {
-    return Math.round(Math.max(0, Math.min(1, load)) * 100);
   }
 
   ratio(used: number, total: number): number {

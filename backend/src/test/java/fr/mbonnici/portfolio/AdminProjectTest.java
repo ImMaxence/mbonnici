@@ -34,7 +34,6 @@ class AdminProjectTest extends AbstractIntegrationTest {
               "liveUrl": "https://x.mbonnici.fr",
               "allowIframe": true,
               "stack": ["Angular", "Spring Boot", "Angular"],
-              "tags": ["test"],
               "media": []
             }
             """;

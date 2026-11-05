@@ -51,7 +51,6 @@ export interface ProjectCard {
   accentColor: string;
   year: number | null;
   stack: string[];
-  tags: string[];
   featured: boolean;
   cover: MediaDto | null;
   /** first portrait capture (cards only) */
@@ -109,7 +108,6 @@ export interface AdminProject {
   liveUrl: string | null;
   allowIframe: boolean;
   stack: string[];
-  tags: string[];
   media: ProjectMediaItem[];
   createdAt: string;
   updatedAt: string;
@@ -134,7 +132,6 @@ export interface ProjectUpsert {
   liveUrl: string | null;
   allowIframe: boolean;
   stack: string[];
-  tags: string[];
   coverMediaId: string | null;
   media: { mediaId: string; kind: MediaKind; sortOrder: number }[];
 }
@@ -493,11 +490,22 @@ export interface BackupOverview {
 
 export interface SystemInfo {
   cpu: { processLoad: number; systemLoad: number; cores: number };
-  memory: { totalMb: number; usedMb: number; freeMb: number; jvmHeapUsedMb: number; jvmHeapMaxMb: number };
+  /** usedMb: the whole server · appMb: the application (backend container) */
+  memory: { totalMb: number; usedMb: number; freeMb: number; appMb: number; jvmHeapUsedMb: number; jvmHeapMaxMb: number };
   disk: { path: string; totalMb: number; usedMb: number; freeMb: number };
   data: { databaseBytes: number; mediaBytes: number; mediaCount: number; analyticsEvents: number };
   uptimeSeconds: number;
   sampledAt: string;
+}
+
+/** one live measurement (every 2 s): loads are 0..1 of the whole server, memory in MB */
+export interface SystemSample {
+  t: number;
+  appCpu: number;
+  serverCpu: number;
+  appMemMb: number;
+  serverMemMb: number;
+  serverTotalMb: number;
 }
 
 export type AnalyticsEventType = 'PAGE_VIEW' | 'PROJECT_VIEW' | 'OUTBOUND_CLICK' | 'CONTACT_SUBMIT' | 'CV_DOWNLOAD';

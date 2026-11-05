@@ -114,7 +114,6 @@ for (const p of projects) {
     liveUrl: full.liveUrl,
     allowIframe: full.allowIframe,
     stack: full.stack,
-    tags: full.tags,
     coverMediaId: cover,
     media,
   };

@@ -7,6 +7,42 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [1.7.0] — 2026-11-05
+
+### Added
+- **Server, live**: the dashboard follows CPU and memory every 2 seconds, for the application (the
+  backend container) and for the whole server, on four small charts with their own scale, a
+  crosshair shared by the four, a 1 / 5 / 15 minute window and a pause button. The backend samples
+  on its own and keeps fifteen minutes (`GET /api/admin/system/live?since=`), so a pause or a hidden
+  tab leaves no hole. Figures come from `/proc` and the container's cgroup (page cache excluded).
+- **Picture editor**: the media library opens each picture in a dialog: the picture large with its
+  focal point, its details, French and English descriptions with a length guide, and "Save and
+  next" to describe a batch. Nothing is saved before "Save".
+- **Zoom in the image viewer**: pinch with two fingers, double tap (or double click), mouse wheel,
+  the magnifier button or + − 0; a zoomed picture is panned with a finger, the mouse or the arrows,
+  and swiping to the next picture waits until it is fitted again. On phones the viewer took every
+  gesture for its swipe, so pinching did nothing.
+- **Stack picker**: a project's stack (and an experience's skills) is picked from the Profile
+  skills: type to filter, arrows and Enter, Backspace to remove, drag to reorder. A technology
+  that is not a skill can still be added as typed (dashed border).
+
+### Changed
+- Real-user performance explains what the figure is (the value 75% of visits reach or beat), shows
+  the good / poor thresholds under each metric and has a legend for the green, yellow and red bars.
+- The database schema line on Backups is plain text under the import help, not a chip that looked
+  like a button. Non-interactive chips in the back office no longer react to the pointer.
+- The storage figures (disk, database, pictures, Java heap) have their own panel next to versions.
+
+### Removed
+- Project **tags** (they only fed the meta keywords; the stack does that). Migration V9 drops the
+  column; older archives still restore, their tags are ignored.
+
+### Fixed
+- The project gallery kept the previous project's position (picture 4 of project A → picture 4 of
+  project B): it now starts at the first picture on every project.
+- Dashboard: the database status and the PostgreSQL version were stuck together; the Drive archive
+  actions (restore, download, delete) too.
+
 ## [1.6.0] — 2026-11-04
 
 ### Added

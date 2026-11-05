@@ -23,6 +23,11 @@ const EASE = 'cubic-bezier(0.2, 0.8, 0.2, 1)';
 const RADIUS = 10;
 /** corner radius of the slider thumbnails, px */
 const THUMB_RADIUS = 14;
+/** largest zoom, and the one a double tap / double click jumps to */
+const MAX_ZOOM = 5;
+const TAP_ZOOM = 2.5;
+
+const clamp = (v: number, min: number, max: number): number => Math.min(max, Math.max(min, v));
 
 /**
  * Full-screen image viewer (a modal <dialog>: focus trap, Escape, inert page).
@@ -31,6 +36,10 @@ const THUMB_RADIUS = 14;
  * the whole picture) and shrinks back into the thumbnail of the image being viewed on close.
  * Previous / next buttons, ← → Home End, swipe or drag, counter and caption. Clicking outside the
  * picture closes it. No motion with reduced motion.
+ *
+ * Zoom (the stage takes every gesture, so the browser's own pinch cannot work here): pinch, double
+ * tap / double click, mouse wheel, the magnifier button or + − 0. A zoomed picture is panned with
+ * one finger, the mouse or the arrows; swiping to another picture waits until it is fitted again.
  */
 @Component({
   selector: 'app-lightbox',
@@ -47,6 +56,9 @@ const THUMB_RADIUS = 14;
         (pointermove)="move($event)"
         (pointerup)="up($event)"
         (pointercancel)="up($event)"
+        (wheel)="wheel($event)"
+        (dblclick)="dbl($event)"
+        [class.zoomed]="zoomed()"
       >
         @if (shown(); as img) {
           @for (v of [img]; track v.src) {
@@ -57,7 +69,12 @@ const THUMB_RADIUS = 14;
       <div class="chrome" #chrome>
         <div class="top">
           <span class="lb-count mono" aria-live="polite">{{ pad(index() + 1) }} <i>/</i> {{ pad(images().length) }}</span>
-          <button type="button" class="ctl" (click)="close()" [attr.aria-label]="'common.close' | t"><app-icon name="close" [size]="20" /></button>
+          <span class="top-actions">
+            <button type="button" class="ctl" (click)="toggleZoom()" [attr.aria-label]="(zoomed() ? 'project.zoomOut' : 'project.zoomIn') | t">
+              <app-icon [name]="zoomed() ? 'zoom-out' : 'zoom-in'" [size]="20" />
+            </button>
+            <button type="button" class="ctl" (click)="close()" [attr.aria-label]="'common.close' | t"><app-icon name="close" [size]="20" /></button>
+          </span>
         </div>
         @if (images().length > 1) {
           <button type="button" class="ctl side prev" (click)="go(index() - 1)" [disabled]="index() === 0" [attr.aria-label]="'common.previous' | t">
@@ -126,6 +143,19 @@ const THUMB_RADIUS = 14;
     }
     .can-swipe .pic:active {
       cursor: grabbing;
+    }
+    .pic {
+      transform-origin: 0 0;
+    }
+    .zoomed .pic {
+      cursor: grab;
+    }
+    .zoomed .pic:active {
+      cursor: grabbing;
+    }
+    .top-actions {
+      display: flex;
+      gap: 0.5rem;
     }
     .chrome {
       position: absolute;
@@ -253,6 +283,15 @@ export class LightboxComponent {
   private drag: { x: number; id: number; dx: number; captured: boolean } | null = null;
   private suppressClick = false;
 
+  /** zoom: scale and translation of the picture (transform-origin top left), 1 = fitted */
+  private z = { s: 1, x: 0, y: 0 };
+  readonly zoomed = signal(false);
+  /** fingers / pointers currently on the stage */
+  private readonly pointers = new Map<number, { x: number; y: number }>();
+  private pinch: { d: number; s: number; u: { x: number; y: number } } | null = null;
+  private pan: { id: number; x: number; y: number; zx: number; zy: number; moved: boolean } | null = null;
+  private lastTap = { t: 0, x: 0, y: 0 };
+
   private get reduced(): boolean {
     return matchMedia('(prefers-reduced-motion: reduce)').matches;
   }
@@ -278,6 +317,9 @@ export class LightboxComponent {
     const dialog = this.dialog().nativeElement;
     if (!dialog.open || this.closing) return;
     this.closing = true;
+    this.resetZoom(false);
+    this.pointers.clear();
+    this.pinch = this.pan = null;
     const pic = this.pic()?.nativeElement;
     const shade = this.shade().nativeElement;
     const chrome = this.chrome().nativeElement;
@@ -310,6 +352,7 @@ export class LightboxComponent {
     const n = this.images().length;
     if (i < 0 || i >= n || i === this.index()) return;
     const dir = i > this.index() ? 1 : -1;
+    this.resetZoom(false);
     this.index.set(i);
     this.preload();
     afterNextRender(
@@ -323,6 +366,23 @@ export class LightboxComponent {
   }
 
   key(e: KeyboardEvent): void {
+    if (e.key === '+' || e.key === '=') {
+      e.preventDefault();
+      return this.zoomAt(this.z.s * 1.5, null, true);
+    }
+    if (e.key === '-' || e.key === '_') {
+      e.preventDefault();
+      return this.zoomAt(this.z.s / 1.5, null, true);
+    }
+    if (e.key === '0') return this.resetZoom(true);
+    // arrows pan a zoomed picture instead of changing it
+    if (this.zoomed() && e.key.startsWith('Arrow')) {
+      e.preventDefault();
+      const step = 80;
+      const dx = e.key === 'ArrowLeft' ? step : e.key === 'ArrowRight' ? -step : 0;
+      const dy = e.key === 'ArrowUp' ? step : e.key === 'ArrowDown' ? -step : 0;
+      return this.apply({ s: this.z.s, x: this.z.x + dx, y: this.z.y + dy }, true);
+    }
     const n = this.images().length;
     const to =
       e.key === 'ArrowRight' ? this.index() + 1 : e.key === 'ArrowLeft' ? this.index() - 1 : e.key === 'Home' ? 0 : e.key === 'End' ? n - 1 : null;
@@ -337,13 +397,57 @@ export class LightboxComponent {
     if (e.target === e.currentTarget) this.close();
   }
 
-  // ── swipe / drag ─────────────────────────────────────────────────────────
+  // ── pointers: swipe between pictures, or pinch / pan / double tap to zoom ──
   down(e: PointerEvent): void {
-    if (e.button !== 0 || this.images().length < 2 || this.closing) return;
+    if (e.button !== 0 || this.closing) return;
+    this.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (this.pointers.size === 2) {
+      // a second finger: pinch (a swipe in progress is dropped)
+      this.cancelSwipe();
+      this.pan = null;
+      const [p, q] = [...this.pointers.values()];
+      const base = this.base();
+      if (!base) return;
+      const m = { x: (p.x + q.x) / 2, y: (p.y + q.y) / 2 };
+      this.pinch = {
+        d: Math.hypot(p.x - q.x, p.y - q.y) || 1,
+        s: this.z.s,
+        u: { x: (m.x - base.left - this.z.x) / this.z.s, y: (m.y - base.top - this.z.y) / this.z.s },
+      };
+      return;
+    }
+    if (this.pointers.size > 2) return;
+    if (this.zoomed()) {
+      this.pan = { id: e.pointerId, x: e.clientX, y: e.clientY, zx: this.z.x, zy: this.z.y, moved: false };
+      return;
+    }
+    if (this.images().length < 2) return;
     this.drag = { x: e.clientX, id: e.pointerId, dx: 0, captured: false };
   }
 
   move(e: PointerEvent): void {
+    if (this.pointers.has(e.pointerId)) this.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (this.pinch && this.pointers.size === 2) {
+      const [p, q] = [...this.pointers.values()];
+      const base = this.base();
+      if (!base) return;
+      const s = clamp(this.pinch.s * (Math.hypot(p.x - q.x, p.y - q.y) / this.pinch.d), 1, MAX_ZOOM);
+      const m = { x: (p.x + q.x) / 2, y: (p.y + q.y) / 2 };
+      // the point between the fingers stays between the fingers
+      this.apply({ s, x: m.x - base.left - this.pinch.u.x * s, y: m.y - base.top - this.pinch.u.y * s }, false);
+      return;
+    }
+    const pan = this.pan;
+    if (pan && e.pointerId === pan.id) {
+      const dx = e.clientX - pan.x;
+      const dy = e.clientY - pan.y;
+      if (!pan.moved && Math.hypot(dx, dy) > 4) {
+        pan.moved = true;
+        (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+      }
+      if (pan.moved) this.apply({ s: this.z.s, x: pan.zx + dx, y: pan.zy + dy }, false);
+      return;
+    }
     const d = this.drag;
     if (!d || e.pointerId !== d.id) return;
     d.dx = e.clientX - d.x;
@@ -352,6 +456,7 @@ export class LightboxComponent {
       (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
     }
     const pic = this.pic()?.nativeElement;
+    if (pic) pic.style.transition = '';
     if (d.captured && pic) {
       // resist at both ends
       const edge = (d.dx > 0 && this.index() === 0) || (d.dx < 0 && this.index() === this.images().length - 1);
@@ -362,12 +467,34 @@ export class LightboxComponent {
   }
 
   up(e: PointerEvent): void {
+    const known = this.pointers.delete(e.pointerId);
+    if (this.pinch) {
+      if (this.pointers.size < 2) {
+        this.pinch = null;
+        this.swallowClick();
+        // almost back to fitted: snap to it
+        if (this.z.s < 1.05) this.resetZoom(true);
+        // the finger left on the glass carries on panning
+        const rest = [...this.pointers.entries()][0];
+        if (rest && this.zoomed()) this.pan = { id: rest[0], x: rest[1].x, y: rest[1].y, zx: this.z.x, zy: this.z.y, moved: true };
+      }
+      return;
+    }
+    const pan = this.pan;
+    if (pan && e.pointerId === pan.id) {
+      this.pan = null;
+      if (pan.moved) return this.swallowClick();
+    }
+    if (known && e.pointerType === 'touch' && e.type === 'pointerup' && this.tap(e)) {
+      this.cancelSwipe();
+      return;
+    }
+
     const d = this.drag;
     if (!d || e.pointerId !== d.id) return;
     this.drag = null;
     if (!d.captured) return;
-    this.suppressClick = true;
-    setTimeout(() => (this.suppressClick = false), 60);
+    this.swallowClick();
     const pic = this.pic()?.nativeElement;
     const from = pic?.style.transform ?? '';
     if (pic) {
@@ -380,6 +507,99 @@ export class LightboxComponent {
     if (pic && from && !this.reduced) {
       pic.animate([{ transform: from }, { transform: 'none' }], { duration: 300, easing: EASE });
     }
+  }
+
+  /** mouse wheel, or a trackpad pinch (which browsers send as ctrl + wheel), zooms around the pointer */
+  wheel(e: WheelEvent): void {
+    if (this.closing) return;
+    e.preventDefault();
+    const k = Math.exp(-e.deltaY * (e.ctrlKey ? 0.01 : 0.0025));
+    this.zoomAt(this.z.s * k, { x: e.clientX, y: e.clientY }, false);
+  }
+
+  /** double click: zoom in on that point, or back to fitted (touch has its own double tap) */
+  dbl(e: MouseEvent): void {
+    if (this.lastTouch && performance.now() - this.lastTouch < 600) return;
+    if (!(e.target as HTMLElement).closest('.pic')) return;
+    this.toggleZoom({ x: e.clientX, y: e.clientY });
+  }
+
+  toggleZoom(at: { x: number; y: number } | null = null): void {
+    if (this.zoomed()) this.resetZoom(true);
+    else this.zoomAt(TAP_ZOOM, at, true);
+  }
+
+  private lastTouch = 0;
+
+  /** double tap: same as a double click. True when the tap was used */
+  private tap(e: PointerEvent): boolean {
+    const now = performance.now();
+    this.lastTouch = now;
+    const near = Math.hypot(e.clientX - this.lastTap.x, e.clientY - this.lastTap.y) < 30;
+    if (now - this.lastTap.t < 320 && near) {
+      this.lastTap.t = 0;
+      this.swallowClick();
+      this.toggleZoom({ x: e.clientX, y: e.clientY });
+      return true;
+    }
+    this.lastTap = { t: now, x: e.clientX, y: e.clientY };
+    return false;
+  }
+
+  private zoomAt(target: number, at: { x: number; y: number } | null, animate: boolean): void {
+    const base = this.base();
+    if (!base) return;
+    const s = clamp(target, 1, MAX_ZOOM);
+    const p = at ?? { x: base.left + base.width / 2, y: base.top + base.height / 2 };
+    // the point under the pointer stays where it is
+    const u = { x: (p.x - base.left - this.z.x) / this.z.s, y: (p.y - base.top - this.z.y) / this.z.s };
+    this.apply({ s, x: p.x - base.left - u.x * s, y: p.y - base.top - u.y * s }, animate);
+  }
+
+  private resetZoom(animate: boolean): void {
+    this.apply({ s: 1, x: 0, y: 0 }, animate);
+  }
+
+  /** applies a zoom within bounds: a zoomed picture always covers its fitted box */
+  private apply(z: { s: number; x: number; y: number }, animate: boolean): void {
+    const pic = this.pic()?.nativeElement;
+    if (!pic) {
+      this.z = { s: 1, x: 0, y: 0 };
+      this.zoomed.set(false);
+      return;
+    }
+    const s = clamp(z.s, 1, MAX_ZOOM);
+    const w = pic.offsetWidth;
+    const h = pic.offsetHeight;
+    const x = clamp(z.x, w - w * s, 0);
+    const y = clamp(z.y, h - h * s, 0);
+    this.z = { s, x, y };
+    this.zoomed.set(s > 1.001);
+    pic.style.transition = animate && !this.reduced ? `transform 0.35s ${EASE}` : '';
+    pic.style.transform = s > 1.001 ? `translate(${x}px, ${y}px) scale(${s})` : '';
+  }
+
+  /** the picture's fitted box on screen (zoom removed) */
+  private base(): { left: number; top: number; width: number; height: number } | null {
+    const pic = this.pic()?.nativeElement;
+    if (!pic) return null;
+    const r = pic.getBoundingClientRect();
+    return { left: r.left - this.z.x, top: r.top - this.z.y, width: r.width / this.z.s, height: r.height / this.z.s };
+  }
+
+  private cancelSwipe(): void {
+    const d = this.drag;
+    this.drag = null;
+    const pic = this.pic()?.nativeElement;
+    if (d?.captured && pic) {
+      pic.style.transform = '';
+      pic.style.opacity = '';
+    }
+  }
+
+  private swallowClick(): void {
+    this.suppressClick = true;
+    setTimeout(() => (this.suppressClick = false), 60);
   }
 
   // ── internals ────────────────────────────────────────────────────────────

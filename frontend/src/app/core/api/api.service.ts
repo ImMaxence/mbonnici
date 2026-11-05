@@ -9,6 +9,7 @@ import type {
   BackupRun,
   BackupSettings,
   SystemInfo,
+  SystemSample,
   ContactInput,
   ContactMessage,
   Education,
@@ -328,5 +329,10 @@ export class ApiService {
 
   systemInfo(): Promise<SystemInfo> {
     return firstValueFrom(this.http.get<SystemInfo>('/api/admin/system'));
+  }
+
+  /** live CPU / memory samples taken after `since` (epoch ms) */
+  systemLive(since: number): Promise<SystemSample[]> {
+    return firstValueFrom(this.http.get<SystemSample[]>('/api/admin/system/live', { params: { since } }));
   }
 }
