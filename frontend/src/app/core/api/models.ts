@@ -137,6 +137,7 @@ export interface ProjectUpsert {
   media: { mediaId: string; kind: MediaKind; sortOrder: number }[];
 }
 
+
 export interface Legal {
   name: string | null;
   address: string | null;

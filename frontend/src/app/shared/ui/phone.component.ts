@@ -4,7 +4,7 @@ import { AutoplayDirective } from './autoplay.directive';
 
 /**
  * The one phone of the site (cards, project pages, back-office preview): a frame image
- * (public/img/devices/phone.svg, 1350 × 2760 with a transparent 1206 × 2622 screen at 72,69,
+ * (public/img/devices/phone.svg, 1390 × 2760 with a transparent 1206 × 2622 screen at 92,69,
  * drawn by scripts/device-svg.mjs) laid over the capture. To use another frame, replace the image
  * and adjust the .screen rectangle. Sized by its container; the stage around it usually crops the
  * bottom so only the upper part shows.
@@ -25,10 +25,10 @@ import { AutoplayDirective } from './autoplay.directive';
         @if (shot().video) {
           <video class="shot" appAutoplay loop preload="metadata" [src]="shot().src" [attr.poster]="shot().poster || null" [attr.aria-label]="alt() || null" [attr.width]="shot().w" [attr.height]="shot().h"></video>
         } @else {
-        <img #shotImg class="shot" [src]="shot().src" [attr.srcset]="shot().srcset || null" [attr.sizes]="shot().srcset ? '(max-width: 720px) 45vw, 22vw' : null" [alt]="alt()" [width]="shot().w" [height]="shot().h" [attr.loading]="eager() ? 'eager' : 'lazy'" decoding="async" draggable="false" (load)="sample($event)" />
+        <img #shotImg class="shot" [src]="shot().src" [attr.srcset]="shot().srcset || null" [attr.sizes]="shot().srcset ? '(max-width: 720px) 90vw, 560px' : null" [alt]="alt()" [width]="shot().w" [height]="shot().h" [attr.loading]="eager() ? 'eager' : 'lazy'" decoding="async" draggable="false" (load)="sample($event)" />
         }
       </div>
-      <img class="bezel" src="/img/devices/phone.svg" alt="" width="1350" height="2760" aria-hidden="true" draggable="false" [attr.loading]="eager() ? 'eager' : 'lazy'" decoding="async" />
+      <img class="bezel" src="/img/devices/phone.svg?v=3" alt="" width="1390" height="2760" aria-hidden="true" draggable="false" [attr.loading]="eager() ? 'eager' : 'lazy'" decoding="async" />
     </div>
   `,
   styles: `
@@ -39,15 +39,15 @@ import { AutoplayDirective } from './autoplay.directive';
     .device {
       position: relative;
       font-size: 1cqi;
-      aspect-ratio: 1350 / 2760;
+      aspect-ratio: 1390 / 2760;
       filter: drop-shadow(0 3em 5em rgba(10, 10, 20, 0.28)) drop-shadow(0 1em 1.6em rgba(10, 10, 20, 0.18));
     }
-    /* the transparent screen of the bezel: 72,69 → 1206 × 2622 */
+    /* the transparent screen of the bezel: 92,69 → 1206 × 2622 */
     .screen {
       position: absolute;
-      left: 5.333%;
+      left: 6.619%;
       top: 2.5%;
-      width: 89.333%;
+      width: 86.763%;
       height: 95%;
       border-radius: 13.4% / 6.15%;
       overflow: hidden;

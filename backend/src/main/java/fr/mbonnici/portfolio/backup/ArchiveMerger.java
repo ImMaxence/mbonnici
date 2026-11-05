@@ -128,6 +128,8 @@ public class ArchiveMerger {
                 case "project" -> {
                     st.execute("UPDATE tmp_project t SET cover_media_id = NULL WHERE cover_media_id IS NOT NULL "
                             + "AND NOT EXISTS (SELECT 1 FROM media m WHERE m.id = t.cover_media_id)");
+                    st.execute("UPDATE tmp_project t SET cover_video_media_id = NULL WHERE cover_video_media_id IS NOT NULL "
+                            + "AND NOT EXISTS (SELECT 1 FROM media m WHERE m.id = t.cover_video_media_id)");
                     st.execute("DELETE FROM project p USING tmp_project t WHERE p.slug = t.slug AND p.id <> t.id");
                 }
                 case "site_settings" -> st.execute("UPDATE tmp_site_settings t SET avatar_media_id = NULL "

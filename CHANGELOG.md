@@ -65,6 +65,15 @@ All notable changes to this project are documented here. The format follows
   them. In the phone menu, the entry you tap no longer turns blue, then blue italic, while the new
   page renders under the menu: the menu keeps its look until it has lifted.
 - Phone layout of the project page: previous / next project are centred, one above the other.
+- **Sharp phone screens**: the phone captures are taken at the real size of an iPhone screen,
+  402 × 874 pt at 3x = 1206 × 2622 px (they were 640 px wide, then enlarged: blurry text).
+  `node seed/capture-shots.mjs --phones` redoes only them (alts kept), and
+  `node seed/refresh-phones.mjs <url>` swaps them into a running site without touching anything
+  else; the starter archive carries the new ones.
+- **Side buttons in 3D**: the action, volume and side buttons are built on the phone's edge, at mid
+  depth, and stand out of it: face on they show as a slight bump, turned they read as buttons on the
+  side (they were drawn flat on the front). The phone loads its full capture on dense screens and
+  turns a little less (7°), without being pushed towards the eye: the screen stays sharp when tilted.
 - **Phone frame**: the Dynamic Island has its real size (126 × 37 pt; it was a small pill) with a
   faint rim, and the right side gains the camera control. The status bar of phone captures takes
   the page's own top colour with ink that reads on it, like iOS (it was black, which swallowed the

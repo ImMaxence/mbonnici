@@ -2,6 +2,10 @@
 // GitHub README, or from the live site, into seed/shots/<slug>/… with a manifest.json. They are
 // not served by the site: seed/build-starter.mjs uploads them as media into the starter archive.
 //   node seed/capture-shots.mjs [slug…]
+//   node seed/capture-shots.mjs --phones [slug…]   phone captures only (keeps the rest and the alts)
+//
+// Phone captures are taken at the real size of an iPhone screen: 402 × 874 pt at 3x = 1206 × 2622 px,
+// so they stay sharp in the phone of the mock-up (they used to be 640 px wide, then enlarged).
 import { chromium, devices } from '../frontend/node_modules/@playwright/test/index.mjs';
 import { mkdirSync, writeFileSync, readFileSync, existsSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -75,7 +79,10 @@ const PROJECTS = {
   nailsbyanastasie: { live: 'https://nailsbyanastasie.fr' },
 };
 
-const only = process.argv.slice(2);
+const phonesOnly = process.argv.includes('--phones');
+const only = process.argv.slice(2).filter((a) => a !== '--phones');
+/** an iPhone screen at 3x: 402 × 874 pt */
+const PHONE_W = 1206;
 const manifest = existsSync(manifestFile) ? JSON.parse(readFileSync(manifestFile, 'utf8')) : {};
 
 const browser = await chromium.launch();
@@ -114,9 +121,9 @@ async function encode(bytes, type, maxWidth) {
 
 async function capture(url, mobile) {
   const ctx = await browser.newContext(
-    // iPhone 16 screen: 393 × 852 pt, the exact ratio of the phone mock-up
+    // a current iPhone screen: 402 × 874 pt at 3x, the exact screen of the phone mock-up
     mobile
-      ? { ...devices['iPhone 15 Pro'], viewport: { width: 393, height: 852 }, deviceScaleFactor: 2 }
+      ? { ...devices['iPhone 15 Pro'], viewport: { width: 402, height: 874 }, deviceScaleFactor: 3 }
       : { viewport: { width: 1440, height: 900 }, deviceScaleFactor: 1 },
   );
   const page = await ctx.newPage();
@@ -124,7 +131,7 @@ async function capture(url, mobile) {
     await page.goto(url, { waitUntil: 'networkidle', timeout: 45_000 });
     await page.waitForTimeout(2500);
     const png = await page.screenshot({ type: 'png' });
-    return encode(png, 'image/png', mobile ? 640 : 1600);
+    return encode(png, 'image/png', mobile ? PHONE_W : 1600);
   } finally {
     await ctx.close();
   }
@@ -150,6 +157,23 @@ function save(slug, name, img) {
 for (const [slug, cfg] of Object.entries(PROJECTS)) {
   if (only.length && !only.includes(slug)) continue;
   console.log(slug);
+  if (phonesOnly) {
+    // only the phone capture is redone; the rest of the entry, alts included, stays
+    let phone = null;
+    if (cfg.mobileLive) {
+      try {
+        phone = await capture(cfg.mobileLive, true);
+      } catch (e) {
+        console.warn('  live mobile capture failed', cfg.mobileLive, e.message);
+      }
+    }
+    phone ??= await firstOf(cfg.mobile, PHONE_W);
+    if (phone && manifest[slug]) {
+      manifest[slug].mobile = { ...manifest[slug].mobile, ...save(slug, 'mobile', phone), bare: true };
+      console.log('  phone', phone.w + 'x' + phone.h);
+    }
+    continue;
+  }
   const entry = { gallery: [] };
   if (cfg.poster) entry.poster = true;
   let desktop = await firstOf(cfg.desktop, 1600);
@@ -161,13 +185,13 @@ for (const [slug, cfg] of Object.entries(PROJECTS)) {
       console.warn('  live mobile capture failed', cfg.mobileLive, e.message);
     }
   }
-  mobile ??= await firstOf(cfg.mobile, 640);
+  mobile ??= await firstOf(cfg.mobile, PHONE_W);
   const extra = [];
   for (const u of cfg.auto ?? []) {
     try {
       const img = await toWebp(u, 1600);
       if (img.ratio < 0.8) {
-        if (!mobile) mobile = await toWebp(u, 640);
+        if (!mobile) mobile = await toWebp(u, PHONE_W);
       } else if (!desktop) desktop = img;
       else extra.push(img);
     } catch (e) {

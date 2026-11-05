@@ -49,8 +49,8 @@
     },
     "mobile": {
       "src": "localatscv/mobile.webp",
-      "w": 640,
-      "h": 1387,
+      "w": 1206,
+      "h": 2622,
       "bare": true,
       "alt": {
         "fr": "LocalATSCV sur téléphone : la même accroche, la présentation du service et le bouton Créer mon CV gratuitement",
@@ -108,8 +108,8 @@
     },
     "mobile": {
       "src": "localcutvideo/mobile.webp",
-      "w": 640,
-      "h": 1387,
+      "w": 1206,
+      "h": 2622,
       "bare": true,
       "alt": {
         "fr": "LocalCutVideo sur téléphone : « Montez vos vidéos en un clic, sans rien envoyer sur internet », boutons Monter ma vidéo gratuitement et Essayer la démo",
@@ -167,8 +167,8 @@
     },
     "mobile": {
       "src": "meowtrix/mobile.webp",
-      "w": 640,
-      "h": 1387,
+      "w": 1206,
+      "h": 2622,
       "bare": true,
       "alt": {
         "fr": "Meowtrix sur téléphone : choix du terrain (Terre, Eau, Ciel), réglage du nombre de lézards et de leur robe, liste des animaux à ajouter et bouton Jouer",
@@ -226,8 +226,8 @@
     },
     "mobile": {
       "src": "a2e-environnement/mobile.webp",
-      "w": 640,
-      "h": 1387,
+      "w": 1206,
+      "h": 2622,
       "bare": true,
       "alt": {
         "fr": "A2E Environnement sur téléphone : la même accroche, les boutons Découvrir nos prestations et Nous contacter, puis la photo de la station d’épuration",
@@ -276,8 +276,8 @@
     },
     "mobile": {
       "src": "les-creations-de-yona/mobile.webp",
-      "w": 640,
-      "h": 1387,
+      "w": 1206,
+      "h": 2622,
       "bare": true,
       "alt": {
         "fr": "Les Créations de Yona sur téléphone : recette de cookies à la une avec photo, puis la fenêtre de consentement à la mesure d’audience avec les boutons Refuser et Accepter",
@@ -311,8 +311,8 @@
     },
     "mobile": {
       "src": "epic-road-trip-planner/mobile.webp",
-      "w": 640,
-      "h": 1398,
+      "w": 670,
+      "h": 1464,
       "bare": true,
       "alt": {
         "fr": "CoqEnVoyage sur téléphone : la même bienvenue, le formulaire de recherche et le début de la sélection d’expériences",
@@ -383,8 +383,8 @@
     },
     "mobile": {
       "src": "kryptonews/mobile.webp",
-      "w": 640,
-      "h": 1393,
+      "w": 670,
+      "h": 1458,
       "bare": true,
       "alt": {
         "fr": "Kryptonews sur téléphone : l’accroche « Think Forward » et le bouton Get started",

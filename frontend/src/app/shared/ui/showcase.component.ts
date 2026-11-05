@@ -64,6 +64,9 @@ const PLACEHOLDER_MOBILE: Visual = { src: '/img/project-placeholder-mobile.svg',
                 @for (z of edges; track z) {
                   <i class="edge" [style.--z]="z" aria-hidden="true"></i>
                 }
+                @for (k of keys; track $index) {
+                  <i class="key" [class.r]="k.right" [style.top.%]="k.top" [style.height.%]="k.h" [style.--z]="k.z" aria-hidden="true"></i>
+                }
                 <app-phone class="phone" [shot]="m" [alt]="labelled() && i === 0 ? m.alt : ''" [eager]="priority() && i === 0" />
               </div>
             }
@@ -212,18 +215,38 @@ const PLACEHOLDER_MOBILE: Visual = { src: '/img/project-placeholder-mobile.svg',
       display: block;
       width: 100%;
     }
-    /* the phone's thickness: ten layers in its silhouette (the body of phone.svg: 1.04% / 0.36% in,
+    /* the phone's thickness: ten layers in its silhouette (the body of phone.svg: 2.45% / 0.36% in,
        corners 17.85% / 8.61%), stepped back in depth; seen face on they hide behind the screen,
        turned they form the edge, lighter at the front like the polished band */
     .edge {
       position: absolute;
-      left: 1.04%;
-      right: 1.04%;
+      left: 2.446%;
+      right: 2.446%;
       top: 0.36%;
       bottom: 0.36%;
       border-radius: 17.85% / 8.61%;
       background: color-mix(in srgb, #56565c calc(100% - var(--z) * 9%), #121214);
       transform: translateZ(calc(var(--z) * -0.24cqi));
+    }
+    /* a button: one slim metal key standing 0.7 % out of the band, in the middle of the edge's
+       depth, rounded at both ends with a light running along it; face on it only shows as a slight
+       bump, turned it reads as a button on the side */
+    .key {
+      position: absolute;
+      left: 1.75%;
+      width: 1.5%;
+      border-radius: 999px;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.16), transparent 18%, transparent 82%, rgba(0, 0, 0, 0.35)),
+        linear-gradient(90deg, #3a3a3f, #9a9aa1 45%, #55555b 80%, #2a2a2e);
+      transform: translateZ(calc(var(--z) * -0.24cqi));
+    }
+    .key.r {
+      left: auto;
+      right: 1.75%;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.16), transparent 18%, transparent 82%, rgba(0, 0, 0, 0.35)),
+        linear-gradient(270deg, #3a3a3f, #9a9aa1 45%, #55555b 80%, #2a2a2e);
     }
     .stage[data-mode='MOBILE'] .slab {
       flex: none;
@@ -269,8 +292,8 @@ const PLACEHOLDER_MOBILE: Visual = { src: '/img/project-placeholder-mobile.svg',
       translate: calc(var(--tx) * -0.8%) calc(var(--ty) * -0.8%);
     }
     .phones {
-      rotate: calc(-1 * var(--ty) + 0.0001) var(--tx) 0 calc(hypot(var(--tx), var(--ty)) * 11deg);
-      translate: calc(var(--tx) * 2.6%) calc(var(--ty) * 1.8%) 40px;
+      rotate: calc(-1 * var(--ty) + 0.0001) var(--tx) 0 calc(hypot(var(--tx), var(--ty)) * 7deg);
+      translate: calc(var(--tx) * 2.2%) calc(var(--ty) * 1.5%);
       transform-style: preserve-3d;
     }
     .stage.tilting .browser,
@@ -353,6 +376,16 @@ export class ShowcaseComponent {
 
   /** depth steps of the phone's edge layers */
   readonly edges = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+  /**
+   * the side buttons, one piece each on the edge at mid depth: action, volume up and down on the
+   * left, the side button on the right; positions from the 2760 px high drawing
+   */
+  readonly keys = [
+    { top: 21.01, h: 4.49, right: false },
+    { top: 28.84, h: 7.25, right: false },
+    { top: 38.19, h: 7.25, right: false },
+    { top: 31.38, h: 11.67, right: true },
+  ].map((k) => ({ ...k, z: 5 }));
 
   readonly desktopVideo = computed<Visual | null>(() => {
     const v = fromMedia(this.coverVideo(), this.alt());

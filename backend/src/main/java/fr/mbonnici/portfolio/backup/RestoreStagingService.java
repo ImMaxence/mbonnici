@@ -392,9 +392,16 @@ public class RestoreStagingService {
         PgCsv.Table projects = s.tables().get("project");
         PgCsv.Table links = s.tables().get("project_media");
         Set<String> needed = new HashSet<>();
+        // …and its browser-frame video
         for (List<String> p : projects.rows()) {
-            if (ids.get("project").contains(projects.get(p, "id")) && projects.get(p, "cover_media_id") != null) {
+            if (!ids.get("project").contains(projects.get(p, "id"))) {
+                continue;
+            }
+            if (projects.get(p, "cover_media_id") != null) {
                 needed.add(projects.get(p, "cover_media_id"));
+            }
+            if (projects.get(p, "cover_video_media_id") != null) {
+                needed.add(projects.get(p, "cover_video_media_id"));
             }
         }
         PgCsv.Table settingsTable = s.tables().get("site_settings");

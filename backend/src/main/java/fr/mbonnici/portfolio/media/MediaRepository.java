@@ -13,7 +13,7 @@ public interface MediaRepository extends JpaRepository<Media, UUID> {
 
     Page<Media> findAllByOrderByCreatedAtDesc(Pageable pageable);
 
-    /** media referenced by nothing: no project (cover or gallery) or header picture */
+    /** media referenced by nothing: no project (cover, video, gallery) or header picture */
     @Query(value = """
             select m.id from media m
             where not exists (select 1 from project p where p.cover_media_id = m.id or p.cover_video_media_id = m.id)

@@ -1,7 +1,8 @@
 // Draws the phone frame used by the mock-ups (public/img/devices/phone.svg): an original vector
-// drawing in the proportions of a current 6.3" phone (1350 × 2760 canvas, transparent 1206 × 2622
-// screen at 72,69, i.e. 402 × 874 pt at 3x), aluminium band, black border, side buttons (action,
-// volume, side button, camera control) and a Dynamic Island at its real size: 126 × 37 pt, 11 pt
+// drawing in the proportions of a current 6.3" phone (1390 × 2760 canvas, transparent 1206 × 2622
+// screen at 92,69, i.e. 402 × 874 pt at 3x; the phone itself is drawn at 20,0 so the side buttons
+// stand out of its band), aluminium band, black border, side buttons (action,
+// volume and side buttons are added in 3D by the site) and a Dynamic Island at its real size: 126 × 37 pt, 11 pt
 // below the top of the screen, with the front camera in its right end. Apple's own device artwork
 // is not used: its licence does not allow it in website content.
 //   node scripts/device-svg.mjs
@@ -34,10 +35,8 @@ const body = rr(14, 10, 1322, 2740, 236);
 const band = rr(24, 20, 1302, 2720, 228);
 const bezel = rr(36, 32, 1278, 2696, 214);
 
-const button = (x, y, w, h, side) =>
-  `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${w / 2}" fill="url(#btn-${side})"/>`;
 
-const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1350 2760" width="1350" height="2760">
+const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1390 2760" width="1390" height="2760">
   <defs>
     <linearGradient id="band" x1="0" y1="0" x2="1" y2="0">
       <stop offset="0" stop-color="#9a9aa0"/>
@@ -54,16 +53,6 @@ const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1350 2760" wid
       <stop offset="0.96" stop-color="#fff" stop-opacity="0"/>
       <stop offset="1" stop-color="#fff" stop-opacity="0.12"/>
     </linearGradient>
-    <linearGradient id="btn-l" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0" stop-color="#5c5c61"/>
-      <stop offset="0.5" stop-color="#2e2e32"/>
-      <stop offset="1" stop-color="#1b1b1e"/>
-    </linearGradient>
-    <linearGradient id="btn-r" x1="1" y1="0" x2="0" y2="0">
-      <stop offset="0" stop-color="#5c5c61"/>
-      <stop offset="0.5" stop-color="#2e2e32"/>
-      <stop offset="1" stop-color="#1b1b1e"/>
-    </linearGradient>
     <radialGradient id="lens" cx="0.38" cy="0.36" r="0.7">
       <stop offset="0" stop-color="#3b4a72"/>
       <stop offset="0.35" stop-color="#121a2e"/>
@@ -72,13 +61,9 @@ const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1350 2760" wid
     </radialGradient>
   </defs>
   <!-- side buttons: action, volume up / down, side button -->
-  ${button(4, 580, 22, 124, 'l')}
-  ${button(4, 796, 22, 200, 'l')}
-  ${button(4, 1054, 22, 200, 'l')}
-  ${button(1324, 866, 22, 322, 'r')}
-  <!-- camera control: a flush sapphire key lower on the right side -->
-  <rect x="1326" y="1560" width="16" height="236" rx="8" fill="#121214"/>
-  <rect x="1327" y="1564" width="6" height="228" rx="3" fill="#fff" fill-opacity="0.08"/>
+  <g transform="translate(20 0)">
+  <!-- the side buttons are not drawn here: the site builds them in 3D on the phone's edge
+       (showcase.component.ts, .key), where they belong when the phone turns -->
   <!-- aluminium band, with the screen cut out -->
   <path fill-rule="evenodd" fill="url(#band)" d="${body} ${screen}"/>
   <path fill-rule="evenodd" fill="url(#sheen)" d="${body} ${screen}"/>
@@ -94,6 +79,7 @@ const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1350 2760" wid
   <circle cx="808" cy="157.5" r="23" fill="url(#lens)"/>
   <circle cx="808" cy="157.5" r="23" fill="none" stroke="#1d2233" stroke-width="2"/>
   <circle cx="800" cy="150" r="5.5" fill="#8aa0d8" fill-opacity="0.35"/>
+  </g>
 </svg>
 `;
 writeFileSync(out, svg);
