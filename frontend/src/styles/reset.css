@@ -14,6 +14,20 @@ html {
   text-size-adjust: 100%;
   scroll-behavior: smooth;
   -webkit-tap-highlight-color: transparent;
+  /* no double-tap zoom (two quick taps on the slider arrows zoomed the page); pinch zoom stays */
+  touch-action: manipulation;
+}
+
+/* iOS Safari also looks at the tapped element itself */
+a,
+button,
+[role='button'],
+label,
+input,
+select,
+textarea,
+summary {
+  touch-action: manipulation;
 }
 
 body {

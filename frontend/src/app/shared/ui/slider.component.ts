@@ -85,6 +85,8 @@ import { AutoplayDirective } from './autoplay.directive';
       cursor: grab;
       outline: none;
       overscroll-behavior-x: contain;
+      /* swipes and pinch zoom, but no double-tap zoom on the pictures */
+      touch-action: manipulation;
     }
     .track::-webkit-scrollbar {
       display: none;

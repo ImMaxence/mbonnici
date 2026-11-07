@@ -7,6 +7,13 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [1.7.1] — 2026-11-07
+
+### Fixed
+- **No double-tap zoom on phones**: two quick taps on the gallery arrows (or anywhere) zoomed the
+  page in. `touch-action: manipulation` on the page, the controls and the gallery track; pinch zoom
+  still works (accessibility).
+
 ## [1.7.0] — 2026-11-05
 
 ### Added
