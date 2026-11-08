@@ -32,21 +32,31 @@ export class VitalsService {
     if (!this.browser || this.started || typeof PerformanceObserver === 'undefined') return;
     const nav = navigator as Navigator & { globalPrivacyControl?: boolean };
     if (nav.doNotTrack === '1' || nav.globalPrivacyControl) return;
+    // robots and audit tools are not visitors
+    if (navigator.webdriver || /bot|crawl|spider|headless|lighthouse/i.test(navigator.userAgent)) return;
     this.started = true;
 
     const navEntry = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined;
     if (navEntry && navEntry.responseStart > 0) this.values.set('TTFB', navEntry.responseStart);
 
+    // A tab opened in the background only paints once it is looked at: that wait says nothing about the site
+    const hidden = document.visibilityState === 'hidden' ? 0 : performance.getEntriesByType('visibility-state').find((e) => e.name === 'hidden')?.startTime;
+    const seen = (e: PerformanceEntry) => hidden === undefined || e.startTime < hidden;
+
     this.observe('paint', (e) => {
-      if (e.name === 'first-contentful-paint') this.values.set('FCP', e.startTime);
+      if (e.name === 'first-contentful-paint' && seen(e)) this.values.set('FCP', e.startTime);
     });
-    this.observe('largest-contentful-paint', (e) => this.values.set('LCP', e.startTime));
+    this.observe('largest-contentful-paint', (e) => {
+      if (seen(e)) this.values.set('LCP', e.startTime);
+    });
 
     // CLS: the largest burst of unexpected shifts (session windows: gaps < 1 s, at most 5 s)
     let session = 0;
     let first = 0;
     let last = 0;
     let cls = 0;
+    // a page that never moves is a score of 0, not a missing one
+    if (PerformanceObserver.supportedEntryTypes?.includes('layout-shift')) this.values.set('CLS', 0);
     this.observe('layout-shift', (raw) => {
       const e = raw as LayoutShift;
       if (e.hadRecentInput) return;

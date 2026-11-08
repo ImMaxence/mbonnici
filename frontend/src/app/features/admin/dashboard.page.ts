@@ -4,7 +4,7 @@ import { TooltipDirective } from '../../shared/ui/tooltip.directive';
 import { AuthService } from '../../core/auth/auth.service';
 import { Component, DestroyRef, afterNextRender, computed, inject, signal } from '@angular/core';
 import { ApiService } from '../../core/api/api.service';
-import type { AdminInfo, AnalyticsOverview, KeyCount, SystemInfo, VitalMetric, VitalsOverview, SiteHistory } from '../../core/api/models';
+import type { AdminInfo, AnalyticsOverview, KeyCount, SystemInfo, VitalMetric, VitalStat, VitalsOverview, SiteHistory } from '../../core/api/models';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { LocalizedPipe, TranslatePipe } from '../../core/i18n/translate.pipe';
 import { IconComponent } from '../../shared/ui/icon.component';
@@ -208,57 +208,91 @@ const PAD = { top: 16, right: 16, bottom: 28, left: 36 };
           @if (!hasVitals()) {
             <div class="empty"><app-icon name="gauge" [size]="22" /><p>{{ 'admin.vitals.none' | t }}</p></div>
           } @else {
-            <p class="vital-intro small">{{ 'admin.vitals.intro' | t }}</p>
-            <div class="vital-legend small">
-              <span><i class="sw-r good" aria-hidden="true"></i>{{ 'admin.vitals.legend.good' | t }}</span>
-              <span><i class="sw-r ni" aria-hidden="true"></i>{{ 'admin.vitals.legend.ni' | t }}</span>
-              <span><i class="sw-r poor" aria-hidden="true"></i>{{ 'admin.vitals.legend.poor' | t }}</span>
-              <span class="faint">{{ 'admin.vitals.legend.bar' | t }}</span>
-            </div>
+            @if (vitalsVerdict(); as vd) {
+              <div class="v-verdict" [attr.data-rating]="vd.level">
+                <strong>{{ 'admin.vitals.verdict.' + vd.level | t }}</strong>
+                <span class="small muted">{{ vd.issues ? ('admin.vitals.toCheck' | t: { names: vd.issues }) : ('admin.vitals.allGood' | t) }}</span>
+                @if (vd.visits < 20) {
+                  <span class="small faint v-few">{{ 'admin.vitals.fewVisits' | t: { n: vd.visits } }}</span>
+                }
+              </div>
+            }
             <div class="vital-grid">
-              @for (m of v.metrics; track m.metric) {
+              @for (m of coreVitals(); track m.metric) {
                 <div class="vital" [attr.data-rating]="rating(m.metric, m.p75)">
-                  <span class="v-name mono">{{ m.metric }}</span>
-                  <strong class="v-value">{{ m.p75 == null ? '—' : format(m.metric, m.p75) }}</strong>
-                  <span class="v-label small">{{ 'admin.vitals.label.' + m.metric | t }}</span>
-                  <span class="v-bar" aria-hidden="true">
-                    <i class="good" [style.flex-grow]="m.good"></i><i class="ni" [style.flex-grow]="m.needsImprovement"></i><i class="poor" [style.flex-grow]="m.poor"></i>
-                  </span>
-                  <span class="v-goal small faint">{{ 'admin.vitals.help.' + m.metric | t }}</span>
-                  <span class="v-samples small faint mono">{{ 'admin.vitals.samples' | t: { n: m.samples } }}</span>
+                  <div class="v-top">
+                    <span class="v-label small">{{ 'admin.vitals.label.' + m.metric | t }}</span>
+                    @if (rating(m.metric, m.p75); as r) {
+                      <span class="v-rate small">{{ 'admin.vitals.rate.' + r | t }}</span>
+                    }
+                  </div>
+                  <strong class="v-value">{{ vitalValue(m) }}</strong>
+                  <p class="v-say small">{{ vitalSentence(m) }}</p>
+                  @if (m.samples) {
+                    <span class="v-bar" aria-hidden="true">
+                      <i class="good" [style.flex-grow]="m.good"></i><i class="ni" [style.flex-grow]="m.needsImprovement"></i><i class="poor" [style.flex-grow]="m.poor"></i>
+                    </span>
+                    <span class="small faint">{{ 'admin.vitals.share' | t: { pct: goodShare(m), n: m.samples } }}</span>
+                  }
                 </div>
               }
             </div>
-            <div class="vital-foot">
-              <div class="devices">
-                @for (d of devices(); track d.key) {
-                  <div class="device">
-                    <span class="small"><app-icon [name]="d.key === 'mobile' ? 'phone' : 'monitor'" [size]="14" /> {{ 'admin.vitals.device.' + d.key | t }}</span>
-                    @for (m of d.stats; track m.metric) {
-                      <span class="mono small chip-v" [attr.data-rating]="rating(m.metric, m.p75)">{{ m.metric }} {{ m.p75 == null ? '—' : format(m.metric, m.p75) }}</span>
-                    }
-                  </div>
-                }
-              </div>
-              @if (v.pages.length) {
-                <table class="table vital-pages">
+            <details class="vital-more">
+              <summary class="small">{{ 'admin.vitals.more' | t }}</summary>
+              <p class="small muted vital-note">{{ 'admin.vitals.note' | t }}</p>
+              <div class="table-wrap">
+                <table class="table">
                   <thead>
-                    <tr><th>{{ 'admin.vitals.page' | t }}</th><th class="num">LCP</th><th class="num">INP</th><th class="num">CLS</th><th class="num">{{ 'admin.vitals.n' | t }}</th></tr>
+                    <tr><th>{{ 'admin.vitals.metric' | t }}</th><th class="num">{{ 'admin.vitals.value' | t }}</th><th>{{ 'admin.vitals.target' | t }}</th><th class="num">{{ 'admin.vitals.n' | t }}</th></tr>
                   </thead>
                   <tbody>
-                    @for (p of v.pages.slice(0, 6); track p.path) {
+                    @for (m of v.metrics; track m.metric) {
                       <tr>
-                        <td class="mono small">{{ p.path }}</td>
-                        <td class="num" [attr.data-rating]="rating('LCP', p.lcp)">{{ p.lcp == null ? '—' : format('LCP', p.lcp) }}</td>
-                        <td class="num" [attr.data-rating]="rating('INP', p.inp)">{{ p.inp == null ? '—' : format('INP', p.inp) }}</td>
-                        <td class="num" [attr.data-rating]="rating('CLS', p.cls)">{{ p.cls == null ? '—' : format('CLS', p.cls) }}</td>
-                        <td class="num faint">{{ p.samples }}</td>
+                        <td><span class="mono small v-code">{{ m.metric }}</span> {{ 'admin.vitals.label.' + m.metric | t }}</td>
+                        <td class="num" [attr.data-rating]="rating(m.metric, m.p75)">{{ m.p75 == null ? '—' : format(m.metric, m.p75) }}</td>
+                        <td class="small faint">{{ 'admin.vitals.help.' + m.metric | t }}</td>
+                        <td class="num faint">{{ m.samples }}</td>
                       </tr>
                     }
                   </tbody>
                 </table>
-              }
-            </div>
+              </div>
+              <div class="vital-foot">
+                <div class="devices">
+                  @for (d of devices(); track d.key) {
+                    <div class="device">
+                      <span class="small"><app-icon [name]="d.key === 'mobile' ? 'phone' : 'monitor'" [size]="14" /> {{ 'admin.vitals.device.' + d.key | t }}</span>
+                      @for (m of d.stats; track m.metric) {
+                        <span class="mono small chip-v" [attr.data-rating]="rating(m.metric, m.p75)">{{ m.metric }} {{ m.p75 == null ? '—' : format(m.metric, m.p75) }}</span>
+                      }
+                    </div>
+                  }
+                </div>
+                @if (v.pages.length) {
+                  <div>
+                    <div class="table-wrap">
+                      <table class="table vital-pages">
+                        <thead>
+                          <tr><th>{{ 'admin.vitals.page' | t }}</th><th class="num">LCP</th><th class="num">INP</th><th class="num">CLS</th><th class="num">{{ 'admin.vitals.n' | t }}</th></tr>
+                        </thead>
+                        <tbody>
+                          @for (p of v.pages.slice(0, 6); track p.path) {
+                            <tr [class.v-thin]="p.samples < thinPage">
+                              <td class="mono small">{{ p.path }}</td>
+                              <td class="num" [attr.data-rating]="pageRating('LCP', p.lcp, p.samples)">{{ p.lcp == null ? '—' : format('LCP', p.lcp) }}</td>
+                              <td class="num" [attr.data-rating]="pageRating('INP', p.inp, p.samples)">{{ p.inp == null ? '—' : format('INP', p.inp) }}</td>
+                              <td class="num" [attr.data-rating]="pageRating('CLS', p.cls, p.samples)">{{ p.cls == null ? '—' : format('CLS', p.cls) }}</td>
+                              <td class="num faint">{{ p.samples }}</td>
+                            </tr>
+                          }
+                        </tbody>
+                      </table>
+                    </div>
+                    <p class="small faint v-thin-note">{{ 'admin.vitals.thin' | t: { n: thinPage } }}</p>
+                  </div>
+                }
+              </div>
+            </details>
           }
         }
       </section>
@@ -686,57 +720,93 @@ const PAD = { top: 16, right: 16, bottom: 28, left: 36 };
         display: none;
       }
     }
-    .vital-intro {
-      max-width: 75ch;
-      margin: -0.25rem 0 0.75rem;
-      color: var(--fg-2);
-    }
-    .vital-legend {
+    .v-verdict {
       display: flex;
       flex-wrap: wrap;
-      align-items: center;
-      gap: 0.4rem 1.1rem;
+      align-items: baseline;
+      gap: 0.25rem 0.9rem;
       margin-bottom: 1rem;
     }
-    .vital-legend span {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.4rem;
+    .v-verdict strong {
+      font-family: var(--font-display);
+      font-size: 1.5rem;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
     }
-    .sw-r {
-      width: 14px;
-      height: 5px;
-      border-radius: 99px;
+    .v-verdict[data-rating='good'] strong {
+      color: var(--success);
     }
-    .sw-r.good {
-      background: #22a05a;
+    .v-verdict[data-rating='ni'] strong {
+      color: var(--warning);
     }
-    .sw-r.ni {
-      background: #e0a12a;
+    .v-verdict[data-rating='poor'] strong {
+      color: var(--danger);
     }
-    .sw-r.poor {
-      background: #e5484d;
-    }
-    .v-goal {
-      line-height: 1.35;
+    .v-few {
+      flex-basis: 100%;
     }
     .vital-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr));
       gap: 0.75rem;
     }
     .vital {
-      display: grid;
-      gap: 0.3rem;
-      padding: 0.9rem 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.45rem;
+      padding: 1rem 1.1rem;
       border-radius: 12px;
       border: 1px solid var(--line);
       background: var(--bg);
     }
-    .v-name {
-      font-size: 0.7rem;
-      letter-spacing: 0.08em;
+    .v-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 0.75rem;
+    }
+    .v-rate {
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    [data-rating='good'] .v-rate {
+      color: var(--success);
+    }
+    [data-rating='ni'] .v-rate {
+      color: var(--warning);
+    }
+    [data-rating='poor'] .v-rate {
+      color: var(--danger);
+    }
+    .v-say {
+      margin: 0;
+      color: var(--fg-2);
+      line-height: 1.35;
+      flex: 1;
+    }
+    .vital-more {
+      margin-top: 1rem;
+    }
+    .vital-more summary {
+      cursor: pointer;
+    }
+    .table-wrap {
+      overflow-x: auto;
+    }
+    .vital-note {
+      max-width: 75ch;
+      margin: 0.75rem 0;
+    }
+    .v-code {
+      display: inline-block;
+      min-width: 3.2em;
       color: var(--fg-3);
+    }
+    .v-thin td {
+      color: var(--fg-3);
+    }
+    .v-thin-note {
+      margin-top: 0.5rem;
     }
     .v-value {
       font-family: var(--font-display);
@@ -784,8 +854,12 @@ const PAD = { top: 16, right: 16, bottom: 28, left: 36 };
     }
     .vital-foot {
       display: grid;
+      grid-template-columns: minmax(0, 1fr);
       gap: 1rem;
       margin-top: 1rem;
+    }
+    .vital-pages td.num {
+      white-space: nowrap;
     }
     @media (min-width: 1100px) {
       .vital-foot {
@@ -1230,6 +1304,20 @@ export class DashboardPage {
       .map(([key, stats]) => ({ key, stats }))
       .filter((d) => d.stats.some((s) => s.samples > 0)),
   );
+  /** The three figures Google rates a site on; first paint and server response stay in the detail */
+  readonly coreVitals = computed(() => (this.vitals()?.metrics ?? []).filter((m) => ['LCP', 'INP', 'CLS'].includes(m.metric)));
+  readonly vitalsVerdict = computed(() => {
+    const rated = this.coreVitals().filter((m) => m.p75 != null);
+    if (!rated.length) return null;
+    const bad = rated.filter((m) => this.rating(m.metric, m.p75) !== 'good');
+    return {
+      level: rated.some((m) => this.rating(m.metric, m.p75) === 'poor') ? 'poor' : bad.length ? 'ni' : 'good',
+      issues: bad.map((m) => this.i18n.t('admin.vitals.label.' + m.metric)).join(', '),
+      visits: Math.max(...rated.map((m) => m.samples)),
+    };
+  });
+  /** Under this many visits one slow connection decides the figure: shown, but not judged */
+  readonly thinPage = 5;
   private static readonly LIMITS: Record<VitalMetric, [number, number]> = {
     LCP: [2500, 4000],
     INP: [200, 500],
@@ -1247,6 +1335,26 @@ export class DashboardPage {
   format(metric: VitalMetric | string, value: number): string {
     if (metric === 'CLS') return value.toFixed(2);
     return value >= 1000 ? (value / 1000).toLocaleString(this.i18n.locale(), { maximumFractionDigits: 1 }) + ' s' : Math.round(value) + ' ms';
+  }
+
+  pageRating(metric: VitalMetric, value: number | null | undefined, visits: number): 'good' | 'ni' | 'poor' | null {
+    return visits < this.thinPage ? null : this.rating(metric, value);
+  }
+
+  /** The layout-shift score means nothing on its own, so it is shown as a word */
+  vitalValue(m: VitalStat): string {
+    if (m.p75 == null) return '—';
+    return m.metric === 'CLS' ? this.i18n.t('admin.vitals.stability.' + this.rating(m.metric, m.p75)) : this.format(m.metric, m.p75);
+  }
+
+  vitalSentence(m: VitalStat): string {
+    if (m.p75 == null) return this.i18n.t('admin.vitals.noData');
+    if (m.metric === 'CLS') return this.i18n.t('admin.vitals.say.CLS.' + this.rating(m.metric, m.p75));
+    return this.i18n.t('admin.vitals.say.' + m.metric, { value: this.format(m.metric, m.p75) });
+  }
+
+  goodShare(m: VitalStat): number {
+    return Math.round(m.good * 100);
   }
 
   linePath(key: 'yViews' | 'yVisitors'): string {

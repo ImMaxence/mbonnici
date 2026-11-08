@@ -54,6 +54,7 @@ public class VitalsService {
     public record Stat(Metric metric, long samples, Double p75, double good, double needsImprovement, double poor,
             double goodThreshold, double poorThreshold) {}
 
+    /** {@code samples} is a number of visits: a visit sends each metric at most once. */
     public record PageStat(String path, long samples, Double lcp, Double inp, Double cls) {}
 
     public record Overview(int days, List<Stat> metrics, Map<String, List<Stat>> byDevice, List<PageStat> pages) {}
@@ -104,12 +105,14 @@ public class VitalsService {
             byDevice.put(device, stats);
         }
         List<PageStat> pages = jdbc.query("""
-                select path, count(*) as n,
+                select path,
+                       greatest(count(*) filter (where metric = 'LCP'), count(*) filter (where metric = 'FCP'),
+                                count(*) filter (where metric = 'TTFB')) as visits,
                        percentile_cont(0.75) within group (order by value) filter (where metric = 'LCP') as lcp,
                        percentile_cont(0.75) within group (order by value) filter (where metric = 'INP') as inp,
                        percentile_cont(0.75) within group (order by value) filter (where metric = 'CLS') as cls
                 from web_vital where created_at >= ?
-                group by path order by n desc limit 8
+                group by path order by visits desc limit 8
                 """, (rs, i) -> new PageStat(rs.getString(1), rs.getLong(2), nullable(rs.getObject(3)),
                 nullable(rs.getObject(4)), nullable(rs.getObject(5))), since);
         return new Overview(d, metrics, byDevice, pages);

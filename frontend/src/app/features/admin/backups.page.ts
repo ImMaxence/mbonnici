@@ -22,6 +22,7 @@ import { TooltipDirective } from '../../shared/ui/tooltip.directive';
       </div>
     </div>
 
+    <p class="visually-hidden" role="status">{{ loading() ? ('admin.common.loading' | t) : '' }}</p>
     @if (toast()) {
       <p class="toast">{{ toast() }}</p>
     }
@@ -42,6 +43,14 @@ import { TooltipDirective } from '../../shared/ui/tooltip.directive';
       <!-- ── Google Drive ──────────────────────────────────────────── -->
       <section class="panel">
         <h2 class="panel-title">{{ 'admin.backups.drive.title' | t }}</h2>
+        @if (loading()) {
+          <div class="skel-group" aria-hidden="true">
+            <span class="skel loading-shimmer" style="width: 62%"></span>
+            <span class="skel skel-bar loading-shimmer"></span>
+            <span class="skel skel-sm loading-shimmer" style="width: 36%"></span>
+            <span class="skel skel-btn loading-shimmer"></span>
+          </div>
+        }
         @if (overview()?.drive; as d) {
           @if (d.connected) {
             <p><app-icon name="check" [size]="14" /> {{ 'admin.backups.drive.connected' | t: { email: d.email ?? '' } }}</p>
@@ -85,6 +94,9 @@ import { TooltipDirective } from '../../shared/ui/tooltip.directive';
               <input type="file" accept=".zip,application/zip" hidden (change)="importFile($event)" [disabled]="importing()" />
             </label>
             <p class="small faint" style="margin-top: .4rem">{{ 'admin.backups.actions.importHint' | t }}</p>
+            @if (loading()) {
+              <span class="skel skel-sm loading-shimmer" style="width: 70%; margin-top: .5rem" aria-hidden="true"></span>
+            }
             @if (overview()?.schemaVersion; as v) {
               <p class="small faint" style="margin-top: .25rem">{{ 'admin.backups.schema' | t: { v: v } }}</p>
             }
@@ -95,6 +107,16 @@ import { TooltipDirective } from '../../shared/ui/tooltip.directive';
       <!-- ── Schedule ──────────────────────────────────────────────── -->
       <section class="panel">
         <h2 class="panel-title">{{ 'admin.backups.schedule.title' | t }}</h2>
+        @if (loading()) {
+          <div class="skel-group" aria-hidden="true">
+            <span class="skel loading-shimmer" style="width: 70%"></span>
+            <span class="skel skel-sm loading-shimmer" style="width: 22%"></span>
+            <span class="skel skel-field loading-shimmer"></span>
+            <span class="skel skel-sm loading-shimmer" style="width: 40%"></span>
+            <span class="skel skel-field loading-shimmer"></span>
+            <span class="skel skel-btn loading-shimmer"></span>
+          </div>
+        }
         @if (settings(); as s) {
           <div class="form-grid">
             <label class="row" style="gap: .6rem">
@@ -121,7 +143,19 @@ import { TooltipDirective } from '../../shared/ui/tooltip.directive';
       <!-- ── Files on Drive ────────────────────────────────────────── -->
       <section class="panel">
         <h2 class="panel-title">{{ 'admin.backups.files.title' | t }}</h2>
-        @if (!overview()?.files?.length) {
+        @if (loading()) {
+          <div aria-hidden="true">
+            @for (r of skeletonFiles; track r) {
+              <div class="skel-row">
+                <div class="skel-group skel-grow">
+                  <span class="skel loading-shimmer" style="width: 72%"></span>
+                  <span class="skel skel-sm loading-shimmer" style="width: 44%"></span>
+                </div>
+                <span class="skel skel-actions loading-shimmer"></span>
+              </div>
+            }
+          </div>
+        } @else if (!overview()?.files?.length) {
           <p class="muted small">{{ 'admin.backups.files.empty' | t }}</p>
         } @else {
           <table class="table">
@@ -150,7 +184,18 @@ import { TooltipDirective } from '../../shared/ui/tooltip.directive';
     <!-- ── History ─────────────────────────────────────────────────── -->
     <section class="panel">
       <h2 class="panel-title">{{ 'admin.backups.runs.title' | t }}</h2>
-      @if (!overview()?.runs?.length) {
+      @if (loading()) {
+        <div aria-hidden="true">
+          @for (r of skeletonRuns; track r) {
+            <div class="skel-row">
+              <span class="skel skel-sm loading-shimmer" style="width: 18%"></span>
+              <span class="skel skel-sm loading-shimmer" style="width: 22%"></span>
+              <span class="skel skel-sm loading-shimmer" style="width: 10%"></span>
+              <span class="skel skel-sm loading-shimmer skel-grow"></span>
+            </div>
+          }
+        </div>
+      } @else if (!overview()?.runs?.length) {
         <p class="muted small">{{ 'admin.backups.runs.empty' | t }}</p>
       } @else {
         <table class="table">
@@ -202,6 +247,50 @@ import { TooltipDirective } from '../../shared/ui/tooltip.directive';
       width: auto;
       display: inline-flex;
     }
+    .skel {
+      display: block;
+      height: 0.95rem;
+      border-radius: 4px;
+    }
+    .skel-sm {
+      height: 0.72rem;
+    }
+    .skel-bar {
+      height: 1.6rem;
+      border-radius: 6px;
+    }
+    .skel-field {
+      height: 2.8rem;
+      border-radius: 8px;
+    }
+    .skel-btn {
+      width: 8.5rem;
+      height: 2.4rem;
+      margin-top: 0.3rem;
+      border-radius: 8px;
+    }
+    .skel-actions {
+      flex: 0 0 min(45%, 16rem);
+      height: 1.9rem;
+      border-radius: 8px;
+    }
+    .skel-group {
+      display: grid;
+      gap: 0.7rem;
+    }
+    .skel-grow {
+      flex: 1;
+    }
+    .skel-row {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 0.8rem 0;
+      border-top: 1px solid var(--line);
+    }
+    .skel-row:first-child {
+      border-top: 0;
+    }
   `,
 })
 export class BackupsPage {
@@ -212,6 +301,10 @@ export class BackupsPage {
 
   readonly overview = signal<BackupOverview | null>(null);
   readonly settings = signal<BackupSettings | null>(null);
+  /** The first answer waits on Google Drive (about 2 s) */
+  readonly loading = signal(true);
+  readonly skeletonFiles = [1, 2, 3, 4];
+  readonly skeletonRuns = [1, 2, 3, 4, 5];
   readonly toast = signal('');
   readonly error = signal('');
   readonly importing = signal(false);
@@ -244,6 +337,8 @@ export class BackupsPage {
       if (wasRunning && !o.running) this.notify(this.i18n.t('admin.backups.actions.restored'));
     } catch (e) {
       this.fail(e);
+    } finally {
+      this.loading.set(false);
     }
   }
 

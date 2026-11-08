@@ -7,6 +7,20 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [1.7.3] — 2026-11-08
+
+### Changed
+- **Real-user performance panel**: a one-line verdict and three plain figures (content shown, response
+  to clicks, page stability) written as sentences; the abbreviations, first paint, server response,
+  devices and pages move to a "Technical detail" section. Pages count visits instead of raw
+  measurements, and a page with fewer than 5 visits is no longer coloured.
+- **Backups page**: placeholders while the Google Drive data loads, instead of empty panels and a
+  "no archive" message that was not true yet.
+
+### Fixed
+- **Web vitals accuracy**: a tab opened in the background no longer counts its wait as display time,
+  a page that never moves now scores 0 instead of sending nothing, and robots are left out.
+
 ## [1.7.2] — 2026-11-08
 
 ### Changed
