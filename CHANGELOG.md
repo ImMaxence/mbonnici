@@ -7,6 +7,12 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [1.7.2] — 2026-11-08
+
+### Changed
+- **Opening screen**: same movement as the page transitions (same curves, the name leaves as the
+  sheet lifts) and slower: the name holds on screen, the sheet is gone at 2.9 s instead of 2.45 s.
+
 ## [1.7.1] — 2026-11-07
 
 ### Fixed

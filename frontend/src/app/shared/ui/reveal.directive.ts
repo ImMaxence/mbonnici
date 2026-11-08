@@ -3,8 +3,8 @@ import { MotionService } from '../../core/motion/motion.service';
 
 /** Hydration later than this after navigation start means a slow device: no entrance choreography. */
 const FAST_HYDRATION_MS = 1800;
-/** The CSS intro (motion.css) lifts at 1.45 s and is gone at ~2.45 s after navigation start. */
-export const INTRO_END_MS = 2300;
+/** The CSS intro (index.html) lifts at 2.1 s and is gone at ~2.9 s after navigation start. */
+export const INTRO_END_MS = 2950;
 
 /**
  * Reveals the host when it scrolls into view. With `revealSplit="words"` the text is wrapped
