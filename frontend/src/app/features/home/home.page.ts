@@ -174,7 +174,7 @@ import { ToolboxComponent } from '../../shared/ui/toolbox.component';
     }
     .headline {
       align-self: center;
-      max-width: 15ch;
+      max-width: 6.9em;
       font-size: clamp(3rem, 0.6rem + 9.6vw, 11rem);
     }
     .headline .accent-word {

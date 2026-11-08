@@ -7,6 +7,16 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [1.7.4] — 2026-11-08
+
+### Changed
+- **English home headline**: "I design and build web experiences end to end", natural English on
+  three lines, as large on screen as the French one. The highlighted words stay on one line.
+
+### Fixed
+- **Page transition title**: the letters that go below or above the line (g, j, ç, À) were cut off
+  by the mask that reveals the text.
+
 ## [1.7.3] — 2026-11-08
 
 ### Changed

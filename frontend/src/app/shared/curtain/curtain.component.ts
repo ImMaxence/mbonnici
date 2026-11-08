@@ -63,6 +63,8 @@ import { TransitionService } from './transition.service';
       color: inherit;
       opacity: 0.6;
     }
+    /* the mask must hold the whole glyphs: with this tight line-height, accents (À) rise above the
+       line and descenders (g, j, ç) drop below it; the negative margins keep the text in place */
     .title {
       display: block;
       overflow: hidden;
@@ -71,12 +73,13 @@ import { TransitionService } from './transition.service';
       font-weight: var(--weight-display);
       letter-spacing: -0.05em;
       line-height: 0.95;
-      padding: 0 0.1em 0.08em;
-      margin: 0 -0.1em;
+      padding: 0.16em 0.1em 0.26em;
+      margin: -0.16em -0.1em -0.18em;
     }
     .title > span {
       display: inline-block;
-      transform: translate3d(0, 105%, 0);
+      /* far enough down to clear the deeper mask */
+      transform: translate3d(0, 140%, 0);
     }
     .curtain[data-state='covering'] .title > span,
     .curtain[data-state='covered'] .title > span {

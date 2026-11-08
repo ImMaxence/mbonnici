@@ -102,9 +102,9 @@ export const en: Dictionary = {
   },
 
   home: {
-    headlineA: 'I build',
-    headlineB: 'complete web',
-    headlineC: 'experiences',
+    headlineA: 'I design and build',
+    headlineB: 'web experiences',
+    headlineC: 'end to end',
     intro:
       'Spring Boot on the server, Angular in the browser, Docker everywhere: from the database schema to the last pixel, I build applications that are fast, accessible and a pleasure to use',
     ctaProjects: 'See my work',
