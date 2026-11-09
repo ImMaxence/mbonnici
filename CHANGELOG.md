@@ -7,6 +7,12 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [1.9.1] — 2026-11-09
+
+### Fixed
+- **Custom cursor over embedded frames**: it no longer stays frozen on the edge of Google's captcha
+  or of a live project preview. It fades out there and the browser's own cursor takes over.
+
 ## [1.9.0] — 2026-11-09
 
 The contact form captcha started in 1.8.0, in its final form.

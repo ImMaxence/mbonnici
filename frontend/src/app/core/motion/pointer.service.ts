@@ -24,7 +24,7 @@ export class PointerService {
   /** px per second */
   vx = 0;
   vy = 0;
-  /** true after the first move, false when the pointer leaves the window */
+  /** true after the first move, false when the pointer leaves the window or goes over a frame */
   active = false;
   down = false;
 
@@ -44,6 +44,14 @@ export class PointerService {
     window.addEventListener('pointerup', () => (this.down = false), { passive: true });
     window.addEventListener('blur', () => (this.down = false));
     document.documentElement.addEventListener('pointerleave', () => (this.active = false));
+    // a frame keeps the pointer's moves to itself: for this page the pointer has left, until it moves here again
+    document.addEventListener(
+      'pointerover',
+      (e) => {
+        if (e.target instanceof HTMLIFrameElement) this.active = false;
+      },
+      { passive: true },
+    );
     this.stop = this.raf.add((dt) => {
       const w = window.innerWidth;
       const h = window.innerHeight;
