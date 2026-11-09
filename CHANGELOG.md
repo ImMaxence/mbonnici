@@ -7,6 +7,18 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [1.9.0] — 2026-11-09
+
+The contact form captcha started in 1.8.0, in its final form.
+
+### Changed
+- **Contact form captcha**: Google's "I'm not a robot" box, shown directly with the form, in the
+  site's theme and language. It needs a checkbox key, and both keys are required in Coolify.
+
+### Fixed
+- **Captcha on phones**: Google's box is centred and scaled down to fit the form, instead of
+  overflowing it and leaving an empty space below.
+
 ## [1.8.2] — 2026-11-09
 
 ### Changed

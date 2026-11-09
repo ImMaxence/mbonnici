@@ -18,6 +18,8 @@ import { type CaptchaLook, CaptchaService } from './captcha.service';
 
 type State = 'idle' | 'sending' | 'sent' | 'error' | 'limited' | 'captchaBlocked' | 'captchaFailed';
 
+const CAPTCHA_WIDTH = 304;
+
 interface FormErrors {
   name?: string;
   email?: string;
@@ -128,7 +130,9 @@ interface FormErrors {
               </div>
               @if (captchaKey()) {
                 <div class="captcha">
-                  <div #captchaSlot class="captcha-slot"></div>
+                  <div class="captcha-fit">
+                    <div #captchaSlot class="captcha-slot"></div>
+                  </div>
                   @if (errors().captcha) {
                     <span class="field-error">{{ errors().captcha }}</span>
                   }
@@ -238,20 +242,33 @@ interface FormErrors {
       justify-items: start;
       padding: var(--space-4) 0;
     }
+    /* min-width: the box has a fixed width and must not widen the whole form */
     .captcha {
       display: grid;
       gap: 0.6rem;
-      container-type: inline-size;
+      min-width: 0;
     }
-    .captcha-slot {
+    .captcha-fit {
+      --captcha-scale: 1;
+      display: flex;
+      min-width: 0;
       /* the room of Google's box before it arrives, so the form does not jump */
-      min-height: 78px;
+      height: calc(78px * var(--captcha-scale));
       /* Google's frame is a light page: on the dark theme the mismatch paints its transparent edge white */
       color-scheme: light;
     }
-    @container (max-width: 303.98px) {
+    .captcha-slot {
+      flex: none;
+      width: 304px;
+      transform: scale(var(--captcha-scale));
+      transform-origin: top left;
+    }
+    @media (max-width: 640px) {
+      .captcha-fit {
+        justify-content: center;
+      }
       .captcha-slot {
-        min-height: 144px;
+        transform-origin: top center;
       }
     }
     .privacy {
@@ -327,6 +344,14 @@ export class ContactPage {
       const key = this.captchaKey();
       const look = { theme: this.theme.resolved(), lang: this.i18n.lang() };
       if (slot && key) untracked(() => void this.drawCaptcha(slot, key, look));
+    });
+    // Google's box has a fixed width: where the form is narrower, it is scaled down to fit
+    afterRenderEffect((onCleanup) => {
+      const fit = this.captchaSlot()?.nativeElement.parentElement;
+      if (!fit) return;
+      const observer = new ResizeObserver(() => fit.style.setProperty('--captcha-scale', String(Math.min(1, fit.clientWidth / CAPTCHA_WIDTH))));
+      observer.observe(fit);
+      onCleanup(() => observer.disconnect());
     });
     // a first line about the project the visitor came from (kept if they already typed something)
     effect(() => {

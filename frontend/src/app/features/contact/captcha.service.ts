@@ -19,8 +19,6 @@ export interface CaptchaEvents {
 
 /** how long Google may take before the visitor is told to write by e-mail instead */
 const TIMEOUT_MS = 15_000;
-/** below this width the box takes its compact form */
-const NORMAL_WIDTH = 304;
 
 function withTimeout<T>(work: Promise<T>): Promise<T> {
   let timer: ReturnType<typeof setTimeout>;
@@ -50,7 +48,6 @@ export class CaptchaService {
       sitekey: siteKey,
       theme: look.theme,
       hl: look.lang,
-      size: slot.clientWidth < NORMAL_WIDTH ? 'compact' : 'normal',
       callback: events.token,
       'expired-callback': () => events.token(null),
       'error-callback': events.failed,
