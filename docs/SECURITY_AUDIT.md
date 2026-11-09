@@ -19,7 +19,7 @@ integration tests), and manual probing of the running stack.*
 | Transport & headers | ✅ HSTS, nosniff, referrer-policy, permissions-policy, COOP, X-Frame-Options on both tiers |
 | Secrets | ✅ Only from environment; `.env` git-ignored; compose refuses to start without the required secrets |
 | Dependencies | ✅ `npm audit`: 0 vulnerabilities (prod and dev); Spring Boot 4.1.2 BOM; AWS SDK 2.57 |
-| Privacy | ✅ No tracking cookies for visitors (reCAPTCHA only after consent), no IP storage, DNT/GPC honoured, data retention limits, legal pages |
+| Privacy | ✅ No tracking cookies for visitors (reCAPTCHA on the contact page only), no IP storage, DNT/GPC honoured, data retention limits, legal pages |
 | Containers | ✅ Non-root users, minimal Alpine/JRE images, health checks, only the frontend is published |
 
 No critical or high-severity issue remains. Findings below were either fixed during the audit
@@ -192,9 +192,9 @@ readable by the authenticated owner.
 
 ## v1.8.0 additions
 
-- **Contact form captcha** (optional, `RECAPTCHA_*`): the secret key stays on the server, the token of the
+- **Contact form captcha** (`RECAPTCHA_*`): the secret key stays on the server, the token of the
   checkbox is checked with Google, and the visitor's IP is not sent with it. Google's script is
-  requested only after an explicit click to enable it, with the page's CSP nonce; `connect-src` gains
+  requested by the contact page only, with the page's CSP nonce; `connect-src` gains
   `https://www.google.com/recaptcha/`. A Google outage or a wrong secret key does not block messages
   (honeypot and rate limit still apply) and is recorded in the journal.
 - **Spring's 4xx refusals** (405, 406, 415…) keep their status instead of a 500 and no longer feed the

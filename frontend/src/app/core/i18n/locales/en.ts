@@ -248,10 +248,7 @@ export const en: Dictionary = {
       tooShort: 'A little more detail? (10 characters minimum)',
       privacy: 'Your details are only used to reply to you',
       privacyLink: 'Privacy policy',
-      captchaConsent: 'The Google reCAPTCHA bot check sends technical data to Google, it only loads at your request',
-      captchaActivate: 'Enable the check',
-      captchaLoading: 'Loading…',
-      captchaRequired: 'Complete the bot check to send your message, or e-mail me directly',
+      captchaRequired: 'Tick “I’m not a robot” to send your message, or e-mail me directly',
       captchaBlocked: 'The check could not load (ad blocker?), please e-mail me directly',
       captchaFailed: 'The check failed, try again or e-mail me directly',
     },
@@ -307,7 +304,7 @@ export const en: Dictionary = {
         {
           h: 'In short',
           p: [
-            'This site sets no tracking cookie, uses no advertising service and sells no data. It works without a consent banner: the only third-party service that needs your agreement is the bot check of the contact form, loaded only if you enable it.',
+            'This site sets no tracking cookie, uses no advertising service and sells no data. The only third-party service the site loads is the Google reCAPTCHA bot check, on the contact page only.',
           ],
         },
         {
@@ -328,7 +325,7 @@ export const en: Dictionary = {
         {
           h: 'Technical cookie',
           p: [
-            'Unless you accept the bot check described below, a single cookie is set on the public site: XSRF-TOKEN, a random token that protects the contact form against forged requests (CSRF). It holds no information about you, is only read by this site and is deleted when the browser closes. Being strictly necessary for the security of the service, it is exempt from consent. The back office additionally uses a session cookie (PSESSION, 8 hours) reserved for its owner.',
+            'Apart from the cookie of the bot check described below, a single cookie is set on the public site: XSRF-TOKEN, a random token that protects the contact form against forged requests (CSRF). It holds no information about you, is only read by this site and is deleted when the browser closes. Being strictly necessary for the security of the service, it is exempt from consent. The back office additionally uses a session cookie (PSESSION, 8 hours) reserved for its owner.',
           ],
         },
         {
@@ -341,9 +338,9 @@ export const en: Dictionary = {
         {
           h: 'Bot check (Google reCAPTCHA)',
           p: [
-            'To block automated messages, the contact form uses the “I’m not a robot” box of Google reCAPTCHA, with Google acting as a processor. The service is only loaded if you click “Enable the check”: before that click, your browser does not contact Google.',
-            'Once the check is enabled, Google receives technical data (IP address, browser and device characteristics, interactions with the page) and sets a cookie (_GRECAPTCHA) to assess whether the message comes from a person. The content of your message is not sent to Google, and the site does not keep the result of the check. This data may be processed outside the European Union, notably in the United States, under the safeguards set out in Google’s data processing terms.',
-            'Legal basis: your consent (article 82 of the French Data Protection Act and article 6.1.a GDPR). It only applies to the open page and is not remembered. You are free to refuse: the form cannot then be sent, but you can write to me directly at {email}.',
+            'To block automated messages, the contact page shows the “I’m not a robot” box of Google reCAPTCHA, with Google acting as a processor. This service is loaded when that page opens and only then: the other pages of the site do not contact Google.',
+            'Google then receives technical data (IP address, browser and device characteristics, interactions with the page) and sets a cookie (_GRECAPTCHA) to assess whether the message comes from a person. The content of your message is not sent to Google, and the site does not keep the result of the check. This data may be processed outside the European Union, notably in the United States, under the safeguards set out in Google’s data processing terms.',
+            'Legal basis: my legitimate interest in protecting the form against automated messages (article 6.1.f GDPR). You can also write to me directly at {email}, without using this form.',
           ],
         },
         {
@@ -355,7 +352,7 @@ export const en: Dictionary = {
         {
           h: 'Hosting and processors',
           p: [
-            'The site is hosted on a personal server located in France. Traffic goes through the Cloudflare, Inc. network, which acts as a firewall and CDN and may process your IP address for that purpose, under its own privacy commitments. Google acts as a processor for the bot check, only if you accept it.',
+            'The site is hosted on a personal server located in France. Traffic goes through the Cloudflare, Inc. network, which acts as a firewall and CDN and may process your IP address for that purpose, under its own privacy commitments. Google acts as a processor for the bot check of the contact page.',
           ],
         },
         {

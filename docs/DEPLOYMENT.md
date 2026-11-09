@@ -107,8 +107,8 @@ the version of each tier.
    BOM follow Spring Boot, do not bump them by hand).
 2. **Secrets** in Coolify: `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`, `ADMIN_EMAIL`; the `SERVICE_*` values are
    generated. `DEV_LOGIN` must **not** be set (it is refused anyway unless the site URL is
-   localhost). Optional, for the captcha of the contact form: `RECAPTCHA_SITE_KEY` and
-   `RECAPTCHA_SECRET_KEY` (see `.env.example`); after setting them, send a test message.
+   localhost). The captcha of the contact form needs `RECAPTCHA_SITE_KEY` and `RECAPTCHA_SECRET_KEY`,
+   from a checkbox key (see `.env.example`); after setting them, send a test message.
 3. **Google console**: authorised redirect URI `https://mbonnici.fr/api/auth/oauth2/code/google`
    (and the Drive scope if backups go to Drive).
 4. **Cloudflare**: DNS proxied, Full (strict), the cache rules above.

@@ -1,4 +1,4 @@
-import { Component, ElementRef, computed, effect, inject, input, signal, untracked, viewChild } from '@angular/core';
+import { Component, ElementRef, afterRenderEffect, computed, effect, inject, input, signal, untracked, viewChild } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { AnalyticsService } from '../../core/analytics/analytics.service';
@@ -14,7 +14,7 @@ import { FooterComponent } from '../../shared/ui/footer.component';
 import { cvLink } from '../../shared/ui/cv';
 import { IconComponent } from '../../shared/ui/icon.component';
 import { RevealDirective } from '../../shared/ui/reveal.directive';
-import { CaptchaService } from './captcha.service';
+import { type CaptchaLook, CaptchaService } from './captcha.service';
 
 type State = 'idle' | 'sending' | 'sent' | 'error' | 'limited' | 'captchaBlocked' | 'captchaFailed';
 
@@ -22,7 +22,7 @@ interface FormErrors {
   name?: string;
   email?: string;
   message?: string;
-  consent?: string;
+  captcha?: string;
 }
 
 @Component({
@@ -127,16 +127,10 @@ interface FormErrors {
                 <input id="c-website" name="website" tabindex="-1" autocomplete="off" [(ngModel)]="model.website" />
               </div>
               @if (captchaKey()) {
-                <div class="consent">
-                  @if (captchaStage() !== 'on') {
-                    <p class="field-hint">{{ 'contact.form.captchaConsent' | t }}</p>
-                    <button type="button" class="btn btn-ghost" [disabled]="captchaStage() === 'loading'" (click)="activateCaptcha()" appMagnetic>
-                      {{ (captchaStage() === 'loading' ? 'contact.form.captchaLoading' : 'contact.form.captchaActivate') | t }}
-                    </button>
-                  }
+                <div class="captcha">
                   <div #captchaSlot class="captcha-slot"></div>
-                  @if (errors().consent) {
-                    <span class="field-error">{{ errors().consent }}</span>
+                  @if (errors().captcha) {
+                    <span class="field-error">{{ errors().captcha }}</span>
                   }
                 </div>
               }
@@ -244,15 +238,21 @@ interface FormErrors {
       justify-items: start;
       padding: var(--space-4) 0;
     }
-    .consent {
+    .captcha {
       display: grid;
       gap: 0.6rem;
-      justify-items: start;
+      container-type: inline-size;
     }
     .captcha-slot {
-      justify-self: stretch;
+      /* the room of Google's box before it arrives, so the form does not jump */
+      min-height: 78px;
       /* Google's frame is a light page: on the dark theme the mismatch paints its transparent edge white */
       color-scheme: light;
+    }
+    @container (max-width: 303.98px) {
+      .captcha-slot {
+        min-height: 144px;
+      }
     }
     .privacy {
       display: flex;
@@ -294,8 +294,6 @@ export class ContactPage {
   readonly copied = signal(false);
   /** present once the site has its reCAPTCHA keys */
   readonly captchaKey = computed(() => this.settings()?.captchaSiteKey);
-  /** Google's box is only requested when the visitor asks for it */
-  readonly captchaStage = signal<'off' | 'loading' | 'on'>('off');
   private readonly captchaToken = signal<string | null>(null);
   private readonly captchaSlot = viewChild<ElementRef<HTMLElement>>('captchaSlot');
   readonly model = { name: '', email: '', message: '', website: '' };
@@ -317,19 +315,18 @@ export class ContactPage {
       else if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(this.model.email.trim())) out['email'] = dict.invalidEmail;
     }
     if (show('message') && this.model.message.trim().length < 10) out['message'] = dict.tooShort;
-    if (all && this.captchaKey() && !this.captchaToken()) out['consent'] = dict.captchaRequired;
+    if (all && this.captchaKey() && !this.captchaToken()) out['captcha'] = dict.captchaRequired;
     return out;
   });
 
 
   constructor() {
-    // Google sets the box's colours and language when drawing it
-    effect(() => {
-      this.theme.resolved();
-      this.i18n.lang();
-      untracked(() => {
-        if (this.captchaStage() === 'on') void this.drawCaptcha();
-      });
+    // drawn when the form appears, and again when the theme or the language change: Google sets them once
+    afterRenderEffect(() => {
+      const slot = this.captchaSlot()?.nativeElement;
+      const key = this.captchaKey();
+      const look = { theme: this.theme.resolved(), lang: this.i18n.lang() };
+      if (slot && key) untracked(() => void this.drawCaptcha(slot, key, look));
     });
     // a first line about the project the visitor came from (kept if they already typed something)
     effect(() => {
@@ -361,24 +358,16 @@ export class ContactPage {
     this.version.update((v) => v + 1);
   }
 
-  /** this click is the visitor's agreement: Google is contacted from here on, not before */
-  activateCaptcha(): void {
-    if (this.state() === 'captchaBlocked') this.state.set('idle');
-    this.captchaStage.set('loading');
-    void this.drawCaptcha();
-  }
-
-  private async drawCaptcha(): Promise<void> {
-    const key = this.captchaKey();
-    const slot = this.captchaSlot()?.nativeElement;
-    if (!key || !slot) return;
+  private async drawCaptcha(slot: HTMLElement, key: string, look: CaptchaLook): Promise<void> {
     this.captchaToken.set(null);
     try {
-      await this.captcha.show(slot, key, { theme: this.theme.resolved(), lang: this.i18n.lang() }, {
-        token: (token) => this.captchaToken.set(token),
+      await this.captcha.show(slot, key, look, {
+        token: (token) => {
+          this.captchaToken.set(token);
+          if (token && this.state() === 'captchaBlocked') this.state.set('idle');
+        },
         failed: () => this.captchaUnavailable(),
       });
-      this.captchaStage.set('on');
     } catch {
       this.captchaUnavailable();
     }
@@ -386,7 +375,6 @@ export class ContactPage {
 
   private captchaUnavailable(): void {
     this.captchaToken.set(null);
-    this.captchaStage.set('off');
     this.state.set('captchaBlocked');
   }
 
@@ -420,7 +408,6 @@ export class ContactPage {
     this.model.name = '';
     this.model.email = '';
     this.model.message = '';
-    this.captchaStage.set('off');
     this.captchaToken.set(null);
     this.touched.set({});
     this.submitted.set(false);

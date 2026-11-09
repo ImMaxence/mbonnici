@@ -7,6 +7,13 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [1.8.2] — 2026-11-09
+
+### Changed
+- **Contact form captcha**: Google's box is shown directly with the form, without the "Enable the
+  check" button. The privacy policy says so and no longer relies on consent for it.
+- **Deployment**: `RECAPTCHA_SITE_KEY` and `RECAPTCHA_SECRET_KEY` are required in Coolify.
+
 ## [1.8.1] — 2026-11-09
 
 ### Changed

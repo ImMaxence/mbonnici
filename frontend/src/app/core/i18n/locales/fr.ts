@@ -255,10 +255,7 @@ export const fr = {
       tooShort: 'Un peu plus de détails ? (10 caractères minimum)',
       privacy: 'Vos coordonnées servent uniquement à vous répondre',
       privacyLink: 'Politique de confidentialité',
-      captchaConsent: 'La vérification anti-robot de Google reCAPTCHA transmet des données techniques à Google, elle ne se charge qu’à votre demande',
-      captchaActivate: 'Activer la vérification',
-      captchaLoading: 'Chargement…',
-      captchaRequired: 'Validez la vérification anti-robot pour envoyer le message, ou écrivez-moi directement par e-mail',
+      captchaRequired: 'Cochez « Je ne suis pas un robot » pour envoyer le message, ou écrivez-moi directement par e-mail',
       captchaBlocked: 'La vérification n’a pas pu se charger (bloqueur de publicité ?), écrivez-moi directement par e-mail',
       captchaFailed: 'La vérification a échoué, recommencez-la ou écrivez-moi directement par e-mail',
     },
@@ -314,7 +311,7 @@ export const fr = {
         {
           h: 'En deux mots',
           p: [
-            'Ce site ne dépose aucun cookie de suivi, n’utilise aucun service publicitaire et ne revend aucune donnée. Il fonctionne sans bannière de consentement : le seul service tiers soumis à votre accord est la vérification anti-robot du formulaire de contact, chargée uniquement si vous l’activez.',
+            'Ce site ne dépose aucun cookie de suivi, n’utilise aucun service publicitaire et ne revend aucune donnée. Le seul service tiers chargé par le site est la vérification anti-robot de Google reCAPTCHA, uniquement sur la page de contact.',
           ],
         },
         {
@@ -335,7 +332,7 @@ export const fr = {
         {
           h: 'Cookie technique',
           p: [
-            'Sauf si vous acceptez la vérification anti-robot décrite plus bas, un seul cookie est déposé sur le site public : XSRF-TOKEN, un jeton aléatoire qui protège le formulaire de contact contre les requêtes falsifiées (CSRF). Il ne contient aucune information sur vous, n’est lu que par ce site et disparaît à la fermeture du navigateur. Strictement nécessaire à la sécurité du service, il est exempté de consentement. L’espace d’administration utilise en plus un cookie de session (PSESSION, 8 heures) réservé à son propriétaire.',
+            'En dehors du cookie de la vérification anti-robot décrit plus bas, un seul cookie est déposé sur le site public : XSRF-TOKEN, un jeton aléatoire qui protège le formulaire de contact contre les requêtes falsifiées (CSRF). Il ne contient aucune information sur vous, n’est lu que par ce site et disparaît à la fermeture du navigateur. Strictement nécessaire à la sécurité du service, il est exempté de consentement. L’espace d’administration utilise en plus un cookie de session (PSESSION, 8 heures) réservé à son propriétaire.',
           ],
         },
         {
@@ -348,9 +345,9 @@ export const fr = {
         {
           h: 'Vérification anti-robot (Google reCAPTCHA)',
           p: [
-            'Pour bloquer les messages automatisés, le formulaire de contact utilise la case « Je ne suis pas un robot » de Google reCAPTCHA, Google agissant comme sous-traitant. Le service n’est chargé que si vous cliquez sur « Activer la vérification » : avant ce clic, votre navigateur ne contacte pas Google.',
-            'Une fois la vérification activée, Google reçoit des données techniques (adresse IP, caractéristiques du navigateur et de l’appareil, interactions avec la page) et dépose un cookie (_GRECAPTCHA) pour évaluer si l’envoi provient d’une personne. Le contenu de votre message n’est pas transmis à Google, et le site ne conserve pas le résultat de la vérification. Ces données peuvent être traitées hors de l’Union européenne, notamment aux États-Unis, selon les garanties prévues par les conditions de traitement des données de Google.',
-            'Base légale : votre consentement (article 82 de la loi Informatique et Libertés et article 6.1.a du RGPD). Il ne vaut que pour la page ouverte et n’est pas mémorisé. Vous êtes libre de refuser : le formulaire ne peut alors pas être envoyé, mais vous pouvez m’écrire directement à {email}.',
+            'Pour bloquer les messages automatisés, la page de contact affiche la case « Je ne suis pas un robot » de Google reCAPTCHA, Google agissant comme sous-traitant. Ce service est chargé à l’ouverture de cette page uniquement : les autres pages du site ne contactent pas Google.',
+            'Google reçoit alors des données techniques (adresse IP, caractéristiques du navigateur et de l’appareil, interactions avec la page) et dépose un cookie (_GRECAPTCHA) pour évaluer si l’envoi provient d’une personne. Le contenu de votre message n’est pas transmis à Google, et le site ne conserve pas le résultat de la vérification. Ces données peuvent être traitées hors de l’Union européenne, notamment aux États-Unis, selon les garanties prévues par les conditions de traitement des données de Google.',
+            'Base légale : mon intérêt légitime à protéger le formulaire contre les envois automatisés (article 6.1.f du RGPD). Vous pouvez aussi m’écrire directement à {email}, sans utiliser ce formulaire.',
           ],
         },
         {
@@ -362,7 +359,7 @@ export const fr = {
         {
           h: 'Hébergement et sous-traitants',
           p: [
-            'Le site est hébergé sur un serveur personnel situé en France. Le trafic transite par le réseau de Cloudflare, Inc., qui agit comme pare-feu et CDN et peut traiter votre adresse IP à ce titre, conformément à ses propres engagements de confidentialité. Google intervient comme sous-traitant pour la vérification anti-robot, uniquement si vous l’acceptez.',
+            'Le site est hébergé sur un serveur personnel situé en France. Le trafic transite par le réseau de Cloudflare, Inc., qui agit comme pare-feu et CDN et peut traiter votre adresse IP à ce titre, conformément à ses propres engagements de confidentialité. Google intervient comme sous-traitant pour la vérification anti-robot de la page de contact.',
           ],
         },
         {

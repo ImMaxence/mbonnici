@@ -73,7 +73,7 @@ function contentSecurityPolicy(nonce: string): string {
     // gallery loops, and the back office reading a video's size before uploading it
     "media-src 'self' blob:",
     "font-src 'self'",
-    // reCAPTCHA on the contact form, loaded once the visitor agrees (its scripts carry the nonce)
+    // reCAPTCHA on the contact form (its scripts carry the nonce)
     "connect-src 'self' https://www.google.com/recaptcha/",
     'frame-src https:',
     "worker-src 'self' blob:",

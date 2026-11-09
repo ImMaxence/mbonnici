@@ -31,8 +31,8 @@ function withTimeout<T>(work: Promise<T>): Promise<T> {
 }
 
 /**
- * Google's "I'm not a robot" box for the contact form. Its script is only requested once the
- * visitor has asked for it: until then nothing reaches Google (see the privacy policy).
+ * Google's "I'm not a robot" box. Only the contact page asks for it, so the other pages of the
+ * site never contact Google (see the privacy policy).
  */
 @Injectable({ providedIn: 'root' })
 export class CaptchaService {
@@ -65,7 +65,7 @@ export class CaptchaService {
 
   private load(lang: string): Promise<Grecaptcha> {
     this.script ??= withTimeout(this.addScript(lang)).catch((error: unknown) => {
-      this.script = null; // a later click can try again
+      this.script = null; // the next drawing can try again
       throw error;
     });
     return this.script;

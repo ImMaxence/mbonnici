@@ -1,6 +1,6 @@
 {
   "name": "mbonnici",
-  "version": "1.8.1",
+  "version": "1.8.2",
   "private": true,
   "description": "Portfolio of Maxence Bonnici — Angular 22 SSR frontend",
   "scripts": {
