@@ -68,8 +68,8 @@ services:
       ADMIN_EMAIL: ${ADMIN_EMAIL:?}
       APP_URL: https://mbonnici.fr
       # Google reCAPTCHA on the contact form: off while either is empty
-      RECAPTCHA_SITE_KEY: ${RECAPTCHA_SITE_KEY:-}
-      RECAPTCHA_SECRET_KEY: ${RECAPTCHA_SECRET_KEY:-}
+      RECAPTCHA_SITE_KEY: ${RECAPTCHA_SITE_KEY}
+      RECAPTCHA_SECRET_KEY: ${RECAPTCHA_SECRET_KEY}
       # derives the daily salt of the anonymous visitor hashes
       ANALYTICS_SALT_SECRET: ${SERVICE_PASSWORD_64_ANALYTICS}
       # real visitor IP from CF-Connecting-IP: the server must accept Cloudflare's addresses only
