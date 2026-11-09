@@ -7,6 +7,13 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [1.9.2] — 2026-11-09
+
+### Fixed
+- **Contact form while the page loads**: a click on "Send" made too early reloaded the page with the
+  name, e-mail and message in its address, and the message was lost. The button now waits for the
+  page to be ready, and what was typed by then is kept.
+
 ## [1.9.1] — 2026-11-09
 
 ### Fixed

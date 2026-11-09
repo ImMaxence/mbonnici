@@ -1,4 +1,4 @@
-import { Component, ElementRef, afterRenderEffect, computed, effect, inject, input, signal, untracked, viewChild } from '@angular/core';
+import { Component, DOCUMENT, ElementRef, afterNextRender, afterRenderEffect, computed, effect, inject, input, signal, untracked, viewChild } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { AnalyticsService } from '../../core/analytics/analytics.service';
@@ -154,7 +154,7 @@ interface FormErrors {
               @if (state() === 'captchaFailed') {
                 <p class="field-error" role="alert">{{ 'contact.form.captchaFailed' | t }}</p>
               }
-              <button type="submit" class="btn btn-accent btn-lg" [disabled]="state() === 'sending'" appMagnetic>
+              <button [attr.type]="ready() ? 'submit' : 'button'" class="btn btn-accent btn-lg" [disabled]="state() === 'sending'" appMagnetic>
                 {{ (state() === 'sending' ? 'contact.form.sending' : 'contact.form.send') | t }}
                 <app-icon class="arrow" name="send" [size]="16" />
               </button>
@@ -294,6 +294,7 @@ export class ContactPage {
   private readonly analytics = inject(AnalyticsService);
   private readonly captcha = inject(CaptchaService);
   private readonly theme = inject(ThemeService);
+  private readonly document = inject(DOCUMENT);
   readonly i18n = inject(I18nService);
 
   /** resolved by the route and bound as an input */
@@ -314,6 +315,8 @@ export class ContactPage {
   private readonly captchaToken = signal<string | null>(null);
   private readonly captchaSlot = viewChild<ElementRef<HTMLElement>>('captchaSlot');
   readonly model = { name: '', email: '', message: '', website: '' };
+  /** before Angular takes over the page, a click on the button must not make the browser send the form itself */
+  readonly ready = signal(false);
   private prefilled = '';
   private readonly touched = signal<Record<string, boolean>>({});
   private readonly submitted = signal(false);
@@ -338,6 +341,12 @@ export class ContactPage {
 
 
   constructor() {
+    afterNextRender(() => this.ready.set(true));
+    // what was typed while the page was loading: Angular would blank the fields when it takes over
+    for (const field of ['name', 'email', 'message'] as const) {
+      const input = this.document.getElementById(`c-${field}`) as HTMLInputElement | HTMLTextAreaElement | null;
+      if (input && input.value !== input.defaultValue) this.model[field] = input.value;
+    }
     // drawn when the form appears, and again when the theme or the language change: Google sets them once
     afterRenderEffect(() => {
       const slot = this.captchaSlot()?.nativeElement;

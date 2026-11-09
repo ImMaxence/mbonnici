@@ -20,13 +20,41 @@ test.describe('pages', () => {
 
   test('contact form validates then sends', async ({ page }) => {
     await page.goto('/en/contact');
-    await page.getByRole('button', { name: /^Send/ }).click();
+    const send = page.getByRole('button', { name: /^Send/ });
+    await expect(send).toHaveAttribute('type', 'submit');
+    await send.click();
     await expect(page.locator('.field-error').first()).toBeVisible();
 
     await page.getByLabel('Your name').fill('Playwright Bot');
     await page.getByLabel('Your e-mail').fill('e2e@example.com');
     await page.getByLabel('Your message').fill('Automated end-to-end test message, please ignore.');
-    await page.getByRole('button', { name: /^Send/ }).click();
+    await send.click();
+    await expect(page.getByText('Message sent')).toBeVisible();
+  });
+
+  test('a contact form used before the page is ready keeps its text and stays on the page', async ({ page }) => {
+    await page.addInitScript(() => sessionStorage.setItem('mb.intro', '1'));
+    // the page is there, its scripts are not
+    let release = (): void => undefined;
+    const held = new Promise<void>((resolve) => (release = resolve));
+    await page.route('**/main-*.js', async (route) => {
+      await held;
+      await route.continue();
+    });
+    await page.goto('/en/contact', { waitUntil: 'commit' });
+    const send = page.getByRole('button', { name: /^Send/ });
+    const message = page.getByLabel('Your message');
+    await page.getByLabel('Your name').fill('Playwright Bot');
+    await page.getByLabel('Your e-mail').fill('e2e@example.com');
+    await message.fill('Typed while the page was still loading.');
+    await send.click();
+    await page.waitForTimeout(300);
+    expect(new URL(page.url()).search).toBe('');
+
+    release();
+    await expect(send).toHaveAttribute('type', 'submit');
+    await expect(message).toHaveValue('Typed while the page was still loading.');
+    await send.click();
     await expect(page.getByText('Message sent')).toBeVisible();
   });
 
