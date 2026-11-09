@@ -1,6 +1,7 @@
 package fr.mbonnici.portfolio.contact;
 
 import fr.mbonnici.portfolio.analytics.VisitorHasher;
+import fr.mbonnici.portfolio.common.ApiException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
@@ -25,14 +26,18 @@ public class ContactController {
             @NotBlank @Size(min = 10, max = 4000) String message,
             @Size(max = 5) String locale,
             /** Honeypot: humans never see this field, bots fill it. */
-            @Size(max = 200) String website) {}
+            @Size(max = 200) String website,
+            /** reCAPTCHA token, required once the site has its keys */
+            @Size(max = 6000) String captcha) {}
 
     private final ContactRepository repository;
     private final VisitorHasher hasher;
+    private final CaptchaVerifier captcha;
 
-    public ContactController(ContactRepository repository, VisitorHasher hasher) {
+    public ContactController(ContactRepository repository, VisitorHasher hasher, CaptchaVerifier captcha) {
         this.repository = repository;
         this.hasher = hasher;
+        this.captcha = captcha;
     }
 
     /** Rate limited by {@code RateLimitFilter} (contact policy). */
@@ -42,6 +47,9 @@ public class ContactController {
         if (in.website() != null && !in.website().isBlank()) {
             log.info("Contact honeypot triggered, dropping message");
             return;
+        }
+        if (!captcha.accepts(in.captcha())) {
+            throw new ApiException(HttpStatus.UNPROCESSABLE_CONTENT, "Captcha refused");
         }
         repository.save(ContactMessage.create(in.name().trim(), in.email().trim(), in.message().trim(),
                 in.locale() == null ? null : in.locale().toLowerCase(), hasher.hash(request)));

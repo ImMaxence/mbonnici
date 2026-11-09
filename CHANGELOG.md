@@ -7,6 +7,31 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [1.8.0] — 2026-11-09
+
+### Added
+- **Anti-spam on the contact form**: Google reCAPTCHA v3, checked by the server, switched on by
+  `RECAPTCHA_SITE_KEY` and `RECAPTCHA_SECRET_KEY`. Google is only contacted once the visitor ticks a
+  consent box, as the CNIL requires. If Google is down or the secret key is wrong, messages still get
+  through and the problem shows in the error log.
+- **Error log**: every error has a "Copy the full trace" button, with the source, message, page,
+  dates and whole stack in one click.
+
+### Changed
+- **Error log traces**: every frame and every cause is now kept, instead of the first 30 frames and
+  the name of the first cause.
+- **Back-office titles**: looser letter spacing.
+- **Legal pages**: the privacy policy describes reCAPTCHA and the contact form now rests on legitimate
+  interest rather than consent; the terms mention the bot check; "Last updated" also follows changes
+  to the texts themselves, not only to the site settings.
+
+### Fixed
+- **False server errors in the error log**: requests refused by Spring (wrong method, an `Accept` it
+  cannot satisfy, missing parameter) were answered with a 500 and logged. They now get their real
+  4xx status and stay out of the log.
+- **`robots.txt` and `sitemap.xml`** answered with an error to clients sending an unusual `Accept`
+  header.
+
 ## [1.7.4] — 2026-11-08
 
 ### Changed

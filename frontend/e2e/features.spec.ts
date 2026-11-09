@@ -225,6 +225,30 @@ test('project pages share a generated 1200 × 630 JPEG', async ({ page, request:
   expect(res.headers()['content-type']).toContain('image/jpeg');
 });
 
+test('each error of the journal copies its whole trace', async ({ page, context, baseURL }) => {
+  await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+  const message = `e2e copy ${Date.now()}`;
+  const stack = `Error: ${message}\n    at first (app.js:1:1)\n    at last (app.js:2:2)`;
+  const { api, headers } = await admin(baseURL!);
+  try {
+    await api.post('/api/analytics/errors', { data: { message, stack, path: '/fr/contact' } });
+    await noIntro(page);
+    await page.goto('/api/auth/dev-login');
+    await page.goto('/admin/errors');
+    const card = page.locator('article.error', { hasText: message });
+    await card.getByRole('button', { name: 'Copier toute la trace' }).click();
+    await expect(card.getByRole('button', { name: 'Copié !' })).toBeVisible();
+    const copied = await page.evaluate(() => navigator.clipboard.readText());
+    expect(copied).toContain(message);
+    expect(copied).toContain('/fr/contact');
+    expect(copied).toContain('at last (app.js:2:2)');
+    const all = (await (await api.get('/api/admin/errors')).json()) as { id: number; message: string }[];
+    await api.delete(`/api/admin/errors/${all.find((e) => e.message === message)!.id}`, { headers });
+  } finally {
+    await api.dispose();
+  }
+});
+
 test('a resource blocked by the CSP shows in the journal', async ({ page, baseURL }) => {
   test.skip(baseURL!.startsWith('https://'), 'over HTTPS browsers batch their reports (about a minute)');
   const probe = 'https://cdn.example.com/e2e-probe.js';

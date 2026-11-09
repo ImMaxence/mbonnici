@@ -164,6 +164,8 @@ export interface Settings {
   updatedAt: string;
   /** the uploaded resumes; a language without one is left out (no download button when both are) */
   cv?: CvStatus;
+  /** public reCAPTCHA key of the contact form; absent while the captcha is off */
+  captchaSiteKey?: string;
 }
 
 /** a resume PDF uploaded in the back office */
@@ -267,6 +269,8 @@ export interface ContactInput {
   message: string;
   locale: string;
   website: string;
+  /** reCAPTCHA token, once the site has its keys */
+  captcha?: string;
 }
 
 export interface ContactMessage {

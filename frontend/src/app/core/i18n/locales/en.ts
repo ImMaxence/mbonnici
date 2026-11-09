@@ -248,6 +248,11 @@ export const en: Dictionary = {
       tooShort: 'A little more detail? (10 characters minimum)',
       privacy: 'Your details are only used to reply to you',
       privacyLink: 'Privacy policy',
+      captchaConsent: 'I agree to the Google reCAPTCHA bot check, which sends technical data to Google',
+      captchaNote: 'This site is protected by reCAPTCHA, Google is only contacted once the box is ticked',
+      captchaRequired: 'Tick the box to send your message, or e-mail me directly',
+      captchaBlocked: 'The check could not load (ad blocker?), please e-mail me directly',
+      captchaFailed: 'The bot check failed, please e-mail me directly',
     },
   },
 
@@ -301,7 +306,7 @@ export const en: Dictionary = {
         {
           h: 'In short',
           p: [
-            'This site sets no tracking cookie, uses no advertising service and sells no data. It is designed to work without a consent banner, because there is nothing to consent to.',
+            'This site sets no tracking cookie, uses no advertising service and sells no data. It works without a consent banner: the only third-party service that needs your agreement is the bot check of the contact form, loaded only if you tick the box provided for it.',
           ],
         },
         {
@@ -322,26 +327,34 @@ export const en: Dictionary = {
         {
           h: 'Technical cookie',
           p: [
-            'A single cookie is set on the public site: XSRF-TOKEN, a random token that protects the contact form against forged requests (CSRF). It holds no information about you, is only read by this site and is deleted when the browser closes. Being strictly necessary for the security of the service, it is exempt from consent. The back office additionally uses a session cookie (PSESSION, 8 hours) reserved for its owner.',
+            'Unless you accept the bot check described below, a single cookie is set on the public site: XSRF-TOKEN, a random token that protects the contact form against forged requests (CSRF). It holds no information about you, is only read by this site and is deleted when the browser closes. Being strictly necessary for the security of the service, it is exempt from consent. The back office additionally uses a session cookie (PSESSION, 8 hours) reserved for its owner.',
           ],
         },
         {
           h: 'Contact form',
           p: [
             'If you write to me, your name, e-mail and message are stored on the site’s server and can only be read from the back office.',
-            'This data is kept for as long as needed to reply, and twelve months at most. It is shared with no one else. Legal basis: your consent (article 6.1.a GDPR).',
+            'This data is kept for as long as needed to reply, and twelve months at most. It is shared with no one else. Legal basis: my legitimate interest in replying to the people who contact me (article 6.1.f GDPR). You can object and ask for your message to be deleted at any time.',
+          ],
+        },
+        {
+          h: 'Bot check (Google reCAPTCHA)',
+          p: [
+            'To block automated messages, the contact form uses Google reCAPTCHA v3, with Google acting as a processor. The service is only loaded if you tick the box provided for it: until then, your browser does not contact Google.',
+            'Once the box is ticked, Google receives technical data (IP address, browser and device characteristics, interactions with the page) and sets a cookie (_GRECAPTCHA) to assess whether the message comes from a person. The content of your message is not sent to Google, and the site does not keep the result of the check. This data may be processed outside the European Union, notably in the United States, under the safeguards set out in Google’s data processing terms.',
+            'Legal basis: your consent (article 82 of the French Data Protection Act and article 6.1.a GDPR). It only applies to the open page and is not remembered. You are free to refuse: the form cannot then be sent, but you can write to me directly at {email}.',
           ],
         },
         {
           h: 'Fonts, icons and third-party resources',
           p: [
-            'Fonts and icons are served from the site’s own server: your browser contacts neither Google Fonts nor any third-party CDN to display the pages. Only project pages may, at your request (“Live” button), load the presented site in a frame: that third-party site then applies its own privacy policy.',
+            'Fonts and icons are served from the site’s own server: your browser contacts neither Google Fonts nor any third-party CDN to display the pages. Apart from the bot check described above, only project pages may, at your request (“Live” button), load the presented site in a frame: that third-party site then applies its own privacy policy.',
           ],
         },
         {
           h: 'Hosting and processors',
           p: [
-            'The site is hosted on a personal server located in France. Traffic goes through the Cloudflare, Inc. network, which acts as a firewall and CDN and may process your IP address for that purpose, under its own privacy commitments.',
+            'The site is hosted on a personal server located in France. Traffic goes through the Cloudflare, Inc. network, which acts as a firewall and CDN and may process your IP address for that purpose, under its own privacy commitments. Google acts as a processor for the bot check, only if you accept it.',
           ],
         },
         {
@@ -370,7 +383,7 @@ export const en: Dictionary = {
         {
           h: 'Acceptable use',
           p: [
-            'You agree not to disrupt the site, not to attempt to access the back office and not to use the contact form to send unsolicited messages. Rate limits apply.',
+            'You agree not to disrupt the site, not to attempt to access the back office and not to use the contact form to send unsolicited messages. Rate limits and a bot check apply.',
           ],
         },
         {
@@ -487,6 +500,7 @@ export const en: Dictionary = {
       first: 'first',
       last: 'last',
       detail: 'Technical detail',
+      copyTrace: 'Copy the full trace',
       markResolved: 'Mark as resolved',
       reopen: 'Reopen',
       delete: 'Delete',

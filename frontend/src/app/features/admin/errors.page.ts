@@ -60,6 +60,9 @@ import { TooltipDirective } from '../../shared/ui/tooltip.directive';
             <button type="button" class="btn" (click)="resolve(e, !e.resolved)">
               <app-icon [name]="e.resolved ? 'refresh' : 'check'" [size]="14" /> {{ (e.resolved ? 'admin.errors.reopen' : 'admin.errors.markResolved') | t }}
             </button>
+            <button type="button" class="btn" (click)="copy(e)">
+              <app-icon [name]="copied() === e.id ? 'check' : 'copy'" [size]="14" /> {{ (copied() === e.id ? 'common.copied' : 'admin.errors.copyTrace') | t }}
+            </button>
             <button type="button" class="icon-btn danger" (click)="remove(e)" [appTip]="'admin.errors.delete' | t"><app-icon name="trash" [size]="15" /></button>
           </div>
         </article>
@@ -122,6 +125,7 @@ import { TooltipDirective } from '../../shared/ui/tooltip.directive';
     }
     .actions {
       display: flex;
+      flex-wrap: wrap;
       gap: 0.4rem;
     }
   `,
@@ -134,6 +138,9 @@ export class ErrorsPage {
   readonly items = signal<ErrorEntry[]>([]);
   readonly resolved = signal(false);
   readonly loading = signal(true);
+  /** the error whose trace was just copied */
+  readonly copied = signal<number | null>(null);
+  private copiedTimer?: ReturnType<typeof setTimeout>;
 
   constructor() {
     afterNextRender(() => void this.load());
@@ -156,6 +163,29 @@ export class ErrorsPage {
 
   date(iso: string): string {
     return this.i18n.formatDate(iso, { dateStyle: 'medium', timeStyle: 'short' });
+  }
+
+  /** everything the card shows, then the whole stack, ready to paste */
+  async copy(e: ErrorEntry): Promise<void> {
+    const text = [
+      this.i18n.t('admin.errors.source.' + e.source),
+      e.message,
+      `× ${e.occurrences}`,
+      e.path,
+      `${this.i18n.t('admin.errors.first')} ${this.date(e.firstSeen)}`,
+      `${this.i18n.t('admin.errors.last')} ${this.date(e.lastSeen)}`,
+      e.detail && `\n${e.detail}`,
+    ]
+      .filter(Boolean)
+      .join('\n');
+    try {
+      await navigator.clipboard.writeText(text);
+      this.copied.set(e.id);
+      clearTimeout(this.copiedTimer);
+      this.copiedTimer = setTimeout(() => this.copied.set(null), 1800);
+    } catch {
+      /* clipboard blocked */
+    }
   }
 
   async resolve(e: ErrorEntry, value: boolean): Promise<void> {

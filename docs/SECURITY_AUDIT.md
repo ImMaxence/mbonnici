@@ -19,7 +19,7 @@ integration tests), and manual probing of the running stack.*
 | Transport & headers | ✅ HSTS, nosniff, referrer-policy, permissions-policy, COOP, X-Frame-Options on both tiers |
 | Secrets | ✅ Only from environment; `.env` git-ignored; compose refuses to start without the required secrets |
 | Dependencies | ✅ `npm audit`: 0 vulnerabilities (prod and dev); Spring Boot 4.1.2 BOM; AWS SDK 2.57 |
-| Privacy | ✅ No cookies for visitors, no IP storage, DNT/GPC honoured, data retention limits, legal pages |
+| Privacy | ✅ No tracking cookies for visitors (reCAPTCHA only after consent), no IP storage, DNT/GPC honoured, data retention limits, legal pages |
 | Containers | ✅ Non-root users, minimal Alpine/JRE images, health checks, only the frontend is published |
 
 No critical or high-severity issue remains. Findings below were either fixed during the audit
@@ -189,3 +189,13 @@ readable by the authenticated owner.
   key. `GET /api/cv` serves it as `application/pdf` with `nosniff` and `X-Robots-Tag: noindex`, and
   `robots.txt` no longer allows `/api/cv`: a resume carries personal details and stays out of search
   engines.
+
+## v1.8.0 additions
+
+- **Contact form captcha** (optional, `RECAPTCHA_*`): the secret key stays on the server, the token is
+  checked with Google (score and action), and the visitor's IP is not sent with it. Google's script is
+  requested only after an explicit consent tick, with the page's CSP nonce; `connect-src` gains
+  `https://www.google.com/recaptcha/`. A Google outage or a wrong secret key does not block messages
+  (honeypot and rate limit still apply) and is recorded in the journal.
+- **Spring's 4xx refusals** (405, 406, 415…) keep their status instead of a 500 and no longer feed the
+  journal, so a scanner cannot fill it with them.

@@ -23,7 +23,9 @@ public class ErrorLogService {
 
     private static final Logger log = LoggerFactory.getLogger(ErrorLogService.class);
     private static final int MAX_MESSAGE = 500;
-    private static final int MAX_DETAIL = 6000;
+    /** room for a whole Spring stack with its causes (the journal copies it in one click) */
+    private static final int MAX_DETAIL = 20_000;
+    private static final int MAX_CAUSES = 8;
     /** a busy error stops being counted after this many occurrences a day, the row stays */
     private static final int MAX_ROWS = 500;
 
@@ -67,16 +69,22 @@ public class ErrorLogService {
     }
 
     public void recordServer(Throwable ex, String path) {
+        // the first lines stay the class and its top frames: they are what groups identical errors
         StringBuilder detail = new StringBuilder(ex.getClass().getName());
-        StackTraceElement[] frames = ex.getStackTrace();
-        for (int i = 0; i < Math.min(frames.length, 30); i++) {
-            detail.append("\n  at ").append(frames[i]);
-        }
+        appendFrames(detail, ex);
         Throwable cause = ex.getCause();
-        if (cause != null && cause != ex) {
+        for (int i = 0; cause != null && i < MAX_CAUSES; i++) {
             detail.append("\nCaused by: ").append(cause);
+            appendFrames(detail, cause);
+            cause = cause.getCause();
         }
         record(Source.SERVER, ex.getClass().getSimpleName() + ": " + ex.getMessage(), detail.toString(), path);
+    }
+
+    private static void appendFrames(StringBuilder detail, Throwable ex) {
+        for (StackTraceElement frame : ex.getStackTrace()) {
+            detail.append("\n  at ").append(frame);
+        }
     }
 
     public List<Entry> list(boolean resolved) {

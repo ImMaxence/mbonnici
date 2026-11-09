@@ -53,6 +53,8 @@ services:
       # the local sign-in opens a session for the first address
       ADMIN_EMAIL: admin@localhost
       APP_URL: http://localhost:${LOCAL_PORT:-4000}
+      RECAPTCHA_SITE_KEY: ${RECAPTCHA_SITE_KEY:-}
+      RECAPTCHA_SECRET_KEY: ${RECAPTCHA_SECRET_KEY:-}
       ANALYTICS_SALT_SECRET: local-only-salt
       COOKIE_SECURE: "false"
       TRUST_PROXY: "false"

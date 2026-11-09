@@ -52,7 +52,8 @@ public class SeoController {
 
     // ── sitemap ──────────────────────────────────────────────────────────────
 
-    @GetMapping(value = "/sitemap.xml", produces = MediaType.APPLICATION_XML_VALUE)
+    // the type is set on the response, not with `produces`: an unusual Accept from a crawler must not end in a refusal
+    @GetMapping("/sitemap.xml")
     public ResponseEntity<String> sitemap() {
         PublicSettings s = settings.get();
         List<Card> cards = projects.listPublished();
@@ -78,6 +79,7 @@ public class SeoController {
         }
         xml.append("</urlset>\n");
         return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_XML)
                 .cacheControl(CacheControl.maxAge(1, TimeUnit.HOURS).cachePublic())
                 .body(xml.toString());
     }
@@ -107,7 +109,7 @@ public class SeoController {
 
     // ── robots ───────────────────────────────────────────────────────────────
 
-    @GetMapping(value = "/robots.txt", produces = MediaType.TEXT_PLAIN_VALUE)
+    @GetMapping("/robots.txt")
     public ResponseEntity<String> robots() {
         String b = base();
         String body = """
@@ -144,6 +146,7 @@ public class SeoController {
                 Sitemap: %s/sitemap.xml
                 """.formatted(b);
         return ResponseEntity.ok()
+                .contentType(MediaType.TEXT_PLAIN)
                 .cacheControl(CacheControl.maxAge(1, TimeUnit.DAYS).cachePublic())
                 .body(body);
     }

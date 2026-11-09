@@ -36,6 +36,42 @@ class FeaturesTest extends AbstractIntegrationTest {
     @Autowired
     fr.mbonnici.portfolio.media.WebpEncoder webp;
 
+    @Autowired
+    fr.mbonnici.portfolio.errors.ErrorLogService errorLog;
+
+    @Test
+    void aRefusedRequestKeepsItsStatusAndStaysOutOfTheJournal() throws Exception {
+        mvc.perform(get("/api/analytics/csp"))
+                .andExpect(status().isMethodNotAllowed())
+                .andExpect(header().string("Allow", containsString("POST")));
+        mvc.perform(get("/api/admin/errors"))
+                .andExpect(jsonPath("$[*].message", not(hasItem(containsString("HttpRequestMethodNotSupportedException")))));
+    }
+
+    @Test
+    void theFeedsAnswerWhateverTheAcceptHeader() throws Exception {
+        mvc.perform(get("/robots.txt").accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.TEXT_PLAIN));
+        mvc.perform(get("/sitemap.xml").accept(MediaType.TEXT_HTML))
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_XML));
+    }
+
+    @Test
+    void theJournalKeepsTheWholeTraceWithItsCauses() {
+        Exception deep = deepException(60);
+        errorLog.recordServer(new RuntimeException("whole-trace-test", deep), "/whole-trace");
+        var entry = errorLog.list(false).stream().filter(e -> e.message().contains("whole-trace-test")).findFirst().orElseThrow();
+        assertTrue(entry.detail().contains("Caused by: java.lang.IllegalStateException: deep cause"));
+        assertTrue(entry.detail().lines().count() > 60, "every frame is kept");
+        errorLog.delete(entry.id());
+    }
+
+    private static Exception deepException(int depth) {
+        return depth == 0 ? new IllegalStateException("deep cause") : deepException(depth - 1);
+    }
+
     @Test
     void caseStudyAndDraftPreview() throws Exception {
         String created = mvc.perform(post("/api/admin/projects").with(csrf()).contentType(MediaType.APPLICATION_JSON).content("""

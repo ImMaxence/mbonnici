@@ -28,15 +28,17 @@ public final class SettingsDtos {
             fr.mbonnici.portfolio.media.MediaDto avatar,
             Instant updatedAt,
             /** the uploaded resumes (none: no download button) */
-            Cv cv) {
+            Cv cv,
+            /** public reCAPTCHA key of the contact form (none: no captcha) */
+            String captchaSiteKey) {
 
-        public static PublicSettings from(SiteSettings s) {
+        public static PublicSettings from(SiteSettings s, String captchaSiteKey) {
             return new PublicSettings(s.getOwnerName(), s.getHeadline().filled(), s.getBio().filled(), s.getLocation(),
                     s.getPublicEmail(), s.getGithubUrl(), s.getLinkedinUrl(), s.getBookingUrl(), s.getAvailability(),
                     s.getSeoTitle() == null ? Localized.EMPTY : s.getSeoTitle().filled(),
                     s.getSeoDescription() == null ? Localized.EMPTY : s.getSeoDescription().filled(),
                     new Legal(s.getLegalName(), s.getLegalAddress(), s.getLegalHost(), s.getLegalContactEmail()),
-                    fr.mbonnici.portfolio.media.MediaDto.from(s.getAvatar()), s.getUpdatedAt(), Cv.of(s));
+                    fr.mbonnici.portfolio.media.MediaDto.from(s.getAvatar()), s.getUpdatedAt(), Cv.of(s), captchaSiteKey);
         }
 
         /** as stored (back office): an empty language stays empty */
@@ -46,7 +48,7 @@ public final class SettingsDtos {
                     s.getSeoTitle() == null ? Localized.EMPTY : s.getSeoTitle(),
                     s.getSeoDescription() == null ? Localized.EMPTY : s.getSeoDescription(),
                     new Legal(s.getLegalName(), s.getLegalAddress(), s.getLegalHost(), s.getLegalContactEmail()),
-                    fr.mbonnici.portfolio.media.MediaDto.from(s.getAvatar()), s.getUpdatedAt(), Cv.of(s));
+                    fr.mbonnici.portfolio.media.MediaDto.from(s.getAvatar()), s.getUpdatedAt(), Cv.of(s), null);
         }
     }
 

@@ -45,7 +45,7 @@ class AdminAccessTest {
     @Test
     void onlyTheListedAccountsWithAVerifiedEmailGetIn() {
         AppProperties props = new AppProperties("https://mbonnici.fr", List.of("first@gmail.com;Second@Gmail.com"),
-                true, null, null, null, false);
+                true, null, null, null, false, null);
         AdminOidcUserService service = new AdminOidcUserService(props, mock(BackupSettingsRepository.class));
 
         OidcUser admin = service.loadUser(request("second@gmail.com", true));

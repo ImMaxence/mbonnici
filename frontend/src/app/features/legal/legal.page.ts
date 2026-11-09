@@ -8,6 +8,9 @@ import { RevealDirective } from '../../shared/ui/reveal.directive';
 
 type LegalKey = 'legal' | 'privacy' | 'terms' | 'accessibility';
 
+/** to move forward whenever the legal texts of the locale files change */
+const TEXTS_UPDATED = '2026-11-09';
+
 interface Section {
   h: string;
   p: string[];
@@ -67,7 +70,11 @@ export class LegalPage {
     return p === 'privacy' || p === 'terms' || p === 'accessibility' ? p : 'legal';
   });
 
-  readonly updated = computed(() => this.i18n.formatDate(this.settings()?.updatedAt ?? '2026-11-04', { day: 'numeric', month: 'long', year: 'numeric' }));
+  /** the later of the last change to the texts below and the last change to the legal identity */
+  readonly updated = computed(() => {
+    const saved = this.settings()?.updatedAt ?? TEXTS_UPDATED;
+    return this.i18n.formatDate(saved > TEXTS_UPDATED ? saved : TEXTS_UPDATED, { day: 'numeric', month: 'long', year: 'numeric' });
+  });
 
   readonly sections = computed<Section[]>(() => {
     const s = this.settings();

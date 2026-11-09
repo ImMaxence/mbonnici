@@ -255,6 +255,11 @@ export const fr = {
       tooShort: 'Un peu plus de détails ? (10 caractères minimum)',
       privacy: 'Vos coordonnées servent uniquement à vous répondre',
       privacyLink: 'Politique de confidentialité',
+      captchaConsent: 'J’accepte la vérification anti-robot de Google reCAPTCHA, qui transmet des données techniques à Google',
+      captchaNote: 'Ce site est protégé par reCAPTCHA, Google n’est contacté qu’une fois la case cochée',
+      captchaRequired: 'Cochez la case pour envoyer le message, ou écrivez-moi directement par e-mail',
+      captchaBlocked: 'La vérification n’a pas pu se charger (bloqueur de publicité ?), écrivez-moi directement par e-mail',
+      captchaFailed: 'La vérification anti-robot a échoué, écrivez-moi directement par e-mail',
     },
   },
 
@@ -308,7 +313,7 @@ export const fr = {
         {
           h: 'En deux mots',
           p: [
-            'Ce site ne dépose aucun cookie de suivi, n’utilise aucun service publicitaire et ne revend aucune donnée. Il est conçu pour fonctionner sans bannière de consentement, parce qu’il n’y a rien à consentir.',
+            'Ce site ne dépose aucun cookie de suivi, n’utilise aucun service publicitaire et ne revend aucune donnée. Il fonctionne sans bannière de consentement : le seul service tiers soumis à votre accord est la vérification anti-robot du formulaire de contact, chargée uniquement si vous cochez la case prévue à cet effet.',
           ],
         },
         {
@@ -329,26 +334,34 @@ export const fr = {
         {
           h: 'Cookie technique',
           p: [
-            'Un seul cookie est déposé sur le site public : XSRF-TOKEN, un jeton aléatoire qui protège le formulaire de contact contre les requêtes falsifiées (CSRF). Il ne contient aucune information sur vous, n’est lu que par ce site et disparaît à la fermeture du navigateur. Strictement nécessaire à la sécurité du service, il est exempté de consentement. L’espace d’administration utilise en plus un cookie de session (PSESSION, 8 heures) réservé à son propriétaire.',
+            'Sauf si vous acceptez la vérification anti-robot décrite plus bas, un seul cookie est déposé sur le site public : XSRF-TOKEN, un jeton aléatoire qui protège le formulaire de contact contre les requêtes falsifiées (CSRF). Il ne contient aucune information sur vous, n’est lu que par ce site et disparaît à la fermeture du navigateur. Strictement nécessaire à la sécurité du service, il est exempté de consentement. L’espace d’administration utilise en plus un cookie de session (PSESSION, 8 heures) réservé à son propriétaire.',
           ],
         },
         {
           h: 'Formulaire de contact',
           p: [
             'Si vous m’écrivez, votre nom, votre e-mail et votre message sont enregistrés sur le serveur du site et consultables uniquement depuis l’espace d’administration.',
-            'Ces données sont conservées le temps de vous répondre, puis au maximum douze mois. Elles ne sont transmises à personne d’autre. Base légale : votre consentement (article 6.1.a du RGPD).',
+            'Ces données sont conservées le temps de vous répondre, puis au maximum douze mois. Elles ne sont transmises à personne d’autre. Base légale : mon intérêt légitime à répondre aux personnes qui me contactent (article 6.1.f du RGPD). Vous pouvez vous y opposer et demander la suppression de votre message à tout moment.',
+          ],
+        },
+        {
+          h: 'Vérification anti-robot (Google reCAPTCHA)',
+          p: [
+            'Pour bloquer les messages automatisés, le formulaire de contact utilise Google reCAPTCHA v3, Google agissant comme sous-traitant. Le service n’est chargé que si vous cochez la case prévue à cet effet : tant qu’elle n’est pas cochée, votre navigateur ne contacte pas Google.',
+            'Une fois la case cochée, Google reçoit des données techniques (adresse IP, caractéristiques du navigateur et de l’appareil, interactions avec la page) et dépose un cookie (_GRECAPTCHA) pour évaluer si l’envoi provient d’une personne. Le contenu de votre message n’est pas transmis à Google, et le site ne conserve pas le résultat de la vérification. Ces données peuvent être traitées hors de l’Union européenne, notamment aux États-Unis, selon les garanties prévues par les conditions de traitement des données de Google.',
+            'Base légale : votre consentement (article 82 de la loi Informatique et Libertés et article 6.1.a du RGPD). Il ne vaut que pour la page ouverte et n’est pas mémorisé. Vous êtes libre de refuser : le formulaire ne peut alors pas être envoyé, mais vous pouvez m’écrire directement à {email}.',
           ],
         },
         {
           h: 'Polices, icônes et ressources tierces',
           p: [
-            'Les polices de caractères et les icônes sont servies depuis le serveur du site : votre navigateur ne contacte ni Google Fonts ni aucun CDN tiers pour afficher les pages. Seules les pages de projet peuvent, à votre demande (bouton « En direct »), charger le site présenté dans un cadre : ce site tiers applique alors sa propre politique de confidentialité.',
+            'Les polices de caractères et les icônes sont servies depuis le serveur du site : votre navigateur ne contacte ni Google Fonts ni aucun CDN tiers pour afficher les pages. En dehors de la vérification anti-robot décrite plus haut, seules les pages de projet peuvent, à votre demande (bouton « En direct »), charger le site présenté dans un cadre : ce site tiers applique alors sa propre politique de confidentialité.',
           ],
         },
         {
           h: 'Hébergement et sous-traitants',
           p: [
-            'Le site est hébergé sur un serveur personnel situé en France. Le trafic transite par le réseau de Cloudflare, Inc., qui agit comme pare-feu et CDN et peut traiter votre adresse IP à ce titre, conformément à ses propres engagements de confidentialité.',
+            'Le site est hébergé sur un serveur personnel situé en France. Le trafic transite par le réseau de Cloudflare, Inc., qui agit comme pare-feu et CDN et peut traiter votre adresse IP à ce titre, conformément à ses propres engagements de confidentialité. Google intervient comme sous-traitant pour la vérification anti-robot, uniquement si vous l’acceptez.',
           ],
         },
         {
@@ -377,7 +390,7 @@ export const fr = {
         {
           h: 'Usage acceptable',
           p: [
-            'Vous vous engagez à ne pas perturber le fonctionnement du site, à ne pas tenter d’accéder à l’espace d’administration et à ne pas utiliser le formulaire de contact pour envoyer des messages non sollicités. Des limites de débit sont appliquées.',
+            'Vous vous engagez à ne pas perturber le fonctionnement du site, à ne pas tenter d’accéder à l’espace d’administration et à ne pas utiliser le formulaire de contact pour envoyer des messages non sollicités. Des limites de débit et une vérification anti-robot sont appliquées.',
           ],
         },
         {
@@ -494,6 +507,7 @@ export const fr = {
       first: 'première',
       last: 'dernière',
       detail: 'Détail technique',
+      copyTrace: 'Copier toute la trace',
       markResolved: 'Marquer comme résolue',
       reopen: 'Rouvrir',
       delete: 'Supprimer',

@@ -13,13 +13,15 @@ import { FooterComponent } from '../../shared/ui/footer.component';
 import { cvLink } from '../../shared/ui/cv';
 import { IconComponent } from '../../shared/ui/icon.component';
 import { RevealDirective } from '../../shared/ui/reveal.directive';
+import { CaptchaService } from './captcha.service';
 
-type State = 'idle' | 'sending' | 'sent' | 'error' | 'limited';
+type State = 'idle' | 'sending' | 'sent' | 'error' | 'limited' | 'captchaBlocked' | 'captchaFailed';
 
 interface FormErrors {
   name?: string;
   email?: string;
   message?: string;
+  consent?: string;
 }
 
 @Component({
@@ -123,6 +125,18 @@ interface FormErrors {
                 <label for="c-website">Website</label>
                 <input id="c-website" name="website" tabindex="-1" autocomplete="off" [(ngModel)]="model.website" />
               </div>
+              @if (captchaKey()) {
+                <div class="consent">
+                  <label>
+                    <input type="checkbox" name="captchaConsent" [checked]="consent()" (change)="setConsent($any($event.target).checked)" [attr.aria-invalid]="errors().consent ? 'true' : null" />
+                    <span>{{ 'contact.form.captchaConsent' | t }}</span>
+                  </label>
+                  @if (errors().consent) {
+                    <span class="field-error">{{ errors().consent }}</span>
+                  }
+                  <p class="field-hint">{{ 'contact.form.captchaNote' | t }}</p>
+                </div>
+              }
               <p class="field-hint privacy">
                 <span>{{ 'contact.form.privacy' | t }}</span>
                 <a class="link" [appLink]="i18n.path('privacy')" [linkLabel]="'footer.privacy' | t">{{ 'contact.form.privacyLink' | t }}</a>
@@ -132,6 +146,12 @@ interface FormErrors {
               }
               @if (state() === 'limited') {
                 <p class="field-error" role="alert">{{ 'contact.form.rateLimited' | t }}</p>
+              }
+              @if (state() === 'captchaBlocked') {
+                <p class="field-error" role="alert">{{ 'contact.form.captchaBlocked' | t }}</p>
+              }
+              @if (state() === 'captchaFailed') {
+                <p class="field-error" role="alert">{{ 'contact.form.captchaFailed' | t }}</p>
               }
               <button type="submit" class="btn btn-accent btn-lg" [disabled]="state() === 'sending'" appMagnetic>
                 {{ (state() === 'sending' ? 'contact.form.sending' : 'contact.form.send') | t }}
@@ -221,6 +241,26 @@ interface FormErrors {
       justify-items: start;
       padding: var(--space-4) 0;
     }
+    .consent {
+      display: grid;
+      gap: 0.4rem;
+    }
+    .consent label {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.65rem;
+      font-size: var(--fs-small);
+      line-height: 1.45;
+      color: var(--fg-2);
+      cursor: pointer;
+    }
+    .consent input {
+      flex: none;
+      width: 18px;
+      height: 18px;
+      margin: 0.1em 0 0;
+      accent-color: var(--accent);
+    }
     .privacy {
       display: flex;
       flex-wrap: wrap;
@@ -242,6 +282,7 @@ export class ContactPage {
   private readonly api = inject(ApiService);
   private readonly seo = inject(SeoService);
   private readonly analytics = inject(AnalyticsService);
+  private readonly captcha = inject(CaptchaService);
   readonly i18n = inject(I18nService);
 
   /** resolved by the route and bound as an input */
@@ -257,6 +298,9 @@ export class ContactPage {
   readonly cv = computed(() => cvLink(this.settings(), this.i18n.lang(), this.i18n.locale()));
   readonly state = signal<State>('idle');
   readonly copied = signal(false);
+  /** present once the site has its reCAPTCHA keys */
+  readonly captchaKey = computed(() => this.settings()?.captchaSiteKey);
+  readonly consent = signal(false);
   readonly model = { name: '', email: '', message: '', website: '' };
   private prefilled = '';
   private readonly touched = signal<Record<string, boolean>>({});
@@ -276,6 +320,7 @@ export class ContactPage {
       else if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(this.model.email.trim())) out['email'] = dict.invalidEmail;
     }
     if (show('message') && this.model.message.trim().length < 10) out['message'] = dict.tooShort;
+    if (this.captchaKey() && show('consent') && !this.consent()) out['consent'] = dict.captchaRequired;
     return out;
   });
 
@@ -311,11 +356,31 @@ export class ContactPage {
     this.version.update((v) => v + 1);
   }
 
+  /** ticking the box is what allows Google to be contacted, so it starts loading only now */
+  setConsent(checked: boolean): void {
+    this.consent.set(checked);
+    this.touch('consent');
+    const key = this.captchaKey();
+    if (!checked || !key) return;
+    if (this.state() === 'captchaBlocked') this.state.set('idle');
+    this.captcha.load(key, this.i18n.lang()).catch(() => this.state.set('captchaBlocked'));
+  }
+
   async submit(): Promise<void> {
     this.submitted.set(true);
     this.version.update((v) => v + 1);
     if (Object.keys(this.errors()).length) return;
     this.state.set('sending');
+    let captcha: string | undefined;
+    const key = this.captchaKey();
+    if (key) {
+      try {
+        captcha = await this.captcha.token(key, this.i18n.lang());
+      } catch {
+        this.state.set('captchaBlocked');
+        return;
+      }
+    }
     try {
       await this.api.sendContact({
         name: this.model.name.trim(),
@@ -323,11 +388,13 @@ export class ContactPage {
         message: this.model.message.trim(),
         locale: this.i18n.lang(),
         website: this.model.website,
+        captcha,
       });
       this.analytics.contactSubmitted(this.i18n.path('contact'));
       this.state.set('sent');
     } catch (e) {
-      this.state.set(e instanceof HttpErrorResponse && e.status === 429 ? 'limited' : 'error');
+      const status = e instanceof HttpErrorResponse ? e.status : 0;
+      this.state.set(status === 429 ? 'limited' : status === 422 ? 'captchaFailed' : 'error');
     }
   }
 
@@ -335,6 +402,7 @@ export class ContactPage {
     this.model.name = '';
     this.model.email = '';
     this.model.message = '';
+    this.consent.set(false);
     this.touched.set({});
     this.submitted.set(false);
     this.state.set('idle');

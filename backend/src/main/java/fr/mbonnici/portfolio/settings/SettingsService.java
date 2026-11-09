@@ -16,15 +16,19 @@ public class SettingsService {
 
     private final SettingsRepository repository;
     private final fr.mbonnici.portfolio.media.MediaRepository media;
-    public SettingsService(SettingsRepository repository, fr.mbonnici.portfolio.media.MediaRepository media) {
+    private final fr.mbonnici.portfolio.contact.CaptchaVerifier captcha;
+
+    public SettingsService(SettingsRepository repository, fr.mbonnici.portfolio.media.MediaRepository media,
+            fr.mbonnici.portfolio.contact.CaptchaVerifier captcha) {
         this.repository = repository;
         this.media = media;
+        this.captcha = captcha;
     }
 
     @Cacheable(CACHE)
     @Transactional(readOnly = true)
     public PublicSettings get() {
-        return PublicSettings.from(load());
+        return PublicSettings.from(load(), captcha.siteKey());
     }
 
     /** Back office: texts as stored, without the fallback to the other language. */

@@ -17,7 +17,8 @@ public record AppProperties(
         Storage storage,
         RateLimit rateLimit,
         /** local only: GET /api/auth/dev-login signs in without Google (refused unless app.url is localhost) */
-        @DefaultValue("false") boolean devLogin) {
+        @DefaultValue("false") boolean devLogin,
+        Captcha captcha) {
 
     public AppProperties {
         adminEmails = parseAdminEmails(adminEmails);
@@ -65,4 +66,16 @@ public record AppProperties(
             @DefaultValue("60") int analyticsPerMinute,
             @DefaultValue("30") int uploadPerMinute,
             @DefaultValue("20") int authPerMinute) {}
+
+    /** Google reCAPTCHA v3 on the contact form: off until both keys are set. */
+    public record Captcha(
+            String siteKey,
+            String secretKey,
+            @DefaultValue("0.3") double minScore,
+            @DefaultValue("https://www.google.com/recaptcha/api/siteverify") String verifyUrl) {
+
+        public boolean enabled() {
+            return siteKey != null && !siteKey.isBlank() && secretKey != null && !secretKey.isBlank();
+        }
+    }
 }

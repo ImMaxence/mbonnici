@@ -91,6 +91,13 @@ app:
   # live status of the project sites and GitHub figures (stars, last push, languages)
   insights:
     enabled: true
+  # Google reCAPTCHA v3 on the contact form: no captcha while either key is empty
+  captcha:
+    site-key: ${RECAPTCHA_SITE_KEY:}
+    secret-key: ${RECAPTCHA_SECRET_KEY:}
+    # from 0.0 (a bot) to 1.0 (a person). Low on purpose: losing a real message costs more than one spam,
+    # and the honeypot and the rate limit are still there
+    min-score: 0.3
   analytics:
     salt-secret: ${ANALYTICS_SALT_SECRET:dev-only-salt-change-me}
     retention-days: 400
