@@ -277,11 +277,6 @@ button.chip:hover,
   opacity: 0;
 }
 
-/* Google allows hiding its floating badge when the form says the site uses reCAPTCHA (it does) */
-.grecaptcha-badge {
-  visibility: hidden;
-}
-
 /* toggle switch */
 .switch {
   --w: 44px;

@@ -192,9 +192,9 @@ readable by the authenticated owner.
 
 ## v1.8.0 additions
 
-- **Contact form captcha** (optional, `RECAPTCHA_*`): the secret key stays on the server, the token is
-  checked with Google (score and action), and the visitor's IP is not sent with it. Google's script is
-  requested only after an explicit consent tick, with the page's CSP nonce; `connect-src` gains
+- **Contact form captcha** (optional, `RECAPTCHA_*`): the secret key stays on the server, the token of the
+  checkbox is checked with Google, and the visitor's IP is not sent with it. Google's script is
+  requested only after an explicit click to enable it, with the page's CSP nonce; `connect-src` gains
   `https://www.google.com/recaptcha/`. A Google outage or a wrong secret key does not block messages
   (honeypot and rate limit still apply) and is recorded in the journal.
 - **Spring's 4xx refusals** (405, 406, 415…) keep their status instead of a 500 and no longer feed the

@@ -2,13 +2,27 @@ import { CSP_NONCE, DOCUMENT, Injectable, inject } from '@angular/core';
 
 interface Grecaptcha {
   ready(callback: () => void): void;
-  execute(siteKey: string, options: { action: string }): PromiseLike<string>;
+  render(container: HTMLElement, options: Record<string, unknown>): number;
+  reset(widget: number): void;
+}
+
+export interface CaptchaLook {
+  theme: 'light' | 'dark';
+  lang: string;
+}
+
+export interface CaptchaEvents {
+  /** null when the tick has expired */
+  token: (token: string | null) => void;
+  failed: () => void;
 }
 
 /** how long Google may take before the visitor is told to write by e-mail instead */
 const TIMEOUT_MS = 15_000;
+/** below this width the box takes its compact form */
+const NORMAL_WIDTH = 304;
 
-function withTimeout<T>(work: PromiseLike<T>): Promise<T> {
+function withTimeout<T>(work: Promise<T>): Promise<T> {
   let timer: ReturnType<typeof setTimeout>;
   const expired = new Promise<never>((_, reject) => {
     timer = setTimeout(() => reject(new Error('reCAPTCHA timed out')), TIMEOUT_MS);
@@ -17,33 +31,50 @@ function withTimeout<T>(work: PromiseLike<T>): Promise<T> {
 }
 
 /**
- * Google reCAPTCHA v3 for the contact form. The script is only requested once the visitor has
- * ticked the consent box: until then nothing reaches Google (see the privacy policy).
+ * Google's "I'm not a robot" box for the contact form. Its script is only requested once the
+ * visitor has asked for it: until then nothing reaches Google (see the privacy policy).
  */
 @Injectable({ providedIn: 'root' })
 export class CaptchaService {
   private readonly document = inject(DOCUMENT);
   private readonly nonce = inject(CSP_NONCE, { optional: true });
   private script: Promise<Grecaptcha> | null = null;
+  private widget: number | null = null;
 
-  load(siteKey: string, lang: string): Promise<Grecaptcha> {
-    this.script ??= withTimeout(this.addScript(siteKey, lang)).catch((error: unknown) => {
-      this.script = null; // a later tick can try again
+  /** draws the box in `slot`, replacing the one already there (colours and language are set when drawn) */
+  async show(slot: HTMLElement, siteKey: string, look: CaptchaLook, events: CaptchaEvents): Promise<void> {
+    const grecaptcha = await this.load(look.lang);
+    const box = this.document.createElement('div');
+    slot.replaceChildren(box);
+    this.widget = grecaptcha.render(box, {
+      sitekey: siteKey,
+      theme: look.theme,
+      hl: look.lang,
+      size: slot.clientWidth < NORMAL_WIDTH ? 'compact' : 'normal',
+      callback: events.token,
+      'expired-callback': () => events.token(null),
+      'error-callback': events.failed,
+    });
+  }
+
+  /** a token only works once: the box has to be ticked again after a refused send */
+  reset(): void {
+    const widget = this.widget;
+    if (widget !== null) void this.script?.then((grecaptcha) => grecaptcha.reset(widget));
+  }
+
+  private load(lang: string): Promise<Grecaptcha> {
+    this.script ??= withTimeout(this.addScript(lang)).catch((error: unknown) => {
+      this.script = null; // a later click can try again
       throw error;
     });
     return this.script;
   }
 
-  /** a token lives two minutes: asked for at the moment of sending */
-  async token(siteKey: string, lang: string): Promise<string> {
-    const grecaptcha = await this.load(siteKey, lang);
-    return withTimeout(grecaptcha.execute(siteKey, { action: 'contact' }));
-  }
-
-  private addScript(siteKey: string, lang: string): Promise<Grecaptcha> {
+  private addScript(lang: string): Promise<Grecaptcha> {
     return new Promise((resolve, reject) => {
       const script = this.document.createElement('script');
-      script.src = `https://www.google.com/recaptcha/api.js?render=${encodeURIComponent(siteKey)}&hl=${lang}`;
+      script.src = `https://www.google.com/recaptcha/api.js?render=explicit&hl=${lang}`;
       script.async = true;
       // reCAPTCHA passes the nonce on to the scripts it adds itself
       if (this.nonce) script.nonce = this.nonce;

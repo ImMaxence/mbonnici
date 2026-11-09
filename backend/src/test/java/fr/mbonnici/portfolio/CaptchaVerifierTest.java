@@ -63,7 +63,7 @@ class CaptchaVerifierTest {
 
     private CaptchaVerifier verifier(String site, String secret, String url) {
         AppProperties props = new AppProperties("https://mbonnici.fr", List.of("a@b.fr"), false, null, null, null, false,
-                new AppProperties.Captcha(site, secret, 0.3, url));
+                new AppProperties.Captcha(site, secret, url));
         return new CaptchaVerifier(props, new ObjectMapper(), errors);
     }
 
@@ -80,9 +80,9 @@ class CaptchaVerifierTest {
     }
 
     @Test
-    void aGoodScoreOnTheRightActionPasses() {
+    void aTickedBoxPasses() {
         answer.set("""
-                {"success": true, "score": 0.9, "action": "contact"}""");
+                {"success": true, "challenge_ts": "2026-11-09T18:00:00Z", "hostname": "mbonnici.fr"}""");
         assertTrue(verifier().accepts("a token"));
         assertEquals("secret=s3cret%26&response=a+token", received.get());
     }
@@ -91,16 +91,6 @@ class CaptchaVerifierTest {
     void aTokenIsRequiredOnceTheKeysAreSet() {
         assertFalse(verifier().accepts(null));
         assertFalse(verifier().accepts(" "));
-    }
-
-    @Test
-    void aBotLikeScoreOrAnotherActionIsRefused() {
-        answer.set("""
-                {"success": true, "score": 0.1, "action": "contact"}""");
-        assertFalse(verifier().accepts("token"));
-        answer.set("""
-                {"success": true, "score": 0.9, "action": "login"}""");
-        assertFalse(verifier().accepts("token"));
     }
 
     @Test

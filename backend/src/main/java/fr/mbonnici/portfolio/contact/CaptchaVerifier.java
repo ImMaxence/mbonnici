@@ -19,7 +19,7 @@ import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
 /**
- * Checks the reCAPTCHA v3 token of the contact form with Google. Only a verdict about the visitor
+ * Checks the reCAPTCHA checkbox token of the contact form with Google. Only a verdict about the visitor
  * refuses a message: when Google cannot answer or rejects this site's own secret key, the message
  * goes through (the honeypot and the rate limit still apply) and the problem lands in the journal.
  */
@@ -27,8 +27,6 @@ import tools.jackson.databind.ObjectMapper;
 public class CaptchaVerifier {
 
     private static final Logger log = LoggerFactory.getLogger(CaptchaVerifier.class);
-    /** must match the action the contact page asks the token for */
-    static final String ACTION = "contact";
     private static final String WHERE = "POST /api/contact";
     /** Google's error codes that are about this site's configuration, not about the visitor */
     private static final Set<String> OUR_FAULT = Set.of("missing-input-secret", "invalid-input-secret", "bad-request");
@@ -79,25 +77,19 @@ public class CaptchaVerifier {
     }
 
     private boolean verdict(JsonNode answer) {
-        if (!answer.path("success").asBoolean(false)) {
-            String codes = answer.path("error-codes").toString();
-            for (JsonNode code : answer.path("error-codes")) {
-                if (OUR_FAULT.contains(code.asString(""))) {
-                    log.error("reCAPTCHA refused this site's request, letting the message through: {}", codes);
-                    errors.record(Source.SERVER, "reCAPTCHA refused the site's secret key: " + codes, null, WHERE);
-                    return true;
-                }
+        if (answer.path("success").asBoolean(false)) {
+            return true;
+        }
+        String codes = answer.path("error-codes").toString();
+        for (JsonNode code : answer.path("error-codes")) {
+            if (OUR_FAULT.contains(code.asString(""))) {
+                log.error("reCAPTCHA refused this site's request, letting the message through: {}", codes);
+                errors.record(Source.SERVER, "reCAPTCHA refused the site's secret key: " + codes, null, WHERE);
+                return true;
             }
-            log.info("reCAPTCHA token refused: {}", codes);
-            return false;
         }
-        double score = answer.path("score").asDouble(0);
-        String action = answer.path("action").asString("");
-        boolean accepted = score >= config.minScore() && ACTION.equals(action);
-        if (!accepted) {
-            log.info("reCAPTCHA refused a message (score {}, action '{}')", score, action);
-        }
-        return accepted;
+        log.info("reCAPTCHA token refused: {}", codes);
+        return false;
     }
 
     private static String encode(String value) {

@@ -67,11 +67,10 @@ public record AppProperties(
             @DefaultValue("30") int uploadPerMinute,
             @DefaultValue("20") int authPerMinute) {}
 
-    /** Google reCAPTCHA v3 on the contact form: off until both keys are set. */
+    /** Google reCAPTCHA checkbox on the contact form: off until both keys are set. */
     public record Captcha(
             String siteKey,
             String secretKey,
-            @DefaultValue("0.3") double minScore,
             @DefaultValue("https://www.google.com/recaptcha/api/siteverify") String verifyUrl) {
 
         public boolean enabled() {

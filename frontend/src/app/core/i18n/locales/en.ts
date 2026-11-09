@@ -248,11 +248,12 @@ export const en: Dictionary = {
       tooShort: 'A little more detail? (10 characters minimum)',
       privacy: 'Your details are only used to reply to you',
       privacyLink: 'Privacy policy',
-      captchaConsent: 'I agree to the Google reCAPTCHA bot check, which sends technical data to Google',
-      captchaNote: 'This site is protected by reCAPTCHA, Google is only contacted once the box is ticked',
-      captchaRequired: 'Tick the box to send your message, or e-mail me directly',
+      captchaConsent: 'The Google reCAPTCHA bot check sends technical data to Google, it only loads at your request',
+      captchaActivate: 'Enable the check',
+      captchaLoading: 'Loading…',
+      captchaRequired: 'Complete the bot check to send your message, or e-mail me directly',
       captchaBlocked: 'The check could not load (ad blocker?), please e-mail me directly',
-      captchaFailed: 'The bot check failed, please e-mail me directly',
+      captchaFailed: 'The check failed, try again or e-mail me directly',
     },
   },
 
@@ -306,7 +307,7 @@ export const en: Dictionary = {
         {
           h: 'In short',
           p: [
-            'This site sets no tracking cookie, uses no advertising service and sells no data. It works without a consent banner: the only third-party service that needs your agreement is the bot check of the contact form, loaded only if you tick the box provided for it.',
+            'This site sets no tracking cookie, uses no advertising service and sells no data. It works without a consent banner: the only third-party service that needs your agreement is the bot check of the contact form, loaded only if you enable it.',
           ],
         },
         {
@@ -340,8 +341,8 @@ export const en: Dictionary = {
         {
           h: 'Bot check (Google reCAPTCHA)',
           p: [
-            'To block automated messages, the contact form uses Google reCAPTCHA v3, with Google acting as a processor. The service is only loaded if you tick the box provided for it: until then, your browser does not contact Google.',
-            'Once the box is ticked, Google receives technical data (IP address, browser and device characteristics, interactions with the page) and sets a cookie (_GRECAPTCHA) to assess whether the message comes from a person. The content of your message is not sent to Google, and the site does not keep the result of the check. This data may be processed outside the European Union, notably in the United States, under the safeguards set out in Google’s data processing terms.',
+            'To block automated messages, the contact form uses the “I’m not a robot” box of Google reCAPTCHA, with Google acting as a processor. The service is only loaded if you click “Enable the check”: before that click, your browser does not contact Google.',
+            'Once the check is enabled, Google receives technical data (IP address, browser and device characteristics, interactions with the page) and sets a cookie (_GRECAPTCHA) to assess whether the message comes from a person. The content of your message is not sent to Google, and the site does not keep the result of the check. This data may be processed outside the European Union, notably in the United States, under the safeguards set out in Google’s data processing terms.',
             'Legal basis: your consent (article 82 of the French Data Protection Act and article 6.1.a GDPR). It only applies to the open page and is not remembered. You are free to refuse: the form cannot then be sent, but you can write to me directly at {email}.',
           ],
         },

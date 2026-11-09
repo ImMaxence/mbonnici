@@ -154,10 +154,11 @@ also has a focal point (`focal_x`, `focal_y`, top centre by default) used as `ob
 Every message is stored (`contact_message`) and only read in the back office (Messages, unread
 badge in the sidebar). Nothing is forwarded by e-mail or to a third party.
 
-Once `RECAPTCHA_SITE_KEY` and `RECAPTCHA_SECRET_KEY` are set, sending also takes a reCAPTCHA v3 token,
-checked by `CaptchaVerifier` against Google's `siteverify` (2 variables; the Assessment API would need
-a project id and an API key too). The site key reaches the page through the public settings, and the
-browser requests Google's script only after the visitor ticks the consent box. Only a verdict about
+Once `RECAPTCHA_SITE_KEY` and `RECAPTCHA_SECRET_KEY` are set, sending also takes the token of Google's
+"I'm not a robot" box, checked by `CaptchaVerifier` against `siteverify` (2 variables; the Assessment API
+would need a project id and an API key too). The key must be a checkbox key. The site key reaches the
+page through the public settings, and the browser requests Google's script only after the visitor
+clicks "Activer la vérification". Only a verdict about
 the visitor refuses a message (422): if Google is unreachable or rejects the secret key, the message
 is kept and the problem goes to the journal.
 

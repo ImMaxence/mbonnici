@@ -7,6 +7,14 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [1.8.1] — 2026-11-09
+
+### Changed
+- **Contact form captcha**: Google's own "I'm not a robot" box replaces the invisible check and the
+  site's consent box. It appears after a click on "Enable the check", so Google is still contacted
+  only at the visitor's request, in the site's theme and language. It needs a checkbox key: a
+  score-based key cannot show the box.
+
 ## [1.8.0] — 2026-11-09
 
 ### Added

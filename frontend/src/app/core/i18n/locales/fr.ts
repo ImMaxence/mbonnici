@@ -255,11 +255,12 @@ export const fr = {
       tooShort: 'Un peu plus de détails ? (10 caractères minimum)',
       privacy: 'Vos coordonnées servent uniquement à vous répondre',
       privacyLink: 'Politique de confidentialité',
-      captchaConsent: 'J’accepte la vérification anti-robot de Google reCAPTCHA, qui transmet des données techniques à Google',
-      captchaNote: 'Ce site est protégé par reCAPTCHA, Google n’est contacté qu’une fois la case cochée',
-      captchaRequired: 'Cochez la case pour envoyer le message, ou écrivez-moi directement par e-mail',
+      captchaConsent: 'La vérification anti-robot de Google reCAPTCHA transmet des données techniques à Google, elle ne se charge qu’à votre demande',
+      captchaActivate: 'Activer la vérification',
+      captchaLoading: 'Chargement…',
+      captchaRequired: 'Validez la vérification anti-robot pour envoyer le message, ou écrivez-moi directement par e-mail',
       captchaBlocked: 'La vérification n’a pas pu se charger (bloqueur de publicité ?), écrivez-moi directement par e-mail',
-      captchaFailed: 'La vérification anti-robot a échoué, écrivez-moi directement par e-mail',
+      captchaFailed: 'La vérification a échoué, recommencez-la ou écrivez-moi directement par e-mail',
     },
   },
 
@@ -313,7 +314,7 @@ export const fr = {
         {
           h: 'En deux mots',
           p: [
-            'Ce site ne dépose aucun cookie de suivi, n’utilise aucun service publicitaire et ne revend aucune donnée. Il fonctionne sans bannière de consentement : le seul service tiers soumis à votre accord est la vérification anti-robot du formulaire de contact, chargée uniquement si vous cochez la case prévue à cet effet.',
+            'Ce site ne dépose aucun cookie de suivi, n’utilise aucun service publicitaire et ne revend aucune donnée. Il fonctionne sans bannière de consentement : le seul service tiers soumis à votre accord est la vérification anti-robot du formulaire de contact, chargée uniquement si vous l’activez.',
           ],
         },
         {
@@ -347,8 +348,8 @@ export const fr = {
         {
           h: 'Vérification anti-robot (Google reCAPTCHA)',
           p: [
-            'Pour bloquer les messages automatisés, le formulaire de contact utilise Google reCAPTCHA v3, Google agissant comme sous-traitant. Le service n’est chargé que si vous cochez la case prévue à cet effet : tant qu’elle n’est pas cochée, votre navigateur ne contacte pas Google.',
-            'Une fois la case cochée, Google reçoit des données techniques (adresse IP, caractéristiques du navigateur et de l’appareil, interactions avec la page) et dépose un cookie (_GRECAPTCHA) pour évaluer si l’envoi provient d’une personne. Le contenu de votre message n’est pas transmis à Google, et le site ne conserve pas le résultat de la vérification. Ces données peuvent être traitées hors de l’Union européenne, notamment aux États-Unis, selon les garanties prévues par les conditions de traitement des données de Google.',
+            'Pour bloquer les messages automatisés, le formulaire de contact utilise la case « Je ne suis pas un robot » de Google reCAPTCHA, Google agissant comme sous-traitant. Le service n’est chargé que si vous cliquez sur « Activer la vérification » : avant ce clic, votre navigateur ne contacte pas Google.',
+            'Une fois la vérification activée, Google reçoit des données techniques (adresse IP, caractéristiques du navigateur et de l’appareil, interactions avec la page) et dépose un cookie (_GRECAPTCHA) pour évaluer si l’envoi provient d’une personne. Le contenu de votre message n’est pas transmis à Google, et le site ne conserve pas le résultat de la vérification. Ces données peuvent être traitées hors de l’Union européenne, notamment aux États-Unis, selon les garanties prévues par les conditions de traitement des données de Google.',
             'Base légale : votre consentement (article 82 de la loi Informatique et Libertés et article 6.1.a du RGPD). Il ne vaut que pour la page ouverte et n’est pas mémorisé. Vous êtes libre de refuser : le formulaire ne peut alors pas être envoyé, mais vous pouvez m’écrire directement à {email}.',
           ],
         },

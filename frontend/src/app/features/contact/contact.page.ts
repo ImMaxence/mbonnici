@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject, input, signal, untracked } from '@angular/core';
+import { Component, ElementRef, computed, effect, inject, input, signal, untracked, viewChild } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { AnalyticsService } from '../../core/analytics/analytics.service';
@@ -7,6 +7,7 @@ import type { ProjectCard, Settings } from '../../core/api/models';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { SeoService } from '../../core/seo/seo.service';
+import { ThemeService } from '../../core/theme/theme.service';
 import { LinkDirective } from '../../shared/curtain/link.directive';
 import { MagneticDirective } from '../../shared/cursor/magnetic.directive';
 import { FooterComponent } from '../../shared/ui/footer.component';
@@ -127,14 +128,16 @@ interface FormErrors {
               </div>
               @if (captchaKey()) {
                 <div class="consent">
-                  <label>
-                    <input type="checkbox" name="captchaConsent" [checked]="consent()" (change)="setConsent($any($event.target).checked)" [attr.aria-invalid]="errors().consent ? 'true' : null" />
-                    <span>{{ 'contact.form.captchaConsent' | t }}</span>
-                  </label>
+                  @if (captchaStage() !== 'on') {
+                    <p class="field-hint">{{ 'contact.form.captchaConsent' | t }}</p>
+                    <button type="button" class="btn btn-ghost" [disabled]="captchaStage() === 'loading'" (click)="activateCaptcha()" appMagnetic>
+                      {{ (captchaStage() === 'loading' ? 'contact.form.captchaLoading' : 'contact.form.captchaActivate') | t }}
+                    </button>
+                  }
+                  <div #captchaSlot class="captcha-slot"></div>
                   @if (errors().consent) {
                     <span class="field-error">{{ errors().consent }}</span>
                   }
-                  <p class="field-hint">{{ 'contact.form.captchaNote' | t }}</p>
                 </div>
               }
               <p class="field-hint privacy">
@@ -243,23 +246,13 @@ interface FormErrors {
     }
     .consent {
       display: grid;
-      gap: 0.4rem;
+      gap: 0.6rem;
+      justify-items: start;
     }
-    .consent label {
-      display: flex;
-      align-items: flex-start;
-      gap: 0.65rem;
-      font-size: var(--fs-small);
-      line-height: 1.45;
-      color: var(--fg-2);
-      cursor: pointer;
-    }
-    .consent input {
-      flex: none;
-      width: 18px;
-      height: 18px;
-      margin: 0.1em 0 0;
-      accent-color: var(--accent);
+    .captcha-slot {
+      justify-self: stretch;
+      /* Google's frame is a light page: on the dark theme the mismatch paints its transparent edge white */
+      color-scheme: light;
     }
     .privacy {
       display: flex;
@@ -283,6 +276,7 @@ export class ContactPage {
   private readonly seo = inject(SeoService);
   private readonly analytics = inject(AnalyticsService);
   private readonly captcha = inject(CaptchaService);
+  private readonly theme = inject(ThemeService);
   readonly i18n = inject(I18nService);
 
   /** resolved by the route and bound as an input */
@@ -300,7 +294,10 @@ export class ContactPage {
   readonly copied = signal(false);
   /** present once the site has its reCAPTCHA keys */
   readonly captchaKey = computed(() => this.settings()?.captchaSiteKey);
-  readonly consent = signal(false);
+  /** Google's box is only requested when the visitor asks for it */
+  readonly captchaStage = signal<'off' | 'loading' | 'on'>('off');
+  private readonly captchaToken = signal<string | null>(null);
+  private readonly captchaSlot = viewChild<ElementRef<HTMLElement>>('captchaSlot');
   readonly model = { name: '', email: '', message: '', website: '' };
   private prefilled = '';
   private readonly touched = signal<Record<string, boolean>>({});
@@ -320,12 +317,20 @@ export class ContactPage {
       else if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(this.model.email.trim())) out['email'] = dict.invalidEmail;
     }
     if (show('message') && this.model.message.trim().length < 10) out['message'] = dict.tooShort;
-    if (this.captchaKey() && show('consent') && !this.consent()) out['consent'] = dict.captchaRequired;
+    if (all && this.captchaKey() && !this.captchaToken()) out['consent'] = dict.captchaRequired;
     return out;
   });
 
 
   constructor() {
+    // Google sets the box's colours and language when drawing it
+    effect(() => {
+      this.theme.resolved();
+      this.i18n.lang();
+      untracked(() => {
+        if (this.captchaStage() === 'on') void this.drawCaptcha();
+      });
+    });
     // a first line about the project the visitor came from (kept if they already typed something)
     effect(() => {
       const p = this.about();
@@ -356,14 +361,33 @@ export class ContactPage {
     this.version.update((v) => v + 1);
   }
 
-  /** ticking the box is what allows Google to be contacted, so it starts loading only now */
-  setConsent(checked: boolean): void {
-    this.consent.set(checked);
-    this.touch('consent');
-    const key = this.captchaKey();
-    if (!checked || !key) return;
+  /** this click is the visitor's agreement: Google is contacted from here on, not before */
+  activateCaptcha(): void {
     if (this.state() === 'captchaBlocked') this.state.set('idle');
-    this.captcha.load(key, this.i18n.lang()).catch(() => this.state.set('captchaBlocked'));
+    this.captchaStage.set('loading');
+    void this.drawCaptcha();
+  }
+
+  private async drawCaptcha(): Promise<void> {
+    const key = this.captchaKey();
+    const slot = this.captchaSlot()?.nativeElement;
+    if (!key || !slot) return;
+    this.captchaToken.set(null);
+    try {
+      await this.captcha.show(slot, key, { theme: this.theme.resolved(), lang: this.i18n.lang() }, {
+        token: (token) => this.captchaToken.set(token),
+        failed: () => this.captchaUnavailable(),
+      });
+      this.captchaStage.set('on');
+    } catch {
+      this.captchaUnavailable();
+    }
+  }
+
+  private captchaUnavailable(): void {
+    this.captchaToken.set(null);
+    this.captchaStage.set('off');
+    this.state.set('captchaBlocked');
   }
 
   async submit(): Promise<void> {
@@ -371,16 +395,6 @@ export class ContactPage {
     this.version.update((v) => v + 1);
     if (Object.keys(this.errors()).length) return;
     this.state.set('sending');
-    let captcha: string | undefined;
-    const key = this.captchaKey();
-    if (key) {
-      try {
-        captcha = await this.captcha.token(key, this.i18n.lang());
-      } catch {
-        this.state.set('captchaBlocked');
-        return;
-      }
-    }
     try {
       await this.api.sendContact({
         name: this.model.name.trim(),
@@ -388,13 +402,17 @@ export class ContactPage {
         message: this.model.message.trim(),
         locale: this.i18n.lang(),
         website: this.model.website,
-        captcha,
+        captcha: this.captchaToken() ?? undefined,
       });
       this.analytics.contactSubmitted(this.i18n.path('contact'));
       this.state.set('sent');
     } catch (e) {
       const status = e instanceof HttpErrorResponse ? e.status : 0;
       this.state.set(status === 429 ? 'limited' : status === 422 ? 'captchaFailed' : 'error');
+      // the token may have been used: the box is ticked again, the only message shown is the one above
+      this.captchaToken.set(null);
+      this.captcha.reset();
+      this.submitted.set(false);
     }
   }
 
@@ -402,7 +420,8 @@ export class ContactPage {
     this.model.name = '';
     this.model.email = '';
     this.model.message = '';
-    this.consent.set(false);
+    this.captchaStage.set('off');
+    this.captchaToken.set(null);
     this.touched.set({});
     this.submitted.set(false);
     this.state.set('idle');
