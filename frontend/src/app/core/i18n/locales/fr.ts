@@ -217,6 +217,7 @@ export const fr = {
       DEVOPS: 'DevOps & cloud',
       NETWORK: 'Réseau & sécurité',
       TOOL: 'Outils',
+      IDE: 'IDE & éditeurs',
       PRACTICE: 'Méthodes',
     },
   },

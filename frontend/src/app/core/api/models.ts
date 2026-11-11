@@ -10,11 +10,11 @@ export type ProjectCategory = 'WEB' | 'MOBILE' | 'GAME' | 'TOOL' | 'DESIGN' | 'D
 export type MediaKind = 'GALLERY' | 'MOBILE';
 export type Availability = 'OPEN' | 'LISTENING' | 'BUSY';
 export type ContractType = 'CDI' | 'CDD' | 'ALTERNANCE' | 'STAGE' | 'FREELANCE';
-export type SkillCategory = 'LANGUAGE' | 'FRAMEWORK' | 'DATABASE' | 'DEVOPS' | 'NETWORK' | 'TOOL' | 'PRACTICE';
+export type SkillCategory = 'LANGUAGE' | 'FRAMEWORK' | 'DATABASE' | 'DEVOPS' | 'NETWORK' | 'TOOL' | 'IDE' | 'PRACTICE';
 
 export const PROJECT_CATEGORIES: ProjectCategory[] = ['WEB', 'MOBILE', 'GAME', 'TOOL', 'DESIGN', 'DATA', 'OTHER'];
 export const CONTRACT_TYPES: ContractType[] = ['CDI', 'CDD', 'ALTERNANCE', 'STAGE', 'FREELANCE'];
-export const SKILL_CATEGORIES: SkillCategory[] = ['LANGUAGE', 'FRAMEWORK', 'DATABASE', 'DEVOPS', 'NETWORK', 'TOOL', 'PRACTICE'];
+export const SKILL_CATEGORIES: SkillCategory[] = ['LANGUAGE', 'FRAMEWORK', 'DATABASE', 'DEVOPS', 'NETWORK', 'TOOL', 'IDE', 'PRACTICE'];
 
 export interface MediaDto {
   id: string;

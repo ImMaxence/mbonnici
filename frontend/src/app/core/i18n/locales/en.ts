@@ -210,6 +210,7 @@ export const en: Dictionary = {
       DEVOPS: 'DevOps & cloud',
       NETWORK: 'Network & security',
       TOOL: 'Tools',
+      IDE: 'IDEs & editors',
       PRACTICE: 'Methods',
     },
   },

@@ -7,6 +7,13 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [1.11.0] — 2026-11-11
+
+### Added
+- **Skill category "IDEs & editors"**: a new group in the back office and in the toolbox of the
+  site, between "Tools" and "Methods". An archive holding skills of this category must be restored
+  on this version or a later one.
+
 ## [1.10.0] — 2026-11-11
 
 ### Added
