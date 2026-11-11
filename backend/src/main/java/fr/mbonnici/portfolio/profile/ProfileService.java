@@ -12,9 +12,12 @@ import fr.mbonnici.portfolio.profile.ProfileDtos.SkillDto;
 import fr.mbonnici.portfolio.profile.ProfileDtos.SkillInput;
 import fr.mbonnici.portfolio.profile.ProfileDtos.TestimonialDto;
 import fr.mbonnici.portfolio.profile.ProfileDtos.TestimonialInput;
-import java.util.regex.Pattern;
+import java.text.Normalizer;
 import java.util.List;
+import java.util.Locale;
+import java.util.Objects;
 import java.util.UUID;
+import java.util.regex.Pattern;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
@@ -31,6 +34,8 @@ public class ProfileService {
     private final TestimonialRepository testimonials;
 
     private static final Pattern HTTP_URL = Pattern.compile("^https?://[^\\s]+$");
+    private static final Pattern MARKS = Pattern.compile("\\p{M}+");
+    private static final Pattern SPACES = Pattern.compile("\\s+");
 
     public ProfileService(ExperienceRepository experiences, EducationRepository education, SkillRepository skills,
             TestimonialRepository testimonials) {
@@ -65,6 +70,7 @@ public class ProfileService {
     @CacheEvict(value = CACHE, allEntries = true)
     @Transactional
     public ExperienceDto createExperience(ExperienceInput in) {
+        ensureNoExperienceTwin(in, null);
         return ExperienceDto.from(experiences.save(applyExperience(Experience.create(), in)));
     }
 
@@ -72,6 +78,7 @@ public class ProfileService {
     @Transactional
     public ExperienceDto updateExperience(UUID id, ExperienceInput in) {
         Experience e = experiences.findById(id).orElseThrow(() -> new NotFoundException("Experience"));
+        ensureNoExperienceTwin(in, id);
         return ExperienceDto.from(experiences.save(applyExperience(e, in)));
     }
 
@@ -109,6 +116,7 @@ public class ProfileService {
     @CacheEvict(value = CACHE, allEntries = true)
     @Transactional
     public EducationDto createEducation(EducationInput in) {
+        ensureNoEducationTwin(in, null);
         return EducationDto.from(education.save(applyEducation(Education.create(), in)));
     }
 
@@ -116,6 +124,7 @@ public class ProfileService {
     @Transactional
     public EducationDto updateEducation(UUID id, EducationInput in) {
         Education e = education.findById(id).orElseThrow(() -> new NotFoundException("Education"));
+        ensureNoEducationTwin(in, id);
         return EducationDto.from(education.save(applyEducation(e, in)));
     }
 
@@ -147,6 +156,7 @@ public class ProfileService {
     @CacheEvict(value = CACHE, allEntries = true)
     @Transactional
     public SkillDto createSkill(SkillInput in) {
+        ensureNoSkillTwin(in, null);
         return SkillDto.from(skills.save(applySkill(Skill.create(), in)));
     }
 
@@ -154,6 +164,7 @@ public class ProfileService {
     @Transactional
     public SkillDto updateSkill(UUID id, SkillInput in) {
         Skill s = skills.findById(id).orElseThrow(() -> new NotFoundException("Skill"));
+        ensureNoSkillTwin(in, id);
         return SkillDto.from(skills.save(applySkill(s, in)));
     }
 
@@ -253,6 +264,42 @@ public class ProfileService {
         s.setLevel((short) in.level());
         s.setSortOrder(in.sortOrder());
         return s;
+    }
+
+    // ── duplicates ───────────────────────────────────────────────────────────
+    // The back office warns while typing; this is the safety net (a second tab, a double send).
+
+    private void ensureNoSkillTwin(SkillInput in, UUID self) {
+        String key = sameKey(in.name());
+        if (skills.findAll().stream().anyMatch(s -> !s.getId().equals(self) && sameKey(s.getName()).equals(key))) {
+            throw ApiException.conflict("a skill named \"" + in.name().trim() + "\" already exists");
+        }
+    }
+
+    /** the same company starting the same day: the same job typed twice */
+    private void ensureNoExperienceTwin(ExperienceInput in, UUID self) {
+        String key = sameKey(in.company());
+        if (experiences.findAll().stream().anyMatch(e -> !e.getId().equals(self)
+                && Objects.equals(e.getStartDate(), in.startDate()) && sameKey(e.getCompany()).equals(key))) {
+            throw ApiException.conflict("an experience at " + in.company().trim() + " starting on " + in.startDate() + " already exists");
+        }
+    }
+
+    private void ensureNoEducationTwin(EducationInput in, UUID self) {
+        String key = sameKey(in.school());
+        if (education.findAll().stream().anyMatch(e -> !e.getId().equals(self)
+                && Objects.equals(e.getStartDate(), in.startDate()) && sameKey(e.getSchool()).equals(key))) {
+            throw ApiException.conflict("an education at " + in.school().trim() + " starting on " + in.startDate() + " already exists");
+        }
+    }
+
+    /** "Node.js", " node.JS " and "Nödé.js" are the same name; "C" and "C++" are not (same rule as the back office) */
+    static String sameKey(String value) {
+        if (value == null) {
+            return "";
+        }
+        String bare = MARKS.matcher(Normalizer.normalize(value, Normalizer.Form.NFD)).replaceAll("");
+        return SPACES.matcher(bare.toLowerCase(Locale.ROOT)).replaceAll(" ").trim();
     }
 
     private static String blankToNull(String s) {

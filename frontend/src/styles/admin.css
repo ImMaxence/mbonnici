@@ -1033,6 +1033,51 @@ dialog.confirm {
   margin: auto;
 }
 
+/* a form projected into <app-form-dialog>: the fields scroll, the buttons stay */
+.dialog-form {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  min-height: 0;
+}
+
+.dialog-body {
+  padding: 1.25rem;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+.dialog-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  padding: 0.9rem 1.25rem;
+  border-top: 1px solid var(--line);
+}
+
+/* "delete" sits apart, on the left */
+.dialog-actions .start {
+  margin-right: auto;
+}
+
+/* "this already exists": says where, and opens it */
+.admin .field-error.twin {
+  flex-wrap: wrap;
+  justify-content: space-between;
+  font-size: 0.84rem;
+}
+
+.twin .link {
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.twin .link:hover {
+  color: var(--accent);
+}
+
 .admin-aside .nav-toggle {
   display: none;
 }

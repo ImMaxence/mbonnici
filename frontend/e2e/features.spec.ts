@@ -129,6 +129,47 @@ test('a picture is described in a dialog, nothing saved before "Save"', async ({
   await expect(dialog).toBeHidden();
 });
 
+test('profile entries are added in a dialog that refuses duplicates', async ({ page }) => {
+  await page.goto('/api/auth/dev-login');
+  const existing = (await page.request.get('/api/admin/profile').then((r) => r.json())).skills[0].name as string;
+  await page.goto('/admin/profile');
+  await page.waitForLoadState('networkidle');
+
+  // skills: same name, other case and spacing
+  await page.locator('.panel').filter({ has: page.getByRole('heading', { name: 'Compétences', exact: true }) }).getByRole('button', { name: 'Ajouter' }).click();
+  const dialog = page.getByRole('dialog', { name: 'Nouvelle compétence' });
+  await expect(dialog).toBeVisible();
+  await expect(dialog.locator('#sk-name')).toBeFocused();
+  await dialog.locator('#sk-name').fill(`  ${existing.toUpperCase()} `);
+  await expect(dialog.locator('.twin')).toContainText('existe déjà');
+  await expect(dialog.getByRole('button', { name: 'Enregistrer' })).toBeDisabled();
+  await expectAccessible(page, 600);
+  // "open it" switches to the one that exists
+  await dialog.getByRole('button', { name: 'Ouvrir celle-ci' }).click();
+  const edit = page.getByRole('dialog', { name: 'Modifier la compétence' });
+  await expect(edit.locator('#sk-name')).toHaveValue(existing);
+  await expect(edit.locator('.twin')).toBeHidden();
+  // something typed is only dropped on purpose
+  await edit.locator('#sk-name').fill(existing + ' (brouillon)');
+  await page.keyboard.press('Escape');
+  const confirm = page.locator('dialog.confirm');
+  await confirm.getByRole('button', { name: 'Continuer la saisie' }).click();
+  await expect(confirm).toBeHidden();
+  await expect(edit).toBeVisible();
+  await page.keyboard.press('Escape');
+  await confirm.getByRole('button', { name: 'Fermer sans enregistrer' }).click();
+  await expect(edit).toBeHidden();
+
+  // experiences: the texts of both languages are typed in the dialog
+  await page.locator('.panel').filter({ has: page.getByRole('heading', { name: 'Expériences', exact: true }) }).getByRole('button', { name: 'Ajouter' }).click();
+  const exp = page.getByRole('dialog', { name: 'Nouvelle expérience' });
+  await expect(exp.getByRole('tab', { name: 'FR' })).toHaveAttribute('aria-selected', 'true');
+  await exp.getByRole('tab', { name: 'EN' }).click();
+  await expect(exp.locator('label[for="prof-role"]')).toContainText('(en)');
+  await exp.getByRole('button', { name: 'Fermer' }).click();
+  await expect(exp).toBeHidden();
+});
+
 test('the stack is picked from the profile skills', async ({ page }) => {
   await page.goto('/api/auth/dev-login');
   await page.goto('/admin/projects/new');

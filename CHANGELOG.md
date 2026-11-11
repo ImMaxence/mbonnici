@@ -7,6 +7,23 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [1.10.0] — 2026-11-11
+
+### Added
+- **No duplicates in the profile**: a skill can't be added twice (case, accents and spaces don't
+  count: "java" is "Java", but "C" and "C++" stay two), nor an experience or a course at the same
+  company or school starting the same day. The form says so while typing, with a link to open the
+  one that exists, and the server refuses it too (409).
+
+### Changed
+- **Profile editors in a dialog**: "Add" and the edit buttons of experiences, education, skills and
+  testimonials open a modal instead of a form unfolding under the list. The FR / EN tabs moved into
+  it. Escape, the × or a click beside it close it, and ask first when something was typed. A double
+  click on "Save" no longer sends twice.
+
+### Fixed
+- **Messages**: the icon buttons are aligned with "Reply".
+
 ## [1.9.2] — 2026-11-09
 
 ### Fixed

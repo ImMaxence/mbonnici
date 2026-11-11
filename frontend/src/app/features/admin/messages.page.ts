@@ -145,8 +145,10 @@ type Box = 'inbox' | 'archive';
     pre {
       padding-left: 50px;
     }
+    /* the icon buttons (34px) sit on the middle line of "Reply" (38px) */
     .msg-actions {
       display: flex;
+      align-items: center;
       gap: 0.4rem;
       padding-left: 50px;
     }

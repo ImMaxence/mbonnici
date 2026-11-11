@@ -22,29 +22,40 @@ import { ConfirmService } from '../../shared/ui/confirm.service';
 import { TooltipDirective } from '../../shared/ui/tooltip.directive';
 import { SortMove, SortableDirective, moveItem } from '../../shared/ui/sortable.directive';
 import { CvPanelComponent } from './cv-panel.component';
+import { FormDialogComponent } from './form-dialog.component';
 import { SkillSelectComponent } from './skill-select.component';
 import { MissingLangComponent } from './missing-lang.component';
 import { HasUnsavedChanges, snapshot, warnBeforeUnload } from './unsaved.guard';
 
 type Section = 'experience' | 'education' | 'skill' | 'testimonial';
 
+/** an entry that already exists, and the sentence saying so */
+interface Twin<T> {
+  item: T;
+  text: string;
+}
+
+/** "Node.js", " node.JS " and "Nödé.js" are the same name; "C" and "C++" are not */
+function sameKey(value: string | null | undefined): string {
+  return (value ?? '')
+    .normalize('NFD')
+    .replace(/\p{M}/gu, '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 @Component({
   selector: 'app-admin-profile',
-  imports: [FormsModule, TranslatePipe, LocalizedPipe, IconComponent, TooltipDirective, SortableDirective, MissingLangComponent, CvPanelComponent, SkillSelectComponent],
+  imports: [FormsModule, TranslatePipe, LocalizedPipe, IconComponent, TooltipDirective, SortableDirective, MissingLangComponent, CvPanelComponent, SkillSelectComponent, FormDialogComponent],
   template: `
     <div class="admin-head">
       <h1>{{ 'admin.profile.title' | t }}</h1>
-      <div class="row">
-        <div class="lang-tabs" role="tablist">
-          <button type="button" role="tab" [attr.aria-selected]="lang() === 'fr'" (click)="lang.set('fr')">FR</button>
-          <button type="button" role="tab" [attr.aria-selected]="lang() === 'en'" (click)="lang.set('en')">EN</button>
-        </div>
-      </div>
     </div>
     @if (toast()) {
       <p class="toast">{{ toast() }}</p>
     }
-    @if (error()) {
+    @if (error() && !editing()) {
       <p class="field-error">{{ error() }}</p>
     }
 
@@ -71,31 +82,6 @@ type Section = 'experience' | 'education' | 'skill' | 'testimonial';
         </div>
       }
       </div>
-      @if (editing() === 'experience' && exp) {
-        <form class="form-grid cols-2 editor" (ngSubmit)="saveExperience()">
-          <div class="field"><label for="prof-company">{{ 'admin.profile.company' | t }}</label><input id="prof-company" class="input" name="company" [(ngModel)]="exp.company" required /></div>
-          <div class="field"><label for="prof-companyUrl">{{ 'admin.profile.companyUrl' | t }}</label><input id="prof-companyUrl" class="input" name="companyUrl" [(ngModel)]="exp.companyUrl" /></div>
-          <div class="field"><label for="prof-role">{{ 'admin.profile.role' | t }} ({{ lang() }})</label><input id="prof-role" class="input" name="role" [(ngModel)]="exp.role[lang()]" required /></div>
-          <div class="field"><label for="prof-location">{{ 'admin.profile.location' | t }}</label><input id="prof-location" class="input" name="location" [(ngModel)]="exp.location" /></div>
-          <div class="field span-2"><label for="prof-description">{{ 'admin.profile.description' | t }} ({{ lang() }})</label><textarea id="prof-description" class="textarea" name="description" rows="4" [(ngModel)]="exp.description[lang()]"></textarea></div>
-          <div class="field">
-            <label for="prof-contractType">{{ 'admin.profile.contract' | t }}</label>
-            <select id="prof-contractType" class="select" name="contractType" [(ngModel)]="exp.contractType">
-              @for (c of contracts; track c) {
-                <option [value]="c">{{ 'about.contract.' + c | t }}</option>
-              }
-            </select>
-          </div>
-          <div class="field"><label for="prof-sortOrder">{{ 'admin.profile.order' | t }}</label><input id="prof-sortOrder" class="input" type="number" name="sortOrder" [(ngModel)]="exp.sortOrder" /></div>
-          <div class="field"><label for="prof-startDate">{{ 'admin.profile.start' | t }}</label><input id="prof-startDate" class="input" type="date" name="startDate" [(ngModel)]="exp.startDate" required /></div>
-          <div class="field"><label for="prof-endDate">{{ 'admin.profile.end' | t }}</label><input id="prof-endDate" class="input" type="date" name="endDate" [(ngModel)]="exp.endDate" /></div>
-          <div class="field span-2"><label for="prof-skills">{{ 'admin.profile.skillsList' | t }}</label><app-skill-select inputId="prof-skills" [(value)]="exp.skills" [skills]="profile()?.skills ?? []" /></div>
-          <div class="row span-2">
-            <button type="submit" class="btn btn-accent">{{ 'admin.profile.save' | t }}</button>
-            <button type="button" class="btn btn-ghost" (click)="editing.set(null)">{{ 'admin.projectForm.cancel' | t }}</button>
-          </div>
-        </form>
-      }
     </div>
 
     <!-- ── Education ───────────────────────────────────────────────── -->
@@ -117,21 +103,6 @@ type Section = 'experience' | 'education' | 'skill' | 'testimonial';
         </div>
       }
       </div>
-      @if (editing() === 'education' && edu) {
-        <form class="form-grid cols-2 editor" (ngSubmit)="saveEducation()">
-          <div class="field"><label for="edu-school">{{ 'admin.profile.school' | t }}</label><input id="edu-school" class="input" name="school" [(ngModel)]="edu.school" required /></div>
-          <div class="field"><label for="edu-schoolUrl">{{ 'admin.profile.schoolUrl' | t }}</label><input id="edu-schoolUrl" class="input" name="schoolUrl" [(ngModel)]="edu.schoolUrl" /></div>
-          <div class="field"><label for="edu-degree">{{ 'admin.profile.degree' | t }} ({{ lang() }})</label><input id="edu-degree" class="input" name="degree" [(ngModel)]="edu.degree[lang()]" required /></div>
-          <div class="field"><label for="edu-location">{{ 'admin.profile.location' | t }}</label><input id="edu-location" class="input" name="location" [(ngModel)]="edu.location" /></div>
-          <div class="field"><label for="edu-startDate">{{ 'admin.profile.start' | t }}</label><input id="edu-startDate" class="input" type="date" name="startDate" [(ngModel)]="edu.startDate" required /></div>
-          <div class="field"><label for="edu-endDate">{{ 'admin.profile.end' | t }}</label><input id="edu-endDate" class="input" type="date" name="endDate" [(ngModel)]="edu.endDate" /></div>
-          <div class="field"><label for="edu-sortOrder">{{ 'admin.profile.order' | t }}</label><input id="edu-sortOrder" class="input" type="number" name="sortOrder" [(ngModel)]="edu.sortOrder" /></div>
-          <div class="row span-2">
-            <button type="submit" class="btn btn-accent">{{ 'admin.profile.save' | t }}</button>
-            <button type="button" class="btn btn-ghost" (click)="editing.set(null)">{{ 'admin.projectForm.cancel' | t }}</button>
-          </div>
-        </form>
-      }
     </div>
 
     <!-- ── Skills ──────────────────────────────────────────────────── -->
@@ -155,28 +126,6 @@ type Section = 'experience' | 'education' | 'skill' | 'testimonial';
           </div>
         }
       </div>
-      @if (editing() === 'skill' && sk) {
-        <form class="form-grid cols-2 editor" (ngSubmit)="saveSkill()">
-          <div class="field"><label for="sk-name">{{ 'admin.profile.name' | t }}</label><input id="sk-name" class="input" name="name" [(ngModel)]="sk.name" required /></div>
-          <div class="field">
-            <label for="sk-category">{{ 'admin.profile.category' | t }}</label>
-            <select id="sk-category" class="select" name="category" [(ngModel)]="sk.category">
-              @for (c of skillCategories; track c) {
-                <option [value]="c">{{ 'about.skillCategories.' + c | t }}</option>
-              }
-            </select>
-          </div>
-          <div class="field"><label for="sk-level">{{ 'admin.profile.level' | t }}</label><input id="sk-level" class="input" type="number" min="1" max="5" name="level" [(ngModel)]="sk.level" /></div>
-          <div class="field"><label for="sk-sortOrder">{{ 'admin.profile.order' | t }}</label><input id="sk-sortOrder" class="input" type="number" name="sortOrder" [(ngModel)]="sk.sortOrder" /></div>
-          <div class="row span-2">
-            <button type="submit" class="btn btn-accent">{{ 'admin.profile.save' | t }}</button>
-            @if (skId) {
-              <button type="button" class="btn btn-ghost" (click)="deleteItem('skill', skId)">{{ 'admin.profile.delete' | t }}</button>
-            }
-            <button type="button" class="btn btn-ghost" (click)="editing.set(null)">{{ 'admin.projectForm.cancel' | t }}</button>
-          </div>
-        </form>
-      }
     </div>
 
     <!-- ── Testimonials ────────────────────────────────────────────── -->
@@ -207,23 +156,154 @@ type Section = 'experience' | 'education' | 'skill' | 'testimonial';
           <p class="muted small">{{ 'admin.profile.testimonialsNone' | t }}</p>
         }
       </div>
-      @if (editing() === 'testimonial' && tm) {
-        <form class="form-grid cols-2 editor" (ngSubmit)="saveTestimonial()">
-          <div class="field"><label for="tm-author">{{ 'admin.profile.author' | t }}</label><input id="tm-author" class="input" name="author" [(ngModel)]="tm.author" required maxlength="120" /></div>
-          <div class="field"><label for="tm-role">{{ 'admin.profile.authorRole' | t }} ({{ lang() }})</label><input id="tm-role" class="input" name="role" [(ngModel)]="tm.role[lang()]" [placeholder]="'admin.profile.authorRolePlaceholder' | t" /></div>
-          <div class="field span-2">
-            <label for="tm-quote">{{ 'admin.profile.quote' | t }} ({{ lang() }})</label>
-            <textarea id="tm-quote" class="textarea" name="quote" rows="4" maxlength="600" [(ngModel)]="tm.quote[lang()]" required></textarea>
-            <span class="field-hint">{{ (tm.quote[lang()] || '').length }} / 600</span>
+    </div>
+
+    <!-- ── Editors (modals) ────────────────────────────────────────── -->
+    <app-form-dialog
+      [open]="editing() === 'experience'"
+      [title]="(expId ? 'admin.profile.editExperience' : 'admin.profile.newExperience') | t"
+      [width]="760"
+      [(lang)]="lang"
+      (dismiss)="closeEditor()"
+    >
+      @if (editing() === 'experience' && exp) {
+        <form class="dialog-form" (ngSubmit)="saveExperience()">
+          <div class="dialog-body form-grid cols-2">
+            <div class="field"><label for="prof-company">{{ 'admin.profile.company' | t }}</label><input id="prof-company" class="input" name="company" [(ngModel)]="exp.company" required /></div>
+            <div class="field"><label for="prof-companyUrl">{{ 'admin.profile.companyUrl' | t }}</label><input id="prof-companyUrl" class="input" name="companyUrl" [(ngModel)]="exp.companyUrl" /></div>
+            <div class="field"><label for="prof-role">{{ 'admin.profile.role' | t }} ({{ lang() }})</label><input id="prof-role" class="input" name="role" [(ngModel)]="exp.role[lang()]" required /></div>
+            <div class="field"><label for="prof-location">{{ 'admin.profile.location' | t }}</label><input id="prof-location" class="input" name="location" [(ngModel)]="exp.location" /></div>
+            <div class="field span-2"><label for="prof-description">{{ 'admin.profile.description' | t }} ({{ lang() }})</label><textarea id="prof-description" class="textarea" name="description" rows="4" [(ngModel)]="exp.description[lang()]"></textarea></div>
+            <div class="field">
+              <label for="prof-contractType">{{ 'admin.profile.contract' | t }}</label>
+              <select id="prof-contractType" class="select" name="contractType" [(ngModel)]="exp.contractType">
+                @for (c of contracts; track c) {
+                  <option [value]="c">{{ 'about.contract.' + c | t }}</option>
+                }
+              </select>
+            </div>
+            <div class="field"><label for="prof-sortOrder">{{ 'admin.profile.order' | t }}</label><input id="prof-sortOrder" class="input" type="number" name="sortOrder" [(ngModel)]="exp.sortOrder" /></div>
+            <div class="field"><label for="prof-startDate">{{ 'admin.profile.start' | t }}</label><input id="prof-startDate" class="input" type="date" name="startDate" [(ngModel)]="exp.startDate" required /></div>
+            <div class="field"><label for="prof-endDate">{{ 'admin.profile.end' | t }}</label><input id="prof-endDate" class="input" type="date" name="endDate" [(ngModel)]="exp.endDate" /></div>
+            <div class="field span-2"><label for="prof-skills">{{ 'admin.profile.skillsList' | t }}</label><app-skill-select inputId="prof-skills" [(value)]="exp.skills" [skills]="profile()?.skills ?? []" /></div>
+            @if (experienceTwin(); as twin) {
+              <p class="field-error twin span-2" role="alert">
+                <span>{{ twin.text }}</span>
+                <button type="button" class="link" (click)="startExperience(twin.item); focusFirst()">{{ 'admin.profile.openTwin' | t }}</button>
+              </p>
+            }
+            @if (error()) {
+              <p class="field-error span-2" role="alert">{{ error() }}</p>
+            }
           </div>
-          <div class="field span-2"><label for="tm-url">{{ 'admin.profile.quoteUrl' | t }}</label><input id="tm-url" class="input" type="url" name="url" [(ngModel)]="tm.url" placeholder="https://www.linkedin.com/in/…" /></div>
-          <div class="row span-2">
-            <button type="submit" class="btn btn-accent">{{ 'admin.profile.save' | t }}</button>
-            <button type="button" class="btn btn-ghost" (click)="editing.set(null)">{{ 'admin.projectForm.cancel' | t }}</button>
-          </div>
+          <footer class="dialog-actions">
+            <button type="button" class="btn btn-ghost" (click)="closeEditor()">{{ 'admin.projectForm.cancel' | t }}</button>
+            <button type="submit" class="btn" [disabled]="saving() || !!experienceTwin()"><app-icon name="check" [size]="14" /> {{ 'admin.profile.save' | t }}</button>
+          </footer>
         </form>
       }
-    </div>
+    </app-form-dialog>
+
+    <app-form-dialog
+      [open]="editing() === 'education'"
+      [title]="(eduId ? 'admin.profile.editEducation' : 'admin.profile.newEducation') | t"
+      [width]="760"
+      [(lang)]="lang"
+      (dismiss)="closeEditor()"
+    >
+      @if (editing() === 'education' && edu) {
+        <form class="dialog-form" (ngSubmit)="saveEducation()">
+          <div class="dialog-body form-grid cols-2">
+            <div class="field"><label for="edu-school">{{ 'admin.profile.school' | t }}</label><input id="edu-school" class="input" name="school" [(ngModel)]="edu.school" required /></div>
+            <div class="field"><label for="edu-schoolUrl">{{ 'admin.profile.schoolUrl' | t }}</label><input id="edu-schoolUrl" class="input" name="schoolUrl" [(ngModel)]="edu.schoolUrl" /></div>
+            <div class="field"><label for="edu-degree">{{ 'admin.profile.degree' | t }} ({{ lang() }})</label><input id="edu-degree" class="input" name="degree" [(ngModel)]="edu.degree[lang()]" required /></div>
+            <div class="field"><label for="edu-location">{{ 'admin.profile.location' | t }}</label><input id="edu-location" class="input" name="location" [(ngModel)]="edu.location" /></div>
+            <div class="field"><label for="edu-startDate">{{ 'admin.profile.start' | t }}</label><input id="edu-startDate" class="input" type="date" name="startDate" [(ngModel)]="edu.startDate" required /></div>
+            <div class="field"><label for="edu-endDate">{{ 'admin.profile.end' | t }}</label><input id="edu-endDate" class="input" type="date" name="endDate" [(ngModel)]="edu.endDate" /></div>
+            <div class="field"><label for="edu-sortOrder">{{ 'admin.profile.order' | t }}</label><input id="edu-sortOrder" class="input" type="number" name="sortOrder" [(ngModel)]="edu.sortOrder" /></div>
+            @if (educationTwin(); as twin) {
+              <p class="field-error twin span-2" role="alert">
+                <span>{{ twin.text }}</span>
+                <button type="button" class="link" (click)="startEducation(twin.item); focusFirst()">{{ 'admin.profile.openTwin' | t }}</button>
+              </p>
+            }
+            @if (error()) {
+              <p class="field-error span-2" role="alert">{{ error() }}</p>
+            }
+          </div>
+          <footer class="dialog-actions">
+            <button type="button" class="btn btn-ghost" (click)="closeEditor()">{{ 'admin.projectForm.cancel' | t }}</button>
+            <button type="submit" class="btn" [disabled]="saving() || !!educationTwin()"><app-icon name="check" [size]="14" /> {{ 'admin.profile.save' | t }}</button>
+          </footer>
+        </form>
+      }
+    </app-form-dialog>
+
+    <app-form-dialog [open]="editing() === 'skill'" [title]="(skId ? 'admin.profile.editSkill' : 'admin.profile.newSkill') | t" [width]="560" (dismiss)="closeEditor()">
+      @if (editing() === 'skill' && sk) {
+        <form class="dialog-form" (ngSubmit)="saveSkill()">
+          <div class="dialog-body form-grid cols-2">
+            <div class="field"><label for="sk-name">{{ 'admin.profile.name' | t }}</label><input id="sk-name" class="input" name="name" [(ngModel)]="sk.name" required /></div>
+            <div class="field">
+              <label for="sk-category">{{ 'admin.profile.category' | t }}</label>
+              <select id="sk-category" class="select" name="category" [(ngModel)]="sk.category">
+                @for (c of skillCategories; track c) {
+                  <option [value]="c">{{ 'about.skillCategories.' + c | t }}</option>
+                }
+              </select>
+            </div>
+            <div class="field"><label for="sk-level">{{ 'admin.profile.level' | t }}</label><input id="sk-level" class="input" type="number" min="1" max="5" name="level" [(ngModel)]="sk.level" /></div>
+            <div class="field"><label for="sk-sortOrder">{{ 'admin.profile.order' | t }}</label><input id="sk-sortOrder" class="input" type="number" name="sortOrder" [(ngModel)]="sk.sortOrder" /></div>
+            @if (skillTwin(); as twin) {
+              <p class="field-error twin span-2" role="alert">
+                <span>{{ twin.text }}</span>
+                <button type="button" class="link" (click)="startSkill(twin.item); focusFirst()">{{ 'admin.profile.openTwin' | t }}</button>
+              </p>
+            }
+            @if (error()) {
+              <p class="field-error span-2" role="alert">{{ error() }}</p>
+            }
+          </div>
+          <footer class="dialog-actions">
+            @if (skId) {
+              <button type="button" class="btn btn-ghost start" (click)="deleteItem('skill', skId)"><app-icon name="trash" [size]="14" /> {{ 'admin.profile.delete' | t }}</button>
+            }
+            <button type="button" class="btn btn-ghost" (click)="closeEditor()">{{ 'admin.projectForm.cancel' | t }}</button>
+            <button type="submit" class="btn" [disabled]="saving() || !!skillTwin()"><app-icon name="check" [size]="14" /> {{ 'admin.profile.save' | t }}</button>
+          </footer>
+        </form>
+      }
+    </app-form-dialog>
+
+    <app-form-dialog
+      [open]="editing() === 'testimonial'"
+      [title]="(tmId ? 'admin.profile.editTestimonial' : 'admin.profile.newTestimonial') | t"
+      [width]="680"
+      [(lang)]="lang"
+      (dismiss)="closeEditor()"
+    >
+      @if (editing() === 'testimonial' && tm) {
+        <form class="dialog-form" (ngSubmit)="saveTestimonial()">
+          <div class="dialog-body form-grid cols-2">
+            <div class="field"><label for="tm-author">{{ 'admin.profile.author' | t }}</label><input id="tm-author" class="input" name="author" [(ngModel)]="tm.author" required maxlength="120" /></div>
+            <div class="field"><label for="tm-role">{{ 'admin.profile.authorRole' | t }} ({{ lang() }})</label><input id="tm-role" class="input" name="role" [(ngModel)]="tm.role[lang()]" [placeholder]="'admin.profile.authorRolePlaceholder' | t" /></div>
+            <div class="field span-2">
+              <label for="tm-quote">{{ 'admin.profile.quote' | t }} ({{ lang() }})</label>
+              <textarea id="tm-quote" class="textarea" name="quote" rows="4" maxlength="600" [(ngModel)]="tm.quote[lang()]" required></textarea>
+              <span class="field-hint">{{ (tm.quote[lang()] || '').length }} / 600</span>
+            </div>
+            <div class="field span-2"><label for="tm-url">{{ 'admin.profile.quoteUrl' | t }}</label><input id="tm-url" class="input" type="url" name="url" [(ngModel)]="tm.url" placeholder="https://www.linkedin.com/in/…" /></div>
+            @if (error()) {
+              <p class="field-error span-2" role="alert">{{ error() }}</p>
+            }
+          </div>
+          <footer class="dialog-actions">
+            <button type="button" class="btn btn-ghost" (click)="closeEditor()">{{ 'admin.projectForm.cancel' | t }}</button>
+            <button type="submit" class="btn" [disabled]="saving()"><app-icon name="check" [size]="14" /> {{ 'admin.profile.save' | t }}</button>
+          </footer>
+        </form>
+      }
+    </app-form-dialog>
   `,
   styles: `
     .quote-row {
@@ -235,11 +315,6 @@ type Section = 'experience' | 'education' | 'skill' | 'testimonial';
       -webkit-line-clamp: 2;
       -webkit-box-orient: vertical;
       overflow: hidden;
-    }
-    .editor {
-      margin-top: var(--space-4);
-      padding-top: var(--space-4);
-      border-top: 1px solid var(--line);
     }
     .dates {
       min-width: 23ch;
@@ -315,9 +390,11 @@ export class AdminProfilePage implements HasUnsavedChanges {
     const skills = this.profile()?.skills ?? [];
     return SKILL_CATEGORIES.map((key) => ({ key, items: skills.filter((s) => s.category === key) })).filter((g) => g.items.length);
   });
+  /** language of the texts typed in the editors */
   readonly lang = signal<Lang>('fr');
   readonly profile = signal<Profile | null>(null);
   readonly editing = signal<Section | null>(null);
+  readonly saving = signal(false);
   readonly toast = signal('');
   readonly error = signal('');
 
@@ -349,13 +426,18 @@ export class AdminProfilePage implements HasUnsavedChanges {
     this.profile.set(await this.api.adminProfile());
   }
 
+  private open(section: Section, model: unknown): void {
+    this.error.set('');
+    this.editing.set(section);
+    this.editState = snapshot(model);
+  }
+
   startExperience(e?: Experience): void {
     this.expId = e?.id;
     this.exp = e
       ? { ...e, role: { ...e.role }, description: { ...e.description }, skills: [...e.skills] }
       : { company: '', companyUrl: null, role: { fr: '', en: '' }, description: { fr: '', en: '' }, location: null, contractType: 'CDI', startDate: '', endDate: null, skills: [], sortOrder: 0 };
-    this.editing.set('experience');
-    this.editState = snapshot(this.exp);
+    this.open('experience', this.exp);
   }
 
   startEducation(e?: Education): void {
@@ -363,15 +445,13 @@ export class AdminProfilePage implements HasUnsavedChanges {
     this.edu = e
       ? { ...e, degree: { ...e.degree } }
       : { school: '', schoolUrl: null, degree: { fr: '', en: '' }, location: null, startDate: '', endDate: null, sortOrder: 0 };
-    this.editing.set('education');
-    this.editState = snapshot(this.edu);
+    this.open('education', this.edu);
   }
 
   startSkill(s?: Skill): void {
     this.skId = s?.id;
     this.sk = s ? { name: s.name, category: s.category, level: s.level, sortOrder: s.sortOrder } : { name: '', category: 'TOOL', level: 3, sortOrder: 0 };
-    this.editing.set('skill');
-    this.editState = snapshot(this.sk);
+    this.open('skill', this.sk);
   }
 
   startTestimonial(q?: Testimonial): void {
@@ -379,8 +459,56 @@ export class AdminProfilePage implements HasUnsavedChanges {
     this.tm = q
       ? { author: q.author, url: q.url ?? null, role: { ...q.role }, quote: { ...q.quote }, sortOrder: q.sortOrder }
       : { author: '', url: null, role: { fr: '', en: '' }, quote: { fr: '', en: '' }, sortOrder: this.profile()?.testimonials.length ?? 0 };
-    this.editing.set('testimonial');
-    this.editState = snapshot(this.tm);
+    this.open('testimonial', this.tm);
+  }
+
+  /** after "open it": the button that was clicked is gone, the first field takes the focus */
+  focusFirst(): void {
+    setTimeout(() => document.querySelector<HTMLElement>('dialog[open] .dialog-body :is(input, select, textarea)')?.focus());
+  }
+
+  /** Escape, ×, "Cancel" or a click beside the box: typed changes are only dropped on purpose */
+  async closeEditor(): Promise<void> {
+    if (this.dirty()) {
+      const ok = await this.confirmDialog.ask({
+        title: this.i18n.t('admin.profile.discardTitle'),
+        message: this.i18n.t('admin.profile.discardMessage'),
+        confirm: this.i18n.t('admin.profile.discard'),
+        cancel: this.i18n.t('admin.profile.keepEditing'),
+        danger: true,
+      });
+      if (!ok) return;
+    }
+    this.editing.set(null);
+    this.error.set('');
+  }
+
+  // ── duplicates: the same name (skill), the same company or school starting the same day ──
+
+  skillTwin(): Twin<Skill> | null {
+    const key = sameKey(this.sk?.name);
+    const item = key ? this.profile()?.skills.find((s) => s.id !== this.skId && sameKey(s.name) === key) : undefined;
+    if (!item) return null;
+    const category = this.i18n.t('about.skillCategories.' + item.category);
+    return { item, text: this.i18n.t('admin.profile.skillTwin', { name: item.name, category }) };
+  }
+
+  experienceTwin(): Twin<Experience> | null {
+    const e = this.exp;
+    const key = sameKey(e?.company);
+    const item = key && e?.startDate ? this.profile()?.experiences.find((x) => x.id !== this.expId && x.startDate === e.startDate && sameKey(x.company) === key) : undefined;
+    if (!item) return null;
+    const date = this.i18n.formatDate(item.startDate, { dateStyle: 'long' });
+    return { item, text: this.i18n.t('admin.profile.experienceTwin', { company: item.company, date }) };
+  }
+
+  educationTwin(): Twin<Education> | null {
+    const e = this.edu;
+    const key = sameKey(e?.school);
+    const item = key && e?.startDate ? this.profile()?.education.find((x) => x.id !== this.eduId && x.startDate === e.startDate && sameKey(x.school) === key) : undefined;
+    if (!item) return null;
+    const date = this.i18n.formatDate(item.startDate, { dateStyle: 'long' });
+    return { item, text: this.i18n.t('admin.profile.educationTwin', { school: item.school, date }) };
   }
 
   async saveTestimonial(): Promise<void> {
@@ -393,17 +521,17 @@ export class AdminProfilePage implements HasUnsavedChanges {
   }
 
   async saveExperience(): Promise<void> {
-    if (!this.exp) return;
+    if (!this.exp || this.experienceTwin()) return;
     await this.run(() => this.api.saveExperience({ ...this.exp!, endDate: this.exp!.endDate || null, companyUrl: this.exp!.companyUrl || null, location: this.exp!.location || null }, this.expId));
   }
 
   async saveEducation(): Promise<void> {
-    if (!this.edu) return;
+    if (!this.edu || this.educationTwin()) return;
     await this.run(() => this.api.saveEducation({ ...this.edu!, endDate: this.edu!.endDate || null, schoolUrl: this.edu!.schoolUrl || null, location: this.edu!.location || null }, this.eduId));
   }
 
   async saveSkill(): Promise<void> {
-    if (!this.sk) return;
+    if (!this.sk || this.skillTwin()) return;
     await this.run(() => this.api.saveSkill({ ...this.sk!, level: Number(this.sk!.level), sortOrder: Number(this.sk!.sortOrder) }, this.skId));
   }
 
@@ -459,7 +587,10 @@ export class AdminProfilePage implements HasUnsavedChanges {
     );
   }
 
+  /** one save at a time: a double click must not create the entry twice */
   private async run(op: () => Promise<unknown>): Promise<void> {
+    if (this.saving()) return;
+    this.saving.set(true);
     this.error.set('');
     try {
       await op();
@@ -468,7 +599,10 @@ export class AdminProfilePage implements HasUnsavedChanges {
       this.toast.set(this.i18n.t('admin.profile.saved'));
       setTimeout(() => this.toast.set(''), 1800);
     } catch (e) {
-      this.error.set((e as { error?: { message?: string } }).error?.message ?? String(e));
+      const err = e as { status?: number; error?: { message?: string } };
+      this.error.set(err.status === 409 ? this.i18n.t('admin.profile.duplicate') : (err.error?.message ?? String(e)));
+    } finally {
+      this.saving.set(false);
     }
   }
 }
