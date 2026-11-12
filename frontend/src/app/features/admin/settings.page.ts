@@ -112,11 +112,17 @@ import { missingIn } from './missing-lang.component';
     }
   `,
   styles: `
+    /* too narrow for the photo and the button side by side: the texts go under the photo */
     .avatar-row {
       display: flex;
+      flex-wrap: wrap;
       align-items: center;
       gap: 1rem;
       margin-bottom: 1.25rem;
+    }
+    .avatar-row > .stack {
+      flex: 1 1 16rem;
+      min-width: 0;
     }
     .avatar-preview {
       display: grid;

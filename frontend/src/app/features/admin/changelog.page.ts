@@ -72,8 +72,13 @@ interface Release {
       width: 2px;
       background: var(--line);
     }
+    /* min-width: a long path or URL in a release note no longer widens the page */
     .release {
       position: relative;
+      min-width: 0;
+    }
+    .release app-md {
+      overflow-wrap: anywhere;
     }
     .marker {
       position: absolute;

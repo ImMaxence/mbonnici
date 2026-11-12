@@ -304,7 +304,7 @@ const PAD = { top: 16, right: 16, bottom: 28, left: 36 };
             <h2>{{ 'admin.sites.title' | t }}</h2>
             <span class="small faint">{{ 'admin.sites.subtitle' | t }}</span>
           </div>
-          <table class="table sites-table">
+          <table class="table table-stack sites-table">
             <thead>
               <tr>
                 <th>{{ 'admin.sites.site' | t }}</th>
@@ -336,9 +336,9 @@ const PAD = { top: 16, right: 16, bottom: 28, left: 36 };
                       }
                     </span>
                   </td>
-                  <td class="num">{{ percent(site.uptime24h) }}</td>
-                  <td class="num">{{ percent(site.uptime7d) }}</td>
-                  <td class="num">{{ site.latency24h == null ? '—' : site.latency24h + ' ms' }}</td>
+                  <td class="num" data-label="24 h">{{ percent(site.uptime24h) }}</td>
+                  <td class="num" data-label="7 j">{{ percent(site.uptime7d) }}</td>
+                  <td class="num" [attr.data-label]="'admin.sites.latency' | t">{{ site.latency24h == null ? '—' : site.latency24h + ' ms' }}</td>
                 </tr>
                 @if (site.lastDown) {
                   <tr class="incident"><td colspan="6" class="small faint">{{ 'admin.sites.lastDown' | t: { when: i18n.formatDate(site.lastDown, { dateStyle: 'medium', timeStyle: 'short' }) } }}</td></tr>
@@ -684,6 +684,7 @@ const PAD = { top: 16, right: 16, bottom: 28, left: 36 };
     }
     .sites-table .url {
       display: block;
+      overflow-wrap: anywhere;
     }
     .sites-table .url:hover {
       color: var(--accent);
@@ -715,9 +716,48 @@ const PAD = { top: 16, right: 16, bottom: 28, left: 36 };
     .hours i[data-state='down'] {
       background: #e5484d;
     }
-    @media (max-width: 760px) {
+    /* the 24-hour bars need room: below that the panel drops them, whatever the screen
+       (the sidebar takes 264px from 900px up) */
+    .sites {
+      container-type: inline-size;
+    }
+    @container (max-width: 720px) {
       .hours-col {
         display: none;
+      }
+    }
+    /* phones (.table-stack): site + status, then the three figures with their label */
+    @media (max-width: 719px) {
+      /* the status column is only as wide as its pill: the address keeps the room */
+      .sites-table tr {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+      }
+      .sites-table td:nth-child(1) {
+        grid-column: 1 / 3;
+      }
+      .sites-table td:nth-child(2) {
+        justify-self: end;
+      }
+      .sites-table td.num {
+        margin-top: 0.3rem;
+      }
+      .sites-table td.num::before {
+        content: attr(data-label);
+        display: block;
+        margin-bottom: 0.1rem;
+        font-size: 0.68rem;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--fg-3);
+      }
+      .sites-table tr:has(+ .incident) {
+        padding-bottom: 0.4rem;
+        border-bottom: 0;
+      }
+      .sites-table tr.incident {
+        display: block;
+        padding-top: 0;
       }
     }
     .v-verdict {
@@ -948,6 +988,7 @@ const PAD = { top: 16, right: 16, bottom: 28, left: 36 };
     }
     .r-body {
       display: grid;
+      grid-template-columns: minmax(0, 1fr);
       gap: 0.3rem;
       min-width: 0;
     }
@@ -958,6 +999,7 @@ const PAD = { top: 16, right: 16, bottom: 28, left: 36 };
       font-size: 0.88rem;
     }
     .r-line strong {
+      min-width: 0;
       font-weight: 600;
       white-space: nowrap;
       overflow: hidden;

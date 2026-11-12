@@ -189,13 +189,16 @@ import { TooltipDirective } from '../../shared/ui/tooltip.directive';
       gap: 0.75rem;
       margin-top: 0.75rem;
     }
+    /* one line down to 320px wide */
     .sso {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      gap: 0.75rem;
+      gap: 0.65rem;
       min-height: 50px;
-      padding: 0 1.25rem;
+      padding: 0 1rem;
+      font-size: 0.95rem;
+      white-space: nowrap;
       border-radius: 14px;
       background: var(--bg-2);
       border: 1px solid var(--line-strong);
@@ -203,6 +206,19 @@ import { TooltipDirective } from '../../shared/ui/tooltip.directive';
       transition:
         border-color var(--dur-1),
         box-shadow var(--dur-2);
+    }
+    .sso svg {
+      flex: none;
+    }
+    /* the smallest phones: a tighter card so the button keeps one line */
+    @media (max-width: 359px) {
+      .login-card {
+        padding: 1.25rem;
+      }
+      .sso {
+        padding: 0 0.75rem;
+        font-size: 0.9rem;
+      }
     }
     .sso:hover {
       border-color: var(--fg);

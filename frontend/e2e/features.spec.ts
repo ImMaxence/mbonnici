@@ -140,6 +140,9 @@ test('profile entries are added in a dialog that refuses duplicates', async ({ p
   const dialog = page.getByRole('dialog', { name: 'Nouvelle compétence' });
   await expect(dialog).toBeVisible();
   await expect(dialog.locator('#sk-name')).toBeFocused();
+  // a click reaches the category list (the dialog used to cancel every pointerdown in the box)
+  await dialog.locator('#sk-category').click();
+  await expect(dialog.locator('#sk-category')).toBeFocused();
   await dialog.locator('#sk-name').fill(`  ${existing.toUpperCase()} `);
   await expect(dialog.locator('.twin')).toContainText('existe déjà');
   await expect(dialog.getByRole('button', { name: 'Enregistrer' })).toBeDisabled();

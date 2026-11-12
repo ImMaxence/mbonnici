@@ -158,7 +158,7 @@ import { TooltipDirective } from '../../shared/ui/tooltip.directive';
         } @else if (!overview()?.files?.length) {
           <p class="muted small">{{ 'admin.backups.files.empty' | t }}</p>
         } @else {
-          <table class="table">
+          <table class="table table-stack files-table">
             <tbody>
               @for (f of overview()!.files; track f.id) {
                 <tr>
@@ -198,7 +198,7 @@ import { TooltipDirective } from '../../shared/ui/tooltip.directive';
       } @else if (!overview()?.runs?.length) {
         <p class="muted small">{{ 'admin.backups.runs.empty' | t }}</p>
       } @else {
-        <table class="table">
+        <table class="table table-stack runs-table">
           <thead>
             <tr><th>Date</th><th>Type</th><th>Statut</th><th>Fichier</th><th class="num">Taille</th><th>Message</th></tr>
           </thead>
@@ -238,6 +238,35 @@ import { TooltipDirective } from '../../shared/ui/tooltip.directive';
       justify-content: flex-end;
       gap: 0.4rem;
       white-space: nowrap;
+    }
+    /* phones (.table-stack): name then buttons; a run reads date + status, what, file + size, message */
+    @media (max-width: 719px) {
+      .files-table td {
+        grid-column: 1 / -1;
+      }
+      .file-actions {
+        justify-content: flex-start;
+        flex-wrap: wrap;
+      }
+      .runs-table td:nth-child(1) {
+        grid-row: 1;
+        grid-column: 1;
+      }
+      .runs-table td:nth-child(3) {
+        grid-row: 1;
+        grid-column: 2;
+      }
+      .runs-table td:nth-child(2),
+      .runs-table td:nth-child(6) {
+        grid-column: 1 / -1;
+      }
+      .runs-table td:nth-child(4) {
+        grid-column: 1;
+      }
+      .runs-table td:nth-child(5) {
+        grid-column: 2;
+        text-align: right;
+      }
     }
     .is-disabled {
       opacity: 0.5;

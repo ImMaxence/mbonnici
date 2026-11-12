@@ -444,9 +444,22 @@
 .admin .textarea,
 .admin .select {
   border-radius: 10px;
-  background: var(--bg);
+  /* background-color only: the shorthand erased the select's chevron */
+  background-color: var(--bg);
   padding: 0.7rem 0.9rem;
   font-size: 0.92rem;
+}
+
+/* room for the chevron */
+.admin .select {
+  padding-right: 2.4rem;
+}
+
+/* iOS zooms into any field under 16px when it takes the focus */
+@media (pointer: coarse) {
+  .admin :is(input:not([type='checkbox'], [type='radio'], [type='range']), textarea, select) {
+    font-size: 16px;
+  }
 }
 
 .admin .field > label,
@@ -587,6 +600,51 @@
 
 .table .num {
   text-align: right;
+}
+
+/* phones: a .table-stack shows each row as a small two-column card; the page places the cells.
+   The header row stays for screen readers. */
+@media (max-width: 719px) {
+  .table-stack,
+  .table-stack tbody {
+    display: block;
+  }
+
+  .table-stack thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .table-stack tr {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.35rem 0.75rem;
+    padding: 0.85rem 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .table-stack tr:last-child {
+    border-bottom: 0;
+  }
+
+  .table-stack td,
+  .table-stack .num {
+    display: block;
+    min-width: 0;
+    padding: 0;
+    border: 0;
+    text-align: left;
+    overflow-wrap: anywhere;
+  }
+
+  .table-stack td:empty {
+    display: none;
+  }
 }
 
 /* ── media ── */
@@ -965,9 +1023,16 @@
     display: none;
   }
 
+  /* the open menu covers the whole screen and the page under it stays still */
   .nav-open .admin-aside {
+    height: 100dvh;
     gap: 1rem;
     padding-bottom: 1rem;
+    overscroll-behavior: contain;
+  }
+
+  html:has(.admin.nav-open) {
+    overflow: hidden;
   }
 
   .nav-open .admin-nav,

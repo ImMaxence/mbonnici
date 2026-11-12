@@ -71,10 +71,10 @@ function sameKey(value: string | null | undefined): string {
       <p class="small faint hint">{{ 'admin.profile.dragHint' | t }}</p>
       <div appSortable (sortMove)="move('experiences', $event)" (sortDrop)="saveOrder('experiences')">
       @for (e of profile()?.experiences ?? []; track e.id) {
-        <div class="list-row sortable" data-sort-item>
+        <div class="list-row dated" data-sort-item>
           <button type="button" class="drag-handle" data-sort-handle [appTip]="'admin.projects.dragTip' | t"><app-icon name="drag" [size]="16" /></button>
-          <span class="mono small faint dates">{{ e.startDate }} → {{ e.endDate ?? '…' }}</span>
-          <div><strong>{{ e.role | l }}</strong><span class="muted"> · {{ e.company }}</span> <app-missing-lang [fields]="[e.role, e.description]" /></div>
+          <span class="mono small faint dates"><span>{{ e.startDate }}</span> → <span>{{ e.endDate ?? '…' }}</span></span>
+          <div class="entry"><strong>{{ e.role | l }}</strong><span class="muted"> · {{ e.company }}</span> <app-missing-lang [fields]="[e.role, e.description]" /></div>
           <div class="row" style="gap:.4rem">
             <button type="button" class="icon-btn" (click)="startExperience(e)" [appTip]="'admin.projects.edit' | t"><app-icon name="edit" [size]="15" /></button>
             <button type="button" class="icon-btn danger" (click)="deleteItem('experience', e.id)" [appTip]="'admin.profile.delete' | t"><app-icon name="trash" [size]="15" /></button>
@@ -92,10 +92,10 @@ function sameKey(value: string | null | undefined): string {
       </div>
       <div appSortable (sortMove)="move('education', $event)" (sortDrop)="saveOrder('education')">
       @for (e of profile()?.education ?? []; track e.id) {
-        <div class="list-row sortable" data-sort-item>
+        <div class="list-row dated" data-sort-item>
           <button type="button" class="drag-handle" data-sort-handle [appTip]="'admin.projects.dragTip' | t"><app-icon name="drag" [size]="16" /></button>
-          <span class="mono small faint dates">{{ e.startDate }} → {{ e.endDate ?? '…' }}</span>
-          <div><strong>{{ e.degree | l }}</strong><span class="muted"> · {{ e.school }}</span> <app-missing-lang [fields]="[e.degree]" /></div>
+          <span class="mono small faint dates"><span>{{ e.startDate }}</span> → <span>{{ e.endDate ?? '…' }}</span></span>
+          <div class="entry"><strong>{{ e.degree | l }}</strong><span class="muted"> · {{ e.school }}</span> <app-missing-lang [fields]="[e.degree]" /></div>
           <div class="row" style="gap:.4rem">
             <button type="button" class="icon-btn" (click)="startEducation(e)" [appTip]="'admin.projects.edit' | t"><app-icon name="edit" [size]="15" /></button>
             <button type="button" class="icon-btn danger" (click)="deleteItem('education', e.id)" [appTip]="'admin.profile.delete' | t"><app-icon name="trash" [size]="15" /></button>
@@ -137,7 +137,7 @@ function sameKey(value: string | null | undefined): string {
       <p class="small faint hint">{{ 'admin.profile.testimonialsHint' | t }}</p>
       <div appSortable (sortMove)="moveTestimonial($event)" (sortDrop)="saveOrder('testimonials')">
         @for (q of profile()?.testimonials ?? []; track q.id) {
-          <div class="list-row sortable" data-sort-item>
+          <div class="list-row" data-sort-item>
             <button type="button" class="drag-handle" data-sort-handle [appTip]="'admin.projects.dragTip' | t"><app-icon name="drag" [size]="16" /></button>
             <div class="quote-row">
               <strong>{{ q.author }}</strong>
@@ -319,11 +319,39 @@ function sameKey(value: string | null | undefined): string {
     .dates {
       min-width: 23ch;
     }
+    /* a date never breaks at its hyphens, only around the arrow */
+    .dates > span {
+      white-space: nowrap;
+    }
     .hint {
       margin: -0.5rem 0 0.75rem;
     }
-    .list-row.sortable {
+    .list-row.dated {
       grid-template-columns: auto auto minmax(0, 1fr) auto;
+    }
+    /* phones: the dates go under the title, the buttons stack on the right */
+    @media (max-width: 719px) {
+      .list-row.dated {
+        grid-template-columns: auto minmax(0, 1fr) auto;
+        column-gap: 0.6rem;
+        row-gap: 0.2rem;
+      }
+      .list-row.dated .drag-handle,
+      .list-row.dated .row {
+        grid-row: 1 / span 2;
+      }
+      .list-row.dated .row {
+        flex-direction: column;
+      }
+      .list-row.dated .entry {
+        grid-row: 1;
+        grid-column: 2;
+      }
+      .list-row.dated .dates {
+        grid-row: 2;
+        grid-column: 2;
+        min-width: 0;
+      }
     }
     .skill-groups {
       display: grid;

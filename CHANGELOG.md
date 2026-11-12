@@ -7,6 +7,23 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [1.12.0] — 2026-11-12
+
+### Fixed
+- **Fields of the profile dialogs**: a click or a tap inside a dialog was cancelled, so the
+  "Category" list of a skill and the "Contract" list of an experience didn't open, and on an iPhone
+  the keyboard didn't come up. The lists also show their arrow again, so they no longer look like
+  text fields.
+- **Back office on a phone**: nothing goes past the screen edge any more. Profile rows put the dates
+  under the title, project rows put their buttons under it, the backups history, the Drive files and
+  the "Sites online" table show one card per row, the header photo setting no longer pushes its
+  button out, and long release notes no longer widen the Versions page. Between 760 and 1100 px wide,
+  the "Sites online" table drops its 24-hour bars when they don't fit.
+- **Phone menu of the back office**: it covers the whole screen and the page under it no longer
+  scrolls.
+- **Sign-in page**: "Sign in with Google" stays on one line, down to 320 px wide.
+- **Fields on a phone**: they are 16 px, so iOS no longer zooms into the page when one is tapped.
+
 ## [1.11.0] — 2026-11-11
 
 ### Added

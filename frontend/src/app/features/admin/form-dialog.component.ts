@@ -23,7 +23,7 @@ let nextId = 0;
       [attr.aria-labelledby]="titleId"
       (keydown)="onKey($event)"
       (cancel)="$event.preventDefault(); dismiss.emit()"
-      (pointerdown)="downOnBackdrop = $event.target === $event.currentTarget"
+      (pointerdown)="onPointerDown($event)"
       (click)="onBackdrop($event)"
     >
       <div class="box">
@@ -137,6 +137,14 @@ export class FormDialogComponent {
     if (event.key !== 'Escape' || event.defaultPrevented) return;
     event.preventDefault();
     this.dismiss.emit();
+  }
+
+  /**
+   * A method, not an inline `downOnBackdrop = …`: Angular cancels the event when a template handler
+   * evaluates to false, and a cancelled pointerdown kept every <select> of the box from opening.
+   */
+  onPointerDown(event: PointerEvent): void {
+    this.downOnBackdrop = event.target === event.currentTarget;
   }
 
   onBackdrop(event: MouseEvent): void {

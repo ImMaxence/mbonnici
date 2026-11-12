@@ -37,7 +37,7 @@ import { CASE_STUDY_KEYS } from '../../core/api/models';
             <button type="button" class="drag-handle" data-sort-handle [appTip]="'admin.projects.dragTip' | t"><app-icon name="drag" [size]="18" /></button>
             <div class="row" style="gap: 1rem; min-width: 0">
               <span class="swatch" [style.background]="p.accentColor"></span>
-              <div style="min-width: 0">
+              <div style="min-width: 0; flex: 1">
                 <div class="row" style="gap: .5rem">
                   <strong>{{ p.title | l }}</strong>
                   @if (p.featured) {
@@ -49,7 +49,7 @@ import { CASE_STUDY_KEYS } from '../../core/api/models';
                 <div class="small faint mono">/{{ p.slug }} · {{ 'categories.' + p.category | t }} · {{ p.year ?? '—' }}</div>
               </div>
             </div>
-            <div class="row" style="gap: .4rem; flex-wrap: nowrap">
+            <div class="row actions">
               <button type="button" class="chip" (click)="toggleStatus(p)">
                 {{ (p.status === 'PUBLISHED' ? 'admin.projects.unpublish' : 'admin.projects.publish') | t }}
               </button>
@@ -70,6 +70,24 @@ import { CASE_STUDY_KEYS } from '../../core/api/models';
     }
     .rows {
       touch-action: pan-y;
+    }
+    .actions {
+      gap: 0.4rem;
+      flex-wrap: nowrap;
+    }
+    /* phones: the buttons go under the title, which keeps the width */
+    @media (max-width: 719px) {
+      .list-row {
+        grid-template-columns: auto minmax(0, 1fr);
+        row-gap: 0.6rem;
+      }
+      .list-row .drag-handle {
+        grid-row: span 2;
+      }
+      .actions {
+        grid-column: 2;
+        flex-wrap: wrap;
+      }
     }
   `,
 })

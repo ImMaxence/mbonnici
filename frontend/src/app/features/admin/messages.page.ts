@@ -136,8 +136,13 @@ type Box = 'inbox' | 'archive';
     .who a:hover {
       color: var(--accent);
     }
+    .who {
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
     .meta {
       display: flex;
+      flex-wrap: wrap;
       align-items: center;
       gap: 0.5rem;
       margin-left: auto;
@@ -151,6 +156,17 @@ type Box = 'inbox' | 'archive';
       align-items: center;
       gap: 0.4rem;
       padding-left: 50px;
+    }
+    /* phones: the text takes the full width instead of lining up under the name */
+    @media (max-width: 719px) {
+      pre,
+      .msg-actions {
+        padding-left: 0;
+      }
+      .meta {
+        flex-basis: 100%;
+        margin-left: 0;
+      }
     }
   `,
 })
