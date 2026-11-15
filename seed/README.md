@@ -19,6 +19,12 @@ Import them with "Restaurer depuis un fichier", then tick the rows ("cocher les 
   missing in production on 2026-11-11.
 - `mbonnici-nouveaux-projets.zip` (1.13.0, schema 14): FreeRemoveBg and Politique 2027, published
   and featured, with their captures (cover, phone, 5 gallery pictures each). Deploy 1.13.0 first.
+- `mbonnici-projets-v2.zip` (1.13.0, schema 14): version 2 of Daycare, Epic Road Trip, Time Manager
+  and Kryptonews, rewritten in 2026 and live on their own sub-domain. These four projects were
+  already in production: the archive keeps their ids, so the restore lists them as « modifié ».
+  Tick the four projects: their new texts, link, stack and pictures (cover, phone, 6 gallery pictures
+  each) replace the old ones, which stay in the media library as unused images (Médias →
+  "Supprimer les inutilisées", they go to the bin). They come first in the projects list, not featured.
 
 ## Rebuild it
 

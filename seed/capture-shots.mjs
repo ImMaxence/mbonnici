@@ -49,18 +49,38 @@ const PROJECTS = {
     gallery: ['pc-recette', 'pc-recettes', 'pc-administration'].map((n) => raw('les-creations-de-yona', `docs/captures/${n}.png`)),
   },
   'clienthub-crm': { live: 'https://clienthub.mbonnici.fr' },
+  // version 2 of the next four (rewritten in 2026, live since 2026-11-15): README screenshots, the
+  // README's composed showcase first in the gallery
   'epic-road-trip-planner': {
-    desktop: [raw('Epic-Road-Trip-Planner', 'doc/readme/acc1.png')],
-    mobile: [raw('Epic-Road-Trip-Planner', 'doc/readme/tel1.png')],
-    gallery: [raw('Epic-Road-Trip-Planner', 'doc/readme/acc7.png')],
+    mobileLive: 'https://tripplanner.mbonnici.fr/fr',
+    desktop: [raw('Epic-Road-Trip-Planner', 'doc/screenshots/planner.png')],
+    mobile: [raw('Epic-Road-Trip-Planner', 'doc/screenshots/mobile.png')],
+    gallery: ['showcase', 'bike', 'night', 'share', 'trips', 'admin'].map((n) => raw('Epic-Road-Trip-Planner', `doc/screenshots/${n}.png`)),
   },
   'time-manager': {
-    auto: [1, 2, 3, 4, 5].map((n) => raw('Time-Manager', `doc/readme/${n}.png`)),
+    mobileLive: 'https://time-manager.mbonnici.fr/fr',
+    desktop: [raw('Time-Manager', 'doc/screenshots/landing-light.png')],
+    mobile: [raw('Time-Manager', 'doc/screenshots/mobile-landing.png')],
+    gallery: [
+      'marketing/hero',
+      'screenshots/dashboard-light',
+      'screenshots/dashboard-dark',
+      'screenshots/team-light',
+      'screenshots/member-history-light',
+      'marketing/pwa',
+    ].map((n) => raw('Time-Manager', `doc/${n}.png`)),
   },
   kryptonews: {
-    desktop: [raw('Kryptonews', 'doc/for-read-me/desk/1.png')],
-    mobile: [raw('Kryptonews', 'doc/for-read-me/phone/1.png')],
-    gallery: [2, 3, 4].map((n) => raw('Kryptonews', `doc/for-read-me/desk/${n}.png`)),
+    mobileLive: 'https://kryptonews.mbonnici.fr/fr/marches',
+    desktop: [raw('Kryptonews', 'doc/screenshots/front-page.jpg')],
+    mobile: [raw('Kryptonews', 'doc/screenshots/mobile-front.jpg')],
+    gallery: ['hero', 'night-edition', 'market-ledger', 'coin-page', 'the-wire', 'guest-mode'].map((n) => raw('Kryptonews', `doc/screenshots/${n}.jpg`)),
+  },
+  daycare: {
+    mobileLive: 'https://daycare.mbonnici.fr/fr',
+    desktop: [raw('daycare', 'docs/screenshots/home-light.jpg')],
+    mobile: [raw('daycare', 'docs/screenshots/mobile-home.jpg')],
+    gallery: ['showcase', 'map-light', 'card', 'pipeline', 'home-dark', 'map-dark'].map((n) => raw('daycare', `docs/screenshots/${n}.jpg`)),
   },
   redditech: {
     poster: true,

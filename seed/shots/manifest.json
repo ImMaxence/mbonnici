@@ -293,52 +293,152 @@
       {
         "src": "epic-road-trip-planner/gallery-1.webp",
         "w": 1600,
-        "h": 871,
+        "h": 900,
         "alt": {
-          "fr": "Carte d’Europe avec un itinéraire rose de Paris à Marseille, étapes marquées de drapeaux et menu des styles de carte (vélo, transport, plein air…)",
-          "en": "A map of Europe with a pink route from Paris to Marseille, stops marked with flags and the map style menu (cycling, transport, outdoors…)"
+          "fr": "Epic Road Trip sur ordinateur et téléphone : le slogan « France, one milestone at a time », le carnet de route et la carte d’un trajet sur la côte méditerranéenne",
+          "en": "Epic Road Trip on a computer and a phone: the slogan “France, one milestone at a time”, the road book and the map of a trip along the Mediterranean coast"
+        }
+      },
+      {
+        "src": "epic-road-trip-planner/gallery-2.webp",
+        "w": 1440,
+        "h": 900,
+        "alt": {
+          "fr": "Mode vélo : itinéraire vert le long de la Loire, de Tours à Blois par Amboise",
+          "en": "Bike mode: a green route along the Loire, from Tours to Blois via Amboise"
+        }
+      },
+      {
+        "src": "epic-road-trip-planner/gallery-3.webp",
+        "w": 1440,
+        "h": 900,
+        "alt": {
+          "fr": "Thème nuit : un itinéraire en Provence tracé en jaune sur un fond de carte sombre",
+          "en": "Night theme: a Provence itinerary drawn in yellow on a dark basemap"
+        }
+      },
+      {
+        "src": "epic-road-trip-planner/gallery-4.webp",
+        "w": 1440,
+        "h": 900,
+        "alt": {
+          "fr": "Fenêtre de partage avec un QR code et un lien qui contient tout le voyage, adresses épinglées comprises",
+          "en": "Share dialog with a QR code and a link holding the whole trip, pinned places included"
+        }
+      },
+      {
+        "src": "epic-road-trip-planner/gallery-5.webp",
+        "w": 1440,
+        "h": 900,
+        "alt": {
+          "fr": "La galerie des voyages partagés, en cartes façon billets avec des affiches illustrées",
+          "en": "The shared trips gallery, with travel-ticket cards and illustrated posters"
+        }
+      },
+      {
+        "src": "epic-road-trip-planner/gallery-6.webp",
+        "w": 1440,
+        "h": 1100,
+        "alt": {
+          "fr": "L’administration : compteurs de voyages et itinéraires de l’administrateur avec leurs boutons de publication",
+          "en": "The administration: trip counters and the administrator’s own trips with their publish buttons"
         }
       }
     ],
     "desktop": {
       "src": "epic-road-trip-planner/desktop.webp",
-      "w": 1600,
-      "h": 871,
+      "w": 1440,
+      "h": 900,
       "alt": {
-        "fr": "Page d’accueil de CoqEnVoyage : « Bienvenue dans votre Planificateur de Voyage » devant trois illustrations de paysages, formulaire ville de départ, destination et dates",
-        "en": "CoqEnVoyage home page: “Welcome to your Trip Planner” over three landscape illustrations, with departure city, destination and dates fields"
+        "fr": "Le planificateur d’Epic Road Trip : le carnet de route avec les restaurants autour de Marseille, l’un épinglé, à côté de la carte Atlas où l’itinéraire rouge traverse la ville",
+        "en": "The Epic Road Trip planner: the road book with restaurants around Marseille, one of them pinned, next to the Atlas map where the red route crosses the city"
       }
     },
     "mobile": {
       "src": "epic-road-trip-planner/mobile.webp",
-      "w": 670,
-      "h": 1464,
+      "w": 1206,
+      "h": 2622,
       "bare": true,
       "alt": {
-        "fr": "CoqEnVoyage sur téléphone : la même bienvenue, le formulaire de recherche et le début de la sélection d’expériences",
-        "en": "CoqEnVoyage on a phone: the same welcome, the search form and the start of the experiences selection"
+        "fr": "Epic Road Trip sur téléphone : « La France, borne après borne » et le formulaire vert Où allez-vous ? avec le départ, l’arrivée et les dates du voyage",
+        "en": "Epic Road Trip on a phone: “La France, borne après borne” (France, one milestone at a time) and the green Where are you going? form with start, finish and travel dates"
       }
     }
   },
   "time-manager": {
-    "gallery": [],
+    "gallery": [
+      {
+        "src": "time-manager/gallery-1.webp",
+        "w": 1600,
+        "h": 900,
+        "alt": {
+          "fr": "Time Manager sur ordinateur et téléphone : le tableau de bord avec un gros bouton Punch out et un minuteur en marche",
+          "en": "Time Manager on a laptop and a phone: the dashboard with a big Punch out button and a running timer"
+        }
+      },
+      {
+        "src": "time-manager/gallery-2.webp",
+        "w": 1440,
+        "h": 900,
+        "alt": {
+          "fr": "Tableau de bord : bouton Punch out, minuteur à palettes ambre, cadran des 24 heures et carte de pointage de la semaine",
+          "en": "Dashboard: Punch out button, running timer in amber split-flap digits, 24-hour dial and weekly time card"
+        }
+      },
+      {
+        "src": "time-manager/gallery-3.webp",
+        "w": 1440,
+        "h": 900,
+        "alt": {
+          "fr": "Le même tableau de bord dans le thème sombre « équipe de nuit »",
+          "en": "The same dashboard in the dark night-shift theme"
+        }
+      },
+      {
+        "src": "time-manager/gallery-4.webp",
+        "w": 1440,
+        "h": 900,
+        "alt": {
+          "fr": "Tableau d’équipe d’un administrateur : deux demandes d’accès à accepter ou refuser, puis une carte par personne avec son voyant de présence et ses heures de la semaine",
+          "en": "Team board for an administrator: two access requests to approve or refuse, then one card per person with an on-shift lamp and the week’s hours against target"
+        }
+      },
+      {
+        "src": "time-manager/gallery-5.webp",
+        "w": 1440,
+        "h": 900,
+        "alt": {
+          "fr": "Historique d’une personne vu par un administrateur : vues semaine et mois, export CSV et chaque session modifiable",
+          "en": "A person’s history seen by an administrator: week and month views, CSV export and every session editable"
+        }
+      },
+      {
+        "src": "time-manager/gallery-6.webp",
+        "w": 1600,
+        "h": 820,
+        "alt": {
+          "fr": "« Install it like an app » : trois téléphones avec la page d’accueil, le tableau de bord et le thème sombre",
+          "en": "“Install it like an app”: three phones showing the landing page, the dashboard and the dark theme"
+        }
+      }
+    ],
     "desktop": {
       "src": "time-manager/desktop.webp",
-      "w": 1600,
-      "h": 874,
+      "w": 1440,
+      "h": 900,
       "alt": {
-        "fr": "Écran de connexion de Time Manager : « Welcome back! » avec les champs identifiant et mot de passe et les boutons Log in et Back",
-        "en": "Time Manager sign-in screen: “Welcome back!” with username and password fields and Log in and Back buttons"
+        "fr": "Page d’accueil de Time Manager : « Clock in. Clock out. Own your hours. » écrit sur une carte de pointage géante tamponnée IN et OUT, au-dessus d’un gros bouton rouge",
+        "en": "Time Manager home page: “Clock in. Clock out. Own your hours.” written on a giant time card stamped IN and OUT, above a big red button"
       }
     },
     "mobile": {
       "src": "time-manager/mobile.webp",
-      "w": 640,
-      "h": 1149,
+      "w": 1206,
+      "h": 2622,
       "bare": true,
       "alt": {
-        "fr": "Time Manager sur téléphone : écran d’accueil sombre « Your Daily Time Planner » avec le bouton Get Started",
-        "en": "Time Manager on a phone: dark welcome screen “Your Daily Time Planner” with the Get Started button"
+        "fr": "Time Manager sur téléphone : « Pointez. Dépointez. Maîtrisez vos heures. » sur la carte de pointage, le bouton Pointer et le lien pour explorer en invité",
+        "en": "Time Manager on a phone: “Pointez. Dépointez. Maîtrisez vos heures.” (clock in, clock out, own your hours) on the time card, the punch button and the link to explore as a guest"
       }
     }
   },
@@ -347,48 +447,75 @@
       {
         "src": "kryptonews/gallery-1.webp",
         "w": 1600,
-        "h": 866,
+        "h": 900,
         "alt": {
-          "fr": "La page d’accueil avec un autre thème de couleur, vert, et le sélecteur de thèmes en bas à droite",
-          "en": "The home page with another colour theme, green, and the theme picker at the bottom right"
+          "fr": "Kryptonews en édition du jour sur ordinateur et en édition de nuit sur téléphone",
+          "en": "Kryptonews in the day edition on a computer and the night edition on a phone"
         }
       },
       {
         "src": "kryptonews/gallery-2.webp",
-        "w": 1600,
-        "h": 866,
+        "w": 1440,
+        "h": 900,
         "alt": {
-          "fr": "Page News : articles d’actualité crypto avec image, titre, source et date, et une barre de recherche",
-          "en": "News page: crypto news articles with picture, title, source and date, and a search bar"
+          "fr": "La une en français dans l’édition de nuit, noir d’encre",
+          "en": "The French front page in the ink-black night edition"
         }
       },
       {
         "src": "kryptonews/gallery-3.webp",
-        "w": 1600,
-        "h": 866,
+        "w": 1440,
+        "h": 1000,
         "alt": {
-          "fr": "Page Crypto : tableau des dix premières cryptomonnaies avec prix, variations sur 1 h, 24 h et 7 jours et volume",
-          "en": "Crypto page: a table of the top ten cryptocurrencies with price, 1 h, 24 h and 7 day changes and volume"
+          "fr": "Le grand livre des marchés : colonnes triables, variations sur 1 h, 24 h et 7 jours, capitalisation, volume et courbes sur 7 jours",
+          "en": "The market ledger: sortable columns, 1 h, 24 h and 7 d change, market cap, volume and 7-day sparklines"
+        }
+      },
+      {
+        "src": "kryptonews/gallery-4.webp",
+        "w": 1440,
+        "h": 1000,
+        "alt": {
+          "fr": "Page du Bitcoin : graphique hachuré façon gravure, chiffres clés et convertisseur",
+          "en": "Bitcoin page with a hatched, engraving-style chart, key figures and converter"
+        }
+      },
+      {
+        "src": "kryptonews/gallery-5.webp",
+        "w": 1440,
+        "h": 1000,
+        "alt": {
+          "fr": "La dépêche en français : tous les titres des rédactions avec la recherche et les filtres",
+          "en": "The French wire: every newsroom headline with search and filters"
+        }
+      },
+      {
+        "src": "kryptonews/gallery-6.webp",
+        "w": 1440,
+        "h": 1000,
+        "alt": {
+          "fr": "Mode invité : bandeau jaune de démo au-dessus d’un album de coupures de presse",
+          "en": "Guest mode: a yellow demo banner above a scrapbook of clipped stories"
         }
       }
     ],
     "desktop": {
       "src": "kryptonews/desktop.webp",
-      "w": 1600,
-      "h": 866,
+      "w": 1440,
+      "h": 900,
       "alt": {
-        "fr": "Page d’accueil de Kryptonews : « Think Forward, welcome to the world of crypto trade collectibles », bouton Get started et pièces de cryptomonnaies en 3D sur fond violet",
-        "en": "Kryptonews home page: “Think Forward, welcome to the world of crypto trade collectibles”, a Get started button and 3D crypto coins on a purple background"
+        "fr": "La une de Kryptonews : titre en gothique, bandeau des cours en direct, article principal avec une photo en demi-teinte et le bulletin des marchés avec Bitcoin et Ethereum",
+        "en": "Kryptonews front page: blackletter masthead, live price ticker, lead story with a halftone photo and the market report with Bitcoin and Ethereum"
       }
     },
     "mobile": {
       "src": "kryptonews/mobile.webp",
-      "w": 670,
-      "h": 1458,
+      "w": 1206,
+      "h": 2622,
       "bare": true,
       "alt": {
-        "fr": "Kryptonews sur téléphone : l’accroche « Think Forward » et le bouton Get started",
-        "en": "Kryptonews on a phone: the “Think Forward” headline and the Get started button"
+        "fr": "Kryptonews sur téléphone : « Le grand livre des marchés », capitalisation totale, volume sur 24 h, dominance du bitcoin et tendance, puis les filtres par crypto et par devise",
+        "en": "Kryptonews on a phone: “Le grand livre des marchés” (the market ledger), total market cap, 24 h volume, Bitcoin dominance and trend, then the coin and currency filters"
       }
     }
   },
@@ -601,6 +728,83 @@
       "alt": {
         "fr": "Politique 2027 sur téléphone : « Présidentielle 2027 · jeu satirique gratuit », le titre, les quatre camps et le bouton Jouer maintenant",
         "en": "Politique 2027 on a phone: “2027 presidential race · free satirical game”, the title, the four camps and the Play now button"
+      }
+    }
+  },
+  "daycare": {
+    "gallery": [
+      {
+        "src": "daycare/gallery-1.webp",
+        "w": 1600,
+        "h": 900,
+        "alt": {
+          "fr": "Daycare sur ordinateur, tablette et téléphone : la carte de Provence et ses clusters, le panneau de recherche, la fiche d’une structure dans le volet du téléphone et l’accueil en thème nuit",
+          "en": "Daycare on a computer, a tablet and a phone: the map of Provence with its clusters, the search panel, a facility card in the phone’s bottom sheet and the landing page in the night theme"
+        }
+      },
+      {
+        "src": "daycare/gallery-2.webp",
+        "w": 1440,
+        "h": 900,
+        "alt": {
+          "fr": "La carte : clusters numérotés sur un fond lilas, panneau Rechercher avec les filtres par statut et la liste des structures",
+          "en": "The map: numbered clusters on a lilac basemap, the search panel with the status filters and the list of facilities"
+        }
+      },
+      {
+        "src": "daycare/gallery-3.webp",
+        "w": 1440,
+        "h": 900,
+        "alt": {
+          "fr": "Fiche d’une structure : type, nom, adresse, statut en perles colorées, boutons Appeler, Écrire, Site web et Itinéraire, notes personnelles",
+          "en": "A facility card: type, name, address, status beads, Call, Write, Website and Directions buttons, personal notes"
+        }
+      },
+      {
+        "src": "daycare/gallery-4.webp",
+        "w": 1440,
+        "h": 900,
+        "alt": {
+          "fr": "Le suivi en jeu de l’oie : cinq jetons d’argile, à contacter, contacté, entretien, accepté et refusé, sur un chemin en pointillés",
+          "en": "The tracker as a board game: five clay tokens, to contact, contacted, interview, accepted and declined, on a dotted path"
+        }
+      },
+      {
+        "src": "daycare/gallery-5.webp",
+        "w": 1440,
+        "h": 900,
+        "alt": {
+          "fr": "La page d’accueil dans le thème nuit prune",
+          "en": "The landing page in the plum night theme"
+        }
+      },
+      {
+        "src": "daycare/gallery-6.webp",
+        "w": 1440,
+        "h": 900,
+        "alt": {
+          "fr": "La carte dans le thème nuit",
+          "en": "The map in the night theme"
+        }
+      }
+    ],
+    "desktop": {
+      "src": "daycare/desktop.webp",
+      "w": 1440,
+      "h": 900,
+      "alt": {
+        "fr": "Page d’accueil de Daycare : le titre « Toutes les crèches de Provence, sur une seule carte » au-dessus d’un relief de la Provence en colonnes hexagonales d’argile, avec Avignon, Aix-en-Provence, Marseille et Toulon",
+        "en": "Daycare home page: the headline “Toutes les crèches de Provence, sur une seule carte” (every daycare in Provence, on a single map) over a relief of Provence made of hexagonal clay columns, with Avignon, Aix-en-Provence, Marseille and Toulon"
+      }
+    },
+    "mobile": {
+      "src": "daycare/mobile.webp",
+      "w": 1206,
+      "h": 2622,
+      "bare": true,
+      "alt": {
+        "fr": "Daycare sur téléphone : le titre « Toutes les crèches de Provence, sur une seule carte », le relief d’argile et les chiffres clés dans trois billes",
+        "en": "Daycare on a phone: the headline “Toutes les crèches de Provence, sur une seule carte”, the clay relief and the key figures in three balls"
       }
     }
   }
