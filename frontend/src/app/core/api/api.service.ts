@@ -36,6 +36,8 @@ import type {
   ProjectDetail,
   VitalsOverview,
   ErrorEntry,
+  TrashItem,
+  TrashKind,
   SiteHistory,
 } from './models';
 
@@ -100,6 +102,22 @@ export class ApiService {
 
   deleteResolvedErrors(): Promise<{ deleted: number }> {
     return firstValueFrom(this.http.delete<{ deleted: number }>('/api/admin/errors/resolved'));
+  }
+
+  trash(): Promise<TrashItem[]> {
+    return firstValueFrom(this.http.get<TrashItem[]>('/api/admin/trash'));
+  }
+
+  restoreTrash(id: string): Promise<{ kind: TrashKind; id?: string }> {
+    return firstValueFrom(this.http.post<{ kind: TrashKind; id?: string }>(`/api/admin/trash/${id}/restore`, null));
+  }
+
+  purgeTrash(id: string): Promise<void> {
+    return firstValueFrom(this.http.delete<void>(`/api/admin/trash/${id}`));
+  }
+
+  emptyTrash(): Promise<{ deleted: number }> {
+    return firstValueFrom(this.http.delete<{ deleted: number }>('/api/admin/trash'));
   }
 
   siteHistory(): Promise<SiteHistory[]> {

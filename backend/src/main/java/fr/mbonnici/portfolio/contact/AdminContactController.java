@@ -1,6 +1,7 @@
 package fr.mbonnici.portfolio.contact;
 
 import fr.mbonnici.portfolio.common.NotFoundException;
+import fr.mbonnici.portfolio.trash.TrashService;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
@@ -33,9 +34,11 @@ public class AdminContactController {
     public record PageDto(List<MessageDto> items, int page, int size, long total) {}
 
     private final ContactRepository repository;
+    private final TrashService trash;
 
-    public AdminContactController(ContactRepository repository) {
+    public AdminContactController(ContactRepository repository, TrashService trash) {
         this.repository = repository;
+        this.trash = trash;
     }
 
     /**
@@ -84,10 +87,11 @@ public class AdminContactController {
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @Transactional
     public void delete(@PathVariable UUID id) {
-        if (!repository.existsById(id)) {
-            throw new NotFoundException("Message");
-        }
-        repository.deleteById(id);
+        ContactMessage m = repository.findById(id).orElseThrow(() -> new NotFoundException("Message"));
+        trash.put(new TrashService.Snapshot(TrashService.Kind.MESSAGE, m.getName(), m.getEmail())
+                .rows("contact_message", "t.id = ?", id));
+        repository.delete(m);
     }
 }

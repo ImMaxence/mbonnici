@@ -307,6 +307,23 @@ export interface Insight {
 }
 
 // ── monitoring (back office) ─────────────────────────────────────────────────
+export type TrashKind = 'PROJECT' | 'MEDIA' | 'EXPERIENCE' | 'EDUCATION' | 'SKILL' | 'NEWS' | 'MESSAGE' | 'CV';
+
+/** something deleted in the back office, kept 30 days (Corbeille) */
+export interface TrashItem {
+  id: string;
+  kind: TrashKind;
+  label: string;
+  /** slug, role, e-mail, size… depending on the kind; the language for a resume */
+  detail?: string | null;
+  /** how many media a cleanup put there (1 otherwise) */
+  count: number;
+  deletedAt: string;
+  expiresAt: string;
+  /** a picture of it, when there is one */
+  preview?: string | null;
+}
+
 export interface ErrorEntry {
   id: number;
   source: 'CLIENT' | 'SERVER' | 'CSP';

@@ -12,6 +12,7 @@ import fr.mbonnici.portfolio.profile.ProfileDtos.SkillDto;
 import fr.mbonnici.portfolio.profile.ProfileDtos.SkillInput;
 import fr.mbonnici.portfolio.profile.ProfileDtos.TestimonialDto;
 import fr.mbonnici.portfolio.profile.ProfileDtos.TestimonialInput;
+import fr.mbonnici.portfolio.trash.TrashService;
 import java.text.Normalizer;
 import java.util.List;
 import java.util.Locale;
@@ -32,17 +33,19 @@ public class ProfileService {
     private final EducationRepository education;
     private final SkillRepository skills;
     private final TestimonialRepository testimonials;
+    private final TrashService trash;
 
     private static final Pattern HTTP_URL = Pattern.compile("^https?://[^\\s]+$");
     private static final Pattern MARKS = Pattern.compile("\\p{M}+");
     private static final Pattern SPACES = Pattern.compile("\\s+");
 
     public ProfileService(ExperienceRepository experiences, EducationRepository education, SkillRepository skills,
-            TestimonialRepository testimonials) {
+            TestimonialRepository testimonials, TrashService trash) {
         this.experiences = experiences;
         this.education = education;
         this.skills = skills;
         this.testimonials = testimonials;
+        this.trash = trash;
     }
 
     /** Back office: texts as stored, without the fallback to the other language. */
@@ -85,10 +88,10 @@ public class ProfileService {
     @CacheEvict(value = CACHE, allEntries = true)
     @Transactional
     public void deleteExperience(UUID id) {
-        if (!experiences.existsById(id)) {
-            throw new NotFoundException("Experience");
-        }
-        experiences.deleteById(id);
+        Experience e = experiences.findById(id).orElseThrow(() -> new NotFoundException("Experience"));
+        trash.put(new TrashService.Snapshot(TrashService.Kind.EXPERIENCE, e.getCompany(), e.getRole().filled().fr())
+                .rows("experience", "t.id = ?", id));
+        experiences.delete(e);
     }
 
     private static Experience applyExperience(Experience e, ExperienceInput in) {
@@ -131,10 +134,10 @@ public class ProfileService {
     @CacheEvict(value = CACHE, allEntries = true)
     @Transactional
     public void deleteEducation(UUID id) {
-        if (!education.existsById(id)) {
-            throw new NotFoundException("Education");
-        }
-        education.deleteById(id);
+        Education e = education.findById(id).orElseThrow(() -> new NotFoundException("Education"));
+        trash.put(new TrashService.Snapshot(TrashService.Kind.EDUCATION, e.getSchool(), e.getDegree().filled().fr())
+                .rows("education", "t.id = ?", id));
+        education.delete(e);
     }
 
     private static Education applyEducation(Education e, EducationInput in) {
@@ -171,10 +174,10 @@ public class ProfileService {
     @CacheEvict(value = CACHE, allEntries = true)
     @Transactional
     public void deleteSkill(UUID id) {
-        if (!skills.existsById(id)) {
-            throw new NotFoundException("Skill");
-        }
-        skills.deleteById(id);
+        Skill s = skills.findById(id).orElseThrow(() -> new NotFoundException("Skill"));
+        trash.put(new TrashService.Snapshot(TrashService.Kind.SKILL, s.getName(), s.getCategory().name())
+                .rows("skill", "t.id = ?", id));
+        skills.delete(s);
     }
 
     @CacheEvict(value = CACHE, allEntries = true)
@@ -223,10 +226,10 @@ public class ProfileService {
     @CacheEvict(value = CACHE, allEntries = true)
     @Transactional
     public void deleteTestimonial(UUID id) {
-        if (!testimonials.existsById(id)) {
-            throw new NotFoundException("Testimonial");
-        }
-        testimonials.deleteById(id);
+        Testimonial t = testimonials.findById(id).orElseThrow(() -> new NotFoundException("Testimonial"));
+        trash.put(new TrashService.Snapshot(TrashService.Kind.NEWS, t.getAuthor(), t.getRole().filled().fr())
+                .rows("testimonial", "t.id = ?", id));
+        testimonials.delete(t);
     }
 
     @CacheEvict(value = CACHE, allEntries = true)
@@ -294,7 +297,7 @@ public class ProfileService {
     }
 
     /** "Node.js", " node.JS " and "Nödé.js" are the same name; "C" and "C++" are not (same rule as the back office) */
-    static String sameKey(String value) {
+    public static String sameKey(String value) {
         if (value == null) {
             return "";
         }

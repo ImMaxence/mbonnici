@@ -29,6 +29,7 @@ const adminPages = [
   '/admin/messages',
   '/admin/settings',
   '/admin/backups',
+  '/admin/trash',
   '/admin/errors',
   '/admin/changelog',
 ];

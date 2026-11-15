@@ -467,5 +467,141 @@
         "en": "The same closing page on a phone, with the Les créations de Yona button"
       }
     }
+  },
+  "freeremovebg": {
+    "gallery": [
+      {
+        "src": "freeremovebg/gallery-1.webp",
+        "w": 1440,
+        "h": 900,
+        "alt": {
+          "fr": "Étape Préparer : un cadre numéroté autour de chacun des quatre chiens d’une photo, avec les boutons pour détourer les zones ensemble ou les séparer en quatre images",
+          "en": "The Prepare step: a numbered frame drawn around each of four dogs on one photo, with the buttons to cut out the zones together or to split them into four pictures"
+        }
+      },
+      {
+        "src": "freeremovebg/gallery-2.webp",
+        "w": 1440,
+        "h": 900,
+        "alt": {
+          "fr": "Étape 4 : le détourage sur une grille de transparence, avec les panneaux du fond et du téléchargement",
+          "en": "Step 4: the cutout on a transparency grid, with the background and download panels"
+        }
+      },
+      {
+        "src": "freeremovebg/gallery-3.webp",
+        "w": 1440,
+        "h": 900,
+        "alt": {
+          "fr": "Un chat détouré posé sur un fond en dégradé",
+          "en": "A cat cut out and placed on a gradient"
+        }
+      },
+      {
+        "src": "freeremovebg/gallery-4.webp",
+        "w": 1440,
+        "h": 900,
+        "alt": {
+          "fr": "Le lasso : une forme tracée point par point autour de l’herbe restée aux pieds d’un chat, remplie de jaune, avec les boutons Restaurer et Détourer",
+          "en": "The lasso: a shape drawn point by point around the grass left at a cat’s feet, filled in yellow, with the Restore and Cut out buttons"
+        }
+      },
+      {
+        "src": "freeremovebg/gallery-5.webp",
+        "w": 1440,
+        "h": 900,
+        "alt": {
+          "fr": "La section « l’IA embarquée » de la page d’accueil, avec les fiches techniques d’IS-Net, ORMBG et SAM 2.1 et leurs QR codes",
+          "en": "The “AI inside” section of the home page, with the spec sheets of IS-Net, ORMBG and SAM 2.1 and their QR codes"
+        }
+      }
+    ],
+    "desktop": {
+      "src": "freeremovebg/desktop.webp",
+      "w": 1440,
+      "h": 900,
+      "alt": {
+        "fr": "Page d’accueil de FreeRemoveBg : titre « Cut out any picture. Without uploading it. », boutons Remove a background et Try with an example, et un shiba détouré qui sort de son cadre sur une grille de transparence",
+        "en": "FreeRemoveBg home page: headline “Cut out any picture. Without uploading it.”, Remove a background and Try with an example buttons, and a shiba cut out of its photo, breaking out of the frame over a transparency grid"
+      }
+    },
+    "mobile": {
+      "src": "freeremovebg/mobile.webp",
+      "w": 1206,
+      "h": 2622,
+      "bare": true,
+      "alt": {
+        "fr": "FreeRemoveBg sur téléphone : « Détourez vos images. Sans les envoyer. », les modèles IS-Net, ORMBG et SAM 2.1 et le bouton Supprimer un fond",
+        "en": "FreeRemoveBg on a phone: “Cut out your pictures. Without sending them.”, the IS-Net, ORMBG and SAM 2.1 models and the Remove a background button"
+      }
+    }
+  },
+  "politique-2027": {
+    "gallery": [
+      {
+        "src": "politique-2027/gallery-1.webp",
+        "w": 1440,
+        "h": 901,
+        "alt": {
+          "fr": "Soir du second tour : la gauche défend les fauteuils pendant que Marine Le Pen, Teddy Riner et Bruno Retailleau avancent, la barre de vie de Le Pen en haut",
+          "en": "Run-off night: the Left defends the armchairs while Marine Le Pen, Teddy Riner and Bruno Retailleau march in, with Le Pen’s health bar at the top"
+        }
+      },
+      {
+        "src": "politique-2027/gallery-2.webp",
+        "w": 1440,
+        "h": 901,
+        "alt": {
+          "fr": "Le blocus du lycée : Xavier Niel annonce « Ping : 999 ms » pendant que la droite défend les boîtes de portables confisqués",
+          "en": "The school blockade: Xavier Niel announces “Ping: 999 ms” while the Right defends the boxes of confiscated phones"
+        }
+      },
+      {
+        "src": "politique-2027/gallery-3.webp",
+        "w": 1440,
+        "h": 901,
+        "alt": {
+          "fr": "Le débat du second tour : des bulles marquées « !? » survolent le plateau, chacune avec un anneau qui montre le temps avant qu’elle tombe",
+          "en": "The run-off debate: speech bubbles marked “!?” hover over the board, each with a ring showing the time left before it lands"
+        }
+      },
+      {
+        "src": "politique-2027/gallery-4.webp",
+        "w": 1440,
+        "h": 901,
+        "alt": {
+          "fr": "Face-à-face sur un écran : les cartes du défenseur à gauche, le budget, les opposants et les boutons de couloir de l’attaquant à droite",
+          "en": "Head to head on one screen: the defender’s tickets on the left, the attacker’s budget, opponents and lane buttons on the right"
+        }
+      },
+      {
+        "src": "politique-2027/gallery-5.webp",
+        "w": 1440,
+        "h": 901,
+        "alt": {
+          "fr": "Le Salon de l’agriculture : les agriculteurs et la vache star marchent vers les sacs de subventions",
+          "en": "The Agricultural Show: farmers and the star cow walk towards the sacks of farm subsidies"
+        }
+      }
+    ],
+    "desktop": {
+      "src": "politique-2027/desktop.webp",
+      "w": 1440,
+      "h": 900,
+      "alt": {
+        "fr": "Page d’accueil de Politique 2027 : le titre sur fond bleu nuit, le bouton Play now et quatre cartes de camp avec les têtes de Jean-Luc Mélenchon, Emmanuel Macron, Marine Le Pen et Teddy Riner",
+        "en": "Politique 2027 home page: the title on a navy background, the Play now button and four camp cards with the heads of Jean-Luc Mélenchon, Emmanuel Macron, Marine Le Pen and Teddy Riner"
+      }
+    },
+    "mobile": {
+      "src": "politique-2027/mobile.webp",
+      "w": 1206,
+      "h": 2622,
+      "bare": true,
+      "alt": {
+        "fr": "Politique 2027 sur téléphone : « Présidentielle 2027 · jeu satirique gratuit », le titre, les quatre camps et le bouton Jouer maintenant",
+        "en": "Politique 2027 on a phone: “2027 presidential race · free satirical game”, the title, the four camps and the Play now button"
+      }
+    }
   }
 }

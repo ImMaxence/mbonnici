@@ -227,23 +227,24 @@ test('the phone section only shows other screens than the one at the top', async
   await expect(page.locator('section.mobile')).toHaveCount(0);
 });
 
-test('a testimonial shows on the home and about pages', async ({ page, baseURL }) => {
+test('a tech news item shows on the home and about pages', async ({ page, baseURL }) => {
   const { api, headers } = await admin(baseURL!);
   const res = await api.post('/api/admin/profile/testimonials', {
     headers,
-    data: { author: 'E2E Témoin', url: null, role: { fr: 'Rôle e2e', en: '' }, quote: { fr: 'Citation de test e2e', en: '' }, sortOrder: 99 },
+    data: { author: 'E2E Outil', url: 'https://github.com/example/e2e', role: { fr: 'Projet GitHub e2e', en: '' }, quote: { fr: 'Résumé de test e2e', en: '' }, sortOrder: -1 },
   });
   expect(res.status()).toBe(201);
   const { id } = await res.json();
   try {
     await noIntro(page);
     await page.goto('/fr');
-    const quotes = page.locator('app-testimonials');
-    await quotes.scrollIntoViewIfNeeded();
-    await expect(quotes).toContainText('Citation de test e2e');
-    await expect(quotes).toContainText('E2E Témoin');
+    const news = page.locator('app-tech-news');
+    await news.scrollIntoViewIfNeeded();
+    await expect(news).toContainText('Résumé de test e2e');
+    await expect(news).toContainText('E2E Outil');
+    await expect(news.locator('a[href="https://github.com/example/e2e"]')).toContainText('github.com');
     await page.goto('/fr/a-propos');
-    await expect(page.locator('app-testimonials')).toContainText('Citation de test e2e');
+    await expect(page.locator('app-tech-news')).toContainText('Résumé de test e2e');
     await expectAccessible(page);
   } finally {
     await api.delete(`/api/admin/profile/testimonials/${id}`, { headers });
@@ -314,6 +315,37 @@ test('a resource blocked by the CSP shows in the journal', async ({ page, baseUR
     expect(entry.path).toBe('/fr/contact');
     await api.delete(`/api/admin/errors/${entry.id}`, { headers });
   } finally {
+    await api.dispose();
+  }
+});
+
+test('a deleted skill waits in the bin and comes back with one click', async ({ page, baseURL }) => {
+  const { api, headers } = await admin(baseURL!);
+  const name = `Corbeille e2e ${Date.now()}`;
+  const res = await api.post('/api/admin/profile/skills', { headers, data: { name, category: 'TOOL', level: 3, sortOrder: 99 } });
+  expect(res.status()).toBe(201);
+  const { id } = await res.json();
+  try {
+    expect((await api.delete(`/api/admin/profile/skills/${id}`, { headers })).status()).toBe(204);
+    await page.goto('/api/auth/dev-login');
+    await page.goto('/admin/trash');
+    const row = page.locator('.bin-row', { hasText: name });
+    await expect(row).toBeVisible();
+    await expect(row).toContainText('Compétence');
+    await expect(row).toContainText(/effacement dans 30 jours/);
+    await expectAccessible(page);
+    await row.getByRole('button', { name: 'Restaurer' }).click();
+    await expect(page.locator('.toast')).toContainText(name);
+    await expect(page.locator('.toast')).toContainText('est de retour');
+    await expect(row).toHaveCount(0);
+    const profile = await (await api.get('/api/admin/profile')).json();
+    expect(profile.skills.map((s: { name: string }) => s.name)).toContain(name);
+  } finally {
+    await api.delete(`/api/admin/profile/skills/${id}`, { headers });
+    const bin = await (await api.get('/api/admin/trash')).json();
+    for (const it of bin.filter((x: { label: string }) => x.label === name)) {
+      await api.delete(`/api/admin/trash/${it.id}`, { headers });
+    }
     await api.dispose();
   }
 });

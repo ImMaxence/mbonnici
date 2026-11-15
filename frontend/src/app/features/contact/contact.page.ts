@@ -358,9 +358,24 @@ export class ContactPage {
     afterRenderEffect((onCleanup) => {
       const fit = this.captchaSlot()?.nativeElement.parentElement;
       if (!fit) return;
-      const observer = new ResizeObserver(() => fit.style.setProperty('--captcha-scale', String(Math.min(1, fit.clientWidth / CAPTCHA_WIDTH))));
+      // the scale sets the height of the observed box: written on the next frame and only when it
+      // changes, or the browser reports "ResizeObserver loop completed with undelivered notifications"
+      let frame = 0;
+      let scale = '';
+      const observer = new ResizeObserver(() => {
+        cancelAnimationFrame(frame);
+        frame = requestAnimationFrame(() => {
+          const next = String(Math.min(1, fit.clientWidth / CAPTCHA_WIDTH));
+          if (next === scale) return;
+          scale = next;
+          fit.style.setProperty('--captcha-scale', next);
+        });
+      });
       observer.observe(fit);
-      onCleanup(() => observer.disconnect());
+      onCleanup(() => {
+        cancelAnimationFrame(frame);
+        observer.disconnect();
+      });
     });
     // a first line about the project the visitor came from (kept if they already typed something)
     effect(() => {

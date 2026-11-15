@@ -9,6 +9,17 @@ projects, with their pictures as real media (cover, phone capture, gallery).
 Back office → **Sauvegardes** → **Restaurer depuis un fichier** → `mbonnici-starter.zip`, then
 either tick the rows to add or choose "Tout remplacer". Everything stays editable afterwards.
 
+## Additions for a site already in use
+
+These archives only hold new rows (no settings, no visits), made on an empty throw-away stack.
+Import them with "Restaurer depuis un fichier", then tick the rows ("cocher les lignes"), never
+"Tout remplacer":
+
+- `mbonnici-github.zip` (1.11.0, schema 13): the GitHub projects, skills and recommendations
+  missing in production on 2026-11-11.
+- `mbonnici-nouveaux-projets.zip` (1.13.0, schema 14): FreeRemoveBg and Politique 2027, published
+  and featured, with their captures (cover, phone, 5 gallery pictures each). Deploy 1.13.0 first.
+
 ## Rebuild it
 
 ```bash

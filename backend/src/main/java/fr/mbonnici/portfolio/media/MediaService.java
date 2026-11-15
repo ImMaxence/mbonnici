@@ -4,6 +4,7 @@ import fr.mbonnici.portfolio.common.ApiException;
 import fr.mbonnici.portfolio.common.Localized;
 import fr.mbonnici.portfolio.common.NotFoundException;
 import fr.mbonnici.portfolio.storage.StorageService;
+import fr.mbonnici.portfolio.trash.TrashService;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
@@ -54,15 +55,17 @@ public class MediaService {
     private final CacheManager cacheManager;
     private final WebpEncoder webpEncoder;
     private final VideoEncoder videoEncoder;
+    private final TrashService trash;
     private final AtomicBoolean backfilling = new AtomicBoolean();
 
     public MediaService(MediaRepository repository, StorageService storage, CacheManager cacheManager,
-            WebpEncoder webpEncoder, VideoEncoder videoEncoder) {
+            WebpEncoder webpEncoder, VideoEncoder videoEncoder, TrashService trash) {
         this.repository = repository;
         this.storage = storage;
         this.cacheManager = cacheManager;
         this.webpEncoder = webpEncoder;
         this.videoEncoder = videoEncoder;
+        this.trash = trash;
     }
 
     @Transactional
@@ -233,9 +236,12 @@ public class MediaService {
     @Transactional
     public void delete(UUID id) {
         Media m = repository.findById(id).orElseThrow(() -> new NotFoundException("Media"));
+        String name = m.getOriginalFilename() != null && !m.getOriginalFilename().isBlank() ? m.getOriginalFilename()
+                : m.getAlt() == null ? "" : m.getAlt().filled().fr();
+        String size = m.getWidth() == null || m.getHeight() == null ? null : m.getWidth() + " × " + m.getHeight();
+        toTrash(List.of(m), name, size);
         repository.delete(m);
         repository.flush();
-        deleteObjects(m);
         evictProjects();
     }
 
@@ -249,24 +255,36 @@ public class MediaService {
     @Transactional
     public int deleteUnused() {
         List<Media> gone = repository.findAllById(repository.findUnusedIds());
+        if (gone.isEmpty()) {
+            return 0;
+        }
+        toTrash(gone, "", null);
         repository.deleteAll(gone);
         repository.flush();
-        gone.forEach(this::deleteObjects);
         evictProjects();
         log.info("Deleted {} unused media", gone.size());
         return gone.size();
     }
 
-    private void deleteObjects(Media m) {
-        List<String> keys = new ArrayList<>(List.of(m.getObjectKey()));
-        m.getVariantWidths().forEach(w -> keys.add(m.variantKey(w)));
-        for (String k : keys) {
-            try {
-                storage.delete(k);
-            } catch (Exception e) {
-                log.warn("Object {} could not be deleted from storage: {}", k, e.getMessage());
-            }
+    /**
+     * Copies the media to the bin with what points to them (gallery rows, covers, videos, header
+     * picture); their files stay in the bucket until the bin is emptied.
+     */
+    private void toTrash(List<Media> media, String label, String detail) {
+        String ids = media.stream().map(m -> "\"" + m.getId() + "\"").collect(java.util.stream.Collectors.joining(",", "[", "]"));
+        String in = "in (select (jsonb_array_elements_text(?::jsonb))::uuid)";
+        List<String> keys = new ArrayList<>();
+        for (Media m : media) {
+            keys.add(m.getObjectKey());
+            m.getVariantWidths().forEach(w -> keys.add(m.variantKey(w)));
         }
+        trash.put(new TrashService.Snapshot(TrashService.Kind.MEDIA, label, detail)
+                .rows("media", "t.id " + in, ids)
+                .rows("project_media", "t.media_id " + in, ids)
+                .link("covers", "select id, cover_media_id as media_id from project where cover_media_id " + in, ids)
+                .link("videos", "select id, cover_video_media_id as media_id from project where cover_video_media_id " + in, ids)
+                .link("avatar", "select avatar_media_id as media_id from site_settings where avatar_media_id " + in, ids)
+                .keys(keys));
     }
 
     // ── responsive copies ────────────────────────────────────────────────────

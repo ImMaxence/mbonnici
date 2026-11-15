@@ -79,7 +79,7 @@ View Transition (circular reveal from the button, cross-fade fallback).
 ## Data model
 
 `site_settings` (single row) · `project` (bilingual texts, status, accent, stack[]
-(picked from the profile skills in the back office; tags were dropped in V9, scene_type in V10)) · `media` (object key, dimensions, blur placeholder, alt texts; WebP pictures, or short MP4 / WebM loops stored as sent and served with byte ranges) · `testimonial` (author, role, quote, source link; V10) · `project_media`
+(picked from the profile skills in the back office; tags were dropped in V9, scene_type in V10)) · `media` (object key, dimensions, blur placeholder, alt texts; WebP pictures, or short MP4 / WebM loops stored as sent and served with byte ranges) · `testimonial` (author, role, quote, source link; V10; shown as "Tech news" since 1.13.0: title, source, summary, link) · `project_media`
 (gallery / mobile ordering) · `experience` · `education` · `skill` · `contact_message` ·
 `analytics_event` (type, path, project, locale, theme, style (legacy, unused), device, referrer host, daily
 visitor hash). Migrations: `backend/src/main/resources/db/migration` (Flyway, plain SQL); they
@@ -97,6 +97,19 @@ archive (temp file, 1 h) and diffs every table against the live data by primary 
 selection: `ArchiveMerger` copies the chosen rows into temporary tables and upserts them
 (`INSERT … ON CONFLICT (id) DO UPDATE`) in one transaction; a project brings its gallery links and
 missing images, analytics events can be added without touching existing ones.
+
+## Bin (1.13.0)
+
+`trash_item` (V14) holds what the back office deletes, for 30 days. Before a delete, the service
+that deletes builds a `TrashService.Snapshot`: the rows it removes (`to_jsonb` of the row and of
+the rows that go with it, e.g. `project_media`), the links the delete cuts (covers, videos, the
+header picture, the analytics events of a project) and the bucket keys it would have erased, which
+stay in storage. A restore inserts the rows back with their own ids through
+`jsonb_populate_recordset`, using the columns the snapshot and today's table share (so a column
+added since takes its default), drops links to anything deleted since, and refuses with a
+`trash.*` 409 code when the id, the project slug or a profile twin exists again. Emptying an item
+(by hand or at 04:45 once 30 days have passed) deletes its keys unless a media, a resume or
+another bin item uses them. `trash_item` is not in the backups.
 
 ## Media pipeline
 

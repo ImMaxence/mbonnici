@@ -6,6 +6,7 @@ import fr.mbonnici.portfolio.settings.SettingsRepository;
 import fr.mbonnici.portfolio.settings.SettingsService;
 import fr.mbonnici.portfolio.settings.SiteSettings;
 import fr.mbonnici.portfolio.storage.StorageService;
+import fr.mbonnici.portfolio.trash.TrashService;
 import java.nio.charset.StandardCharsets;
 import java.text.Normalizer;
 import java.time.Instant;
@@ -36,10 +37,12 @@ public class CvService {
 
     private final SettingsRepository repository;
     private final StorageService storage;
+    private final TrashService trash;
 
-    public CvService(SettingsRepository repository, StorageService storage) {
+    public CvService(SettingsRepository repository, StorageService storage, TrashService trash) {
         this.repository = repository;
         this.storage = storage;
+        this.trash = trash;
     }
 
     @Transactional(readOnly = true)
@@ -79,11 +82,14 @@ public class CvService {
         String lang = lang(language);
         SiteSettings s = load();
         String previous = s.getCvKey(lang);
+        if (previous != null) {
+            // to the bin, the file stays in the bucket until it is emptied
+            trash.put(new TrashService.Snapshot(TrashService.Kind.CV, fileName(s.getOwnerName(), lang), lang)
+                    .link("cv", "select cv_" + lang + "_key as key, cv_" + lang + "_size as size, cv_" + lang + "_at as at from site_settings")
+                    .keys(java.util.List.of(previous)));
+        }
         s.setCv(lang, null, null, null);
         repository.save(s);
-        if (previous != null) {
-            drop(previous);
-        }
         return Cv.of(s);
     }
 

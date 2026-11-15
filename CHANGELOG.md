@@ -7,6 +7,34 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [1.13.0] — 2026-11-15
+
+### Added
+- **Bin (Corbeille)**: a new back-office page, under Messages. What is deleted in the back office (a
+  project, a media or a cleanup of unused media, an experience, a course, a skill, a news item, a
+  message, a resume) goes there for 30 days instead of disappearing. "Restore" puts it back where it
+  was: a project with its pictures and its visit counts, a media back in its galleries and as the
+  cover or header picture it was, unless something took that place since. When the address of a
+  project or the name of a skill was used again in the meantime, the bin says so instead of making a
+  duplicate. "Delete for good" and "Empty the bin" erase at once; otherwise each item goes, files
+  included, after 30 days. The bin is not part of the backups.
+
+### Changed
+- **Tech news instead of testimonials**: the "Testimonials" section of the home and about pages is
+  now "Tech news": one numbered row per tool or project, with its title, its source, a summary and
+  the site it links to (the whole row is the link). In the back office the fields read Title,
+  Source, Summary and Link; the four first items show on the home page, all of them on the about
+  page. What was already typed stays as it is.
+- **Privacy policy**: it says that a deleted message spends 30 days in the bin before being erased.
+
+### Fixed
+- **Error log**: "ResizeObserver loop completed with undelivered notifications" no longer shows up
+  from the contact page. The scaling of the "I'm not a robot" box now waits for the next frame and
+  only changes when the width does, and that browser notice (which breaks nothing) is no longer
+  reported from any page.
+- **Back office, dark theme**: the number of unread messages in the menu is readable (white on the
+  lavender badge failed the contrast check).
+
 ## [1.12.0] — 2026-11-12
 
 ### Fixed

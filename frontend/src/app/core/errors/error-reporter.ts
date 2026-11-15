@@ -2,6 +2,12 @@ import { isPlatformBrowser } from '@angular/common';
 import { ErrorHandler, Injectable, PLATFORM_ID, inject } from '@angular/core';
 
 /**
+ * Browser notices raised as errors that break nothing: a ResizeObserver whose callback resized
+ * what it watches (the browser delivers the rest on the next frame), here or in a third-party frame
+ */
+const BENIGN = ['ResizeObserver loop completed with undelivered notifications', 'ResizeObserver loop limit exceeded'];
+
+/**
  * Sends the JavaScript errors of the site to the back office's error log (Journal), as an
  * anonymous beacon: the message, the stack and the page path, nothing about the visitor. At most
  * five reports per page load, the same error once; skipped with Do Not Track / Global Privacy
@@ -20,7 +26,7 @@ export class ErrorReporter {
     if (nav.doNotTrack === '1' || nav.globalPrivacyControl || typeof navigator.sendBeacon !== 'function') return;
     const err = error instanceof Error ? error : null;
     const message = (err ? `${err.name}: ${err.message}` : String(error ?? 'Unknown error')).slice(0, 2000);
-    if (!message.trim() || this.sent.has(message)) return;
+    if (!message.trim() || this.sent.has(message) || BENIGN.some((b) => message.includes(b))) return;
     this.sent.add(message);
     this.count++;
     const body = JSON.stringify({ message, stack: err?.stack?.slice(0, 12_000) ?? null, path: location.pathname });

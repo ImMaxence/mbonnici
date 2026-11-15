@@ -128,7 +128,7 @@ function sameKey(value: string | null | undefined): string {
       </div>
     </div>
 
-    <!-- ── Testimonials ────────────────────────────────────────────── -->
+    <!-- ── Tech news (stored as testimonials) ─────────────────────── -->
     <div class="panel">
       <div class="panel-head">
         <h2 class="panel-title" style="margin:0">{{ 'admin.profile.testimonials' | t }}</h2>
@@ -145,7 +145,7 @@ function sameKey(value: string | null | undefined): string {
                 <span class="muted"> · {{ role }}</span>
               }
               <app-missing-lang [fields]="[q.quote, q.role]" />
-              <p class="small faint quote-text">« {{ q.quote | l }} »</p>
+              <p class="small faint quote-text">{{ q.quote | l }}</p>
             </div>
             <div class="row" style="gap:.4rem">
               <button type="button" class="icon-btn" (click)="startTestimonial(q)" [appTip]="'admin.projects.edit' | t"><app-icon name="edit" [size]="15" /></button>
@@ -292,7 +292,7 @@ function sameKey(value: string | null | undefined): string {
               <textarea id="tm-quote" class="textarea" name="quote" rows="4" maxlength="600" [(ngModel)]="tm.quote[lang()]" required></textarea>
               <span class="field-hint">{{ (tm.quote[lang()] || '').length }} / 600</span>
             </div>
-            <div class="field span-2"><label for="tm-url">{{ 'admin.profile.quoteUrl' | t }}</label><input id="tm-url" class="input" type="url" name="url" [(ngModel)]="tm.url" placeholder="https://www.linkedin.com/in/…" /></div>
+            <div class="field span-2"><label for="tm-url">{{ 'admin.profile.quoteUrl' | t }}</label><input id="tm-url" class="input" type="url" name="url" [(ngModel)]="tm.url" placeholder="https://github.com/…" /></div>
             @if (error()) {
               <p class="field-error span-2" role="alert">{{ error() }}</p>
             }
@@ -599,7 +599,7 @@ export class AdminProfilePage implements HasUnsavedChanges {
   async deleteItem(section: Section, id: string): Promise<void> {
     const ok = await this.confirmDialog.ask({
       title: this.i18n.t('admin.profile.confirmDelete'),
-      message: this.i18n.t('admin.common.irreversible'),
+      message: this.i18n.t('admin.common.toTrash'),
       confirm: this.i18n.t('admin.profile.delete'),
       danger: true,
     });

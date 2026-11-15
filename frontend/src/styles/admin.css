@@ -148,7 +148,8 @@
 .admin-nav .badge {
   margin-left: auto;
   background: var(--accent);
-  color: #fff;
+  /* white on the light theme's blue, ink on the dark theme's lavender (white failed the contrast) */
+  color: var(--accent-fg);
 }
 
 .admin-user {

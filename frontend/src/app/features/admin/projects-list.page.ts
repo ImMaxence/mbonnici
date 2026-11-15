@@ -123,7 +123,7 @@ export class ProjectsListPage {
   async remove(p: AdminProject): Promise<void> {
     const ok = await this.confirmDialog.ask({
       title: this.i18n.t('admin.projects.confirmDelete', { title: this.i18n.l(p.title) }),
-      message: this.i18n.t('admin.common.irreversible'),
+      message: this.i18n.t('admin.common.toTrash'),
       confirm: this.i18n.t('admin.projects.delete'),
       danger: true,
     });

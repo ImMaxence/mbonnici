@@ -197,6 +197,7 @@ export class CvPanelComponent {
   async remove(l: CvLang): Promise<void> {
     const ok = await this.confirmDialog.ask({
       title: this.i18n.t('admin.cv.confirmRemove', { lang: this.i18n.t('admin.cv.lang.' + l) }),
+      message: this.i18n.t('admin.common.toTrash'),
       confirm: this.i18n.t('admin.cv.remove'),
       danger: true,
     });

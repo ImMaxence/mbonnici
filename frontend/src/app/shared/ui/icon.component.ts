@@ -42,6 +42,7 @@ const ICONS: Record<string, IconDef> = {
   calendar: { d: 'M4 6h16v14H4zM4 10h16M8 3v5M16 3v5M8 14h2M14 14h2M8 17h2' },
   pause: { d: 'M8.5 5v14M15.5 5v14' },
   play: { d: 'M7 4.5v15L19.5 12z' },
+  undo: { d: 'M9 14 4 9l5-5M4 9h10.5a5.5 5.5 0 0 1 0 11H11' },
   trash: { d: 'M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6' },
   edit: { d: 'M4 20h4l10.5-10.5a2.1 2.1 0 0 0-3-3L5 17z M13 7l3 3' },
   upload: { d: 'M12 16V4M6 10l6-6 6 6M4 20h16' },

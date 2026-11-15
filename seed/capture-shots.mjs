@@ -77,6 +77,17 @@ const PROJECTS = {
     ],
   },
   nailsbyanastasie: { live: 'https://nailsbyanastasie.fr' },
+  freeremovebg: {
+    mobileLive: 'https://freeremovebg.mbonnici.fr/fr',
+    desktop: [raw('FreeRemoveBg', 'docs/screenshots/landing-light.png')],
+    mobile: [raw('FreeRemoveBg', 'docs/screenshots/mobile-landing.png')],
+    gallery: ['editor-zones', 'step-4-result', 'editor-background', 'editor-lasso', 'landing-ai'].map((n) => raw('FreeRemoveBg', `docs/screenshots/${n}.png`)),
+  },
+  'politique-2027': {
+    mobileLive: 'https://politique-2027.mbonnici.fr/fr',
+    desktop: [raw('politique-2027', 'docs/home.png')],
+    gallery: ['gameplay', 'gameplay-school', 'gameplay-debate', 'gameplay-versus', 'gameplay-show'].map((n) => raw('politique-2027', `docs/${n}.png`)),
+  },
 };
 
 const phonesOnly = process.argv.includes('--phones');

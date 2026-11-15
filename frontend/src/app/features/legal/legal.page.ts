@@ -9,7 +9,7 @@ import { RevealDirective } from '../../shared/ui/reveal.directive';
 type LegalKey = 'legal' | 'privacy' | 'terms' | 'accessibility';
 
 /** to move forward whenever the legal texts of the locale files change */
-const TEXTS_UPDATED = '2026-11-09';
+const TEXTS_UPDATED = '2026-11-15';
 
 interface Section {
   h: string;

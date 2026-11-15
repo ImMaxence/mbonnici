@@ -131,6 +131,7 @@ export class AdminShellComponent {
         { path: '/admin/media', icon: 'image', key: 'media' },
         { path: '/admin/profile', icon: 'user', key: 'profile' },
         { path: '/admin/messages', icon: 'inbox', key: 'messages', badge: () => this.unread() },
+        { path: '/admin/trash', icon: 'trash', key: 'trash' },
       ],
     },
     {

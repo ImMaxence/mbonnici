@@ -252,7 +252,7 @@ export class MessagesPage {
   async remove(m: ContactMessage): Promise<void> {
     const ok = await this.confirmDialog.ask({
       title: this.i18n.t('admin.messages.confirmDelete'),
-      message: this.i18n.t('admin.common.irreversible'),
+      message: this.i18n.t('admin.common.toTrash'),
       confirm: this.i18n.t('admin.messages.delete'),
       danger: true,
     });

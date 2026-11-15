@@ -1,4 +1,4 @@
-import { TestimonialsComponent } from '../../shared/ui/testimonials.component';
+import { TechNewsComponent } from '../../shared/ui/tech-news.component';
 import { Component, computed, effect, inject, input } from '@angular/core';
 import { type Profile, type ProjectCard, type Settings } from '../../core/api/models';
 import { I18nService } from '../../core/i18n/i18n.service';
@@ -17,7 +17,7 @@ import { ToolboxComponent } from '../../shared/ui/toolbox.component';
 
 @Component({
   selector: 'app-about',
-  imports: [TranslatePipe, LocalizedPipe, NoDotPipe, LinkDirective, MagneticDirective, FooterComponent, IconComponent, MarkdownComponent, RevealDirective, ToolboxComponent, TestimonialsComponent],
+  imports: [TranslatePipe, LocalizedPipe, NoDotPipe, LinkDirective, MagneticDirective, FooterComponent, IconComponent, MarkdownComponent, RevealDirective, ToolboxComponent, TechNewsComponent],
   template: `
     <main id="main" class="page">
       <header class="container head">
@@ -145,13 +145,13 @@ import { ToolboxComponent } from '../../shared/ui/toolbox.component';
       }
 
       @if (profile()?.testimonials?.length) {
-      <!-- ── Testimonials ───────────────────────────────────────────── -->
+      <!-- ── Tech news ─────────────────────────────────────────────── -->
       <section class="section container">
         <div class="section-title">
-          <span class="eyebrow" appReveal>{{ 'home.testimonials' | t }}</span>
-          <h2 appReveal revealSplit="words">{{ 'home.testimonialsSub' | t }}</h2>
+          <span class="eyebrow" appReveal>{{ 'home.news' | t }}</span>
+          <h2 appReveal revealSplit="words">{{ 'home.newsSub' | t }}</h2>
         </div>
-        <app-testimonials [items]="profile()?.testimonials ?? []" />
+        <app-tech-news [items]="profile()?.testimonials ?? []" />
       </section>
       }
 

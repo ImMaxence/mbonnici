@@ -27,6 +27,7 @@ export const ADMIN_ROUTES: Routes = [
       { path: 'settings', loadComponent: () => import('./settings.page').then((m) => m.AdminSettingsPage), canDeactivate: [unsavedGuard] },
       { path: 'messages', loadComponent: () => import('./messages.page').then((m) => m.MessagesPage) },
       { path: 'backups', loadComponent: () => import('./backups.page').then((m) => m.BackupsPage) },
+      { path: 'trash', loadComponent: () => import('./trash.page').then((m) => m.TrashPage) },
       { path: 'errors', loadComponent: () => import('./errors.page').then((m) => m.ErrorsPage) },
       { path: 'changelog', loadComponent: () => import('./changelog.page').then((m) => m.ChangelogPage) },
     ],

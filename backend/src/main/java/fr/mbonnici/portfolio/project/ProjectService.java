@@ -13,6 +13,7 @@ import fr.mbonnici.portfolio.project.ProjectDtos.Detail;
 import fr.mbonnici.portfolio.project.ProjectDtos.MediaItem;
 import fr.mbonnici.portfolio.project.ProjectDtos.MediaRef;
 import fr.mbonnici.portfolio.project.ProjectDtos.Upsert;
+import fr.mbonnici.portfolio.trash.TrashService;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -33,10 +34,12 @@ public class ProjectService {
 
     private final ProjectRepository projects;
     private final MediaRepository mediaRepository;
+    private final TrashService trash;
 
-    public ProjectService(ProjectRepository projects, MediaRepository mediaRepository) {
+    public ProjectService(ProjectRepository projects, MediaRepository mediaRepository, TrashService trash) {
         this.projects = projects;
         this.mediaRepository = mediaRepository;
+        this.trash = trash;
     }
 
     // ── public ───────────────────────────────────────────────────────────────
@@ -115,10 +118,13 @@ public class ProjectService {
     @CacheEvict(value = CACHE, allEntries = true)
     @Transactional
     public void delete(UUID id) {
-        if (!projects.existsById(id)) {
-            throw new NotFoundException("Project");
-        }
-        projects.deleteById(id);
+        Project p = projects.findById(id).orElseThrow(() -> new NotFoundException("Project"));
+        // to the bin: the project, its pictures (the media themselves stay) and the visits counted for it
+        trash.put(new TrashService.Snapshot(TrashService.Kind.PROJECT, p.getTitle().filled().fr(), p.getSlug())
+                .rows("project", "t.id = ?", id)
+                .rows("project_media", "t.project_id = ?", id)
+                .link("analytics", "select id from analytics_event where project_id = ?", id));
+        projects.delete(p);
     }
 
     @CacheEvict(value = CACHE, allEntries = true)
